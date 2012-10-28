@@ -1,0 +1,54 @@
+<script type="text/javascript">
+$(function () {
+    var datasets = {
+    	{% for d in data %}
+    	
+    		{% if not loop.first %},{% endif %}
+    		"{{ d.name }}" :{
+    			label: "{{ d.label }}",
+    			data: [
+    				{% for r in d.data %}
+			    		{% if not loop.first %},{% endif %}
+			    		[ {{ r.x }}, {{ r.y }} ]
+			    	{% endfor %}
+    			]
+    		}
+    	{% endfor %}
+    };
+/*
+    var i = 0;
+    $.each(datasets, function(key, val) {
+        val.color = i;
+        ++i;
+    }); */
+    
+    // insert checkboxes 
+    var choiceContainer = $("#{{ choiceContainer }}");
+    $.each(datasets, function(key, val) {
+        choiceContainer.append('<br/><input type="checkbox" name="' + key +
+                               '" checked="checked" id="id' + key + '">' +
+                               '<label for="id' + key + '">'
+                                + val.label + '</label>');
+    });
+    choiceContainer.find("input").click(plotAccordingToChoices);
+
+    
+    function plotAccordingToChoices() {
+        var data = [];
+
+        choiceContainer.find("input:checked").each(function () {
+            var key = $(this).attr("name");
+            if (key && datasets[key])
+                data.push(datasets[key]);
+        });
+
+        if ( true )
+            $.plot($("#{{ graphContainer }}"), data, {
+                yaxis: { min: 0, color: "#9A6C3D" },
+                xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D" }
+            });
+    }
+
+    plotAccordingToChoices();
+});
+</script>

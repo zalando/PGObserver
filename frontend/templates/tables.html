@@ -1,0 +1,21 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'tables' %}
+{% block body %}
+
+<div class="container_12">
+	{% for s in systems: %}
+	<div class="grid_4">
+		<h3>Top 10 tables {{ s.h.settings.uiLongName }} <a href="/tables/alltables/{{ s.id }}">all tables</a></h3>
+		{{ s.t }}
+	</div>
+	<div class="grid_8">
+		<h4>Database size {{ s.h.settings.uiLongName }}</h4>
+		<div class="graphc" id="{{ s.id }}" style="width:100%;height:200px;"></div>
+		<div id="choices1"></div>
+		{{ s.g }}
+	</div>
+	<div class="clear"></div>
+	{% endfor %}
+</div>
+
+{% endblock %}

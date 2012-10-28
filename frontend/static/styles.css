@@ -1,0 +1,78 @@
+#navlist
+{
+margin: 0;
+padding: 0 0 20px 10px;
+border-bottom: 1px solid #E67F17;
+}
+
+#navcontainer { 
+margin: 0 0px 10px 0px;
+}
+
+#navlist ul, #navlist li
+{
+margin: 0;
+padding: 0;
+float : left;
+list-style-type: none;
+}
+
+#navlist a:link, #navlist a:visited
+{
+float: left;
+line-height: 14px;
+font-weight: bold;
+margin: 0 10px 4px 10px;
+text-decoration: none;
+color: #E67F17;
+}
+
+#navlist a:link#current, #navlist a:visited#current, #navlist a:hover
+{
+border-bottom: 4px solid #E67F17;
+padding-bottom: 2px;
+background: transparent;
+color: #E67F17;
+}
+
+#navlist li ul li a:hover
+{
+border-bottom: 1px solid #E67F17;
+padding-bottom: 2px;
+background: transparent;
+color: #E67F17;
+}
+
+#navlist a:hover { color: #E67F17; }
+
+#navlist li { position: relative; }
+#navlist ul { display: none; position: absolute; top: 12px; left: 0px; padding: 4px; background-color: #404040; }
+#navlist li:hover ul { display:block; }
+#navlist li ul li { display:block; float: clear; }
+
+#logrows td { font-size:12px; }
+#logrows a { font-size: 13px; }
+#logrows .more { font-size: 14px; border: 1px solid black; color:#444444;  }
+
+/* http://colorschemedesigner.com/#0.51KsOsOFfFf */
+
+h2 { font-size: 13px; color: #E65217; font-weight:800; }
+h3 { font-size: 14px; color: #E65217; font-weight:800; }
+h3 a { font-size: 13px; }
+
+h4 { font-size: 15px; color: #E65217; font-weight:800; }
+body { background-color: #404040; font-family: Verdana ; font-size: 13px; }
+
+.frontTable th { text-align: left;; font-size: 13px; color: #F6C262; }
+.frontTable td { font-size: 11px; color: #F6AD62; }
+
+a { color: #F6AD62; text-decoration: none; }
+.frontTable a { font-size: 11px; color: #F6AD62; text-decoration: none; }
+.frontTable .active { font-size: 11px; color: #E65217; text-decoration: none; }
+
+#reports .higher { color: #FF0000; font-weight:bold; }
+#reports .lower { color: #00FF00; }
+#reports th { font-size: 14px; color: #E65217; }
+#reports h2 { font-size: 15px; color: #E65217; font-weight:800; }
+#reports td { font-size: 13px; color: #F6AD62; }
+
