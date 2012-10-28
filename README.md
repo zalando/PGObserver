@@ -7,9 +7,9 @@ Tool to monitor PostgreSQL performance metrics including:
  * Table IO statistics
  * CPU load
 
-Data is gathered by a single Java application. Gather ntervals for the different metrics can be set on a per host per metric basis.
+Data is gathered by a single Java application. Gather intervals for the different metrics can be set on a per host per metric basis.
 
-The frontend is a Python 2.7 CherryPy app. See the screenshot folder for examples.
+The web frontend is a Python CherryPy app. See the screenshot folder for examples.
 
 A testdata.py script is included to generate minimalistic testdata.
 
