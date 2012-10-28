@@ -1,0 +1,6 @@
+.*swp
+.*swo
+*log
+*pyc
+.svn/
+/gatherer-maven/target/
