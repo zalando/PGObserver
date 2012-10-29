@@ -120,7 +120,7 @@ CREATE TABLE host_load (
 );
 
 CREATE TABLE host_cpu_stats (
-  cpu_host_id integer not null references host(host_id),
+  cpu_host_id integer not null references hosts(host_id),
   cpu_timestamp timestamp not null,
   cpu_user bigint,
   cpu_system bigint,
@@ -257,4 +257,4 @@ CREATE INDEX tables_t_host_id_idx ON tables USING btree (t_host_id);
 
 CREATE INDEX tag_members_tm_tag_id_idx ON tag_members USING btree (tm_tag_id);
 
-CREATE INDEX host_cpu_stats ( cpu_host_id, cpu_timestamp );
+CREATE INDEX ON host_cpu_stats ( cpu_host_id, cpu_timestamp );
