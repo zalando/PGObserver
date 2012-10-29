@@ -11,22 +11,22 @@ import tplE
 env = tplE.env
 
 class LogfileFrontend(object):
-    
+
         def __init__(self, hostId = 1):
             self.hostId = hostId
 
         def show(self):
             tmpl = env.get_template('logfiles.html')
 
-            graphtemp = flotgraph.Graph("tempfilesgraph")            
+            graphtemp = flotgraph.Graph("tempfilesgraph")
             graphtemp.addSeries('Temporary files','temp_files','#FF0000')
             tempfile_data = logdata.load_temporary_lines(self.hostId)
 
             for p in tempfile_data:
                 graphtemp.addPoint('temp_files', int(time.mktime(p[0].timetuple()) * 1000) , p[1])
 
-            grapherror = flotgraph.Graph("errorgraph")            
-            grapherror.addSeries('Errors','errors','#FF0000')     
+            grapherror = flotgraph.Graph("errorgraph")
+            grapherror.addSeries('Errors','errors','#FF0000')
             grapherror.addSeries('User','users','#FF9900')
             error_data = logdata.load_error_lines(self.hostId)
             last_x = 0
@@ -58,14 +58,14 @@ class LogfileFrontend(object):
                     graphtimeout.addPoint('timeout', (int(time.mktime(p[0].timetuple())) - 60)*1000, 0)
 
                 last_x = int(time.mktime(p[0].timetuple()))
-                                
+
                 graphtimeout.addPoint('timeout', int(time.mktime(p[0].timetuple()) * 1000) , p[1])
 
             timeout_data = logdata.load_user_timeout_lines(self.hostId)
             for p in timeout_data:
                 graphtimeout.addPoint('users', int(time.mktime(p[0].timetuple()) * 1000) , p[1])
 
-            graphwait = flotgraph.Graph("waitgraph")            
+            graphwait = flotgraph.Graph("waitgraph")
             graphwait.addSeries('Waits','waits','#FF0000')
             wait_data = logdata.load_wait_lines(self.hostId)
 

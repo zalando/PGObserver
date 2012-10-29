@@ -15,8 +15,8 @@ import tplE
 class Report(object):
     def index(self):
         data = reportdata.getLoadReportData()
-        
+
         table = tplE.env.get_template('report_basic.html')
         return table.render(hosts=hosts.hosts, data=data)
-        
+
     index.exposed = True

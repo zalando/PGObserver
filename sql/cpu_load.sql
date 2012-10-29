@@ -8,7 +8,7 @@ CREATE TYPE zz_utils.load_average AS ( load_1min real, load_5min real, load_15mi
 
 CREATE OR REPLACE FUNCTION zz_utils.get_load_average() RETURNS zz_utils.load_average AS
 $$
-""" 
+"""
   select * from zz_utils.get_load_average();
 """
 from os import getloadavg

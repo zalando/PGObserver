@@ -1,61 +1,61 @@
 <script type="text/javascript">
-$(function () {	
-	var xmin;
-	var xmax;
-	
-	var direction = true;
-	var _downX = 0;
-	var _upX = 0;
-	
+$(function () {
+   var xmin;
+   var xmax;
+
+   var direction = true;
+   var _downX = 0;
+   var _upX = 0;
+
     var datasets = [
-    	{% for d in data %}    	
-    		{% if not loop.first %},{% endif %}
-    		{
-    			label: "{{ d.label }}",
-    			color: "{{ d.color }}",
-    			data: [
-    				{% for r in d.data %}{% if not loop.first %},{% endif %}[ {{ r.x }}, {{ r.y }} ]{% endfor %}
-    			]
-    		}
-    	{% endfor %}
-    ];   		
-    
-    	$("#{{ graphContainer }}").bind("plotselected", function (event, ranges) {
-	        from = new Date(Math.floor(ranges.xaxis.from.toFixed(1)));
-	        to = new Date(Math.ceil(ranges.xaxis.to.toFixed(1)));	        
-	        xmin = ranges.xaxis.from;
-	        xmax = ranges.xaxis.to;
-	        
-	        if(!direction) {
-	        	xmin = null;
-	        	xmax = null;
-	        }
-	        
-	        $.plot($("#{{ graphContainer }}"), datasets, {
-	        		legend : { position: "nw" },
-	    			selection : { mode : "x" },
-    				grid : { clickable: true },
-                	yaxes: [ { min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: 80 , position: "left" } , { position: "right" , reserveSpace: true, labelWidth: 80 } ],
-                	xaxis: { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
-	    	});
-    	});
-    
-    	$("#{{ graphContainer }}").bind("mousedown", function (event, ranges) {
-   			_downX = event.clientX;
-   			_upX = event.clientX-1;
-    	});
-    	
-    	$("#{{ graphContainer }}").bind("mouseup", function (event, ranges) {
-    		_upX = event.clientX;
-   			direction = _upX > _downX;
-    	});
-    
+       {% for d in data %}
+          {% if not loop.first %},{% endif %}
+          {
+             label: "{{ d.label }}",
+             color: "{{ d.color }}",
+             data: [
+                {% for r in d.data %}{% if not loop.first %},{% endif %}[ {{ r.x }}, {{ r.y }} ]{% endfor %}
+             ]
+          }
+       {% endfor %}
+    ];
+
+       $("#{{ graphContainer }}").bind("plotselected", function (event, ranges) {
+           from = new Date(Math.floor(ranges.xaxis.from.toFixed(1)));
+           to = new Date(Math.ceil(ranges.xaxis.to.toFixed(1)));
+           xmin = ranges.xaxis.from;
+           xmax = ranges.xaxis.to;
+
+           if(!direction) {
+              xmin = null;
+              xmax = null;
+           }
+
+           $.plot($("#{{ graphContainer }}"), datasets, {
+                 legend : { position: "nw" },
+                selection : { mode : "x" },
+                grid : { clickable: true },
+                   yaxes: [ { min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: 80 , position: "left" } , { position: "right" , reserveSpace: true, labelWidth: 80 } ],
+                   xaxis: { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
+          });
+       });
+
+       $("#{{ graphContainer }}").bind("mousedown", function (event, ranges) {
+            _downX = event.clientX;
+            _upX = event.clientX-1;
+       });
+
+       $("#{{ graphContainer }}").bind("mouseup", function (event, ranges) {
+          _upX = event.clientX;
+            direction = _upX > _downX;
+       });
+
     $.plot($("#{{ graphContainer }}"), datasets, {
-	        		legend : { position: "nw" },
-	    			selection : { mode : "x" },
-    				grid : { clickable: true },
-                	yaxes: [ { min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: 80 , position: "left" } , { position: "right" , reserveSpace: true, labelWidth: 80 } ],
-                	xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
+                 legend : { position: "nw" },
+                selection : { mode : "x" },
+                grid : { clickable: true },
+                   yaxes: [ { min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: 80 , position: "left" } , { position: "right" , reserveSpace: true, labelWidth: 80 } ],
+                   xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
     });
 });
 </script>

@@ -1,19 +1,19 @@
 <script type="text/javascript">
 $(function () {
     var datasets = {
-    	{% for d in data %}
-    	
-    		{% if not loop.first %},{% endif %}
-    		"{{ d.name }}" :{
-    			label: "{{ d.label }}",
-    			data: [
-    				{% for r in d.data %}
-			    		{% if not loop.first %},{% endif %}
-			    		[ {{ r.x }}, {{ r.y }} ]
-			    	{% endfor %}
-    			]
-    		}
-    	{% endfor %}
+       {% for d in data %}
+
+          {% if not loop.first %},{% endif %}
+          "{{ d.name }}" :{
+             label: "{{ d.label }}",
+             data: [
+                {% for r in d.data %}
+                   {% if not loop.first %},{% endif %}
+                   [ {{ r.x }}, {{ r.y }} ]
+                {% endfor %}
+             ]
+          }
+       {% endfor %}
     };
 /*
     var i = 0;
@@ -21,8 +21,8 @@ $(function () {
         val.color = i;
         ++i;
     }); */
-    
-    // insert checkboxes 
+
+    // insert checkboxes
     var choiceContainer = $("#{{ choiceContainer }}");
     $.each(datasets, function(key, val) {
         choiceContainer.append('<br/><input type="checkbox" name="' + key +
@@ -32,7 +32,7 @@ $(function () {
     });
     choiceContainer.find("input").click(plotAccordingToChoices);
 
-    
+
     function plotAccordingToChoices() {
         var data = [];
 

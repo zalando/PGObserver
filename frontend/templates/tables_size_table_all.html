@@ -1,20 +1,20 @@
 <table class="frontTable" style="width:100%"><!-- {{ order }} -->
-	<thead><th><a {% if order==1 %}class="active"{% endif %} href="/tables/alltables/{{hostid}}/1">Name</a></th>
-		   <th><a {% if order==2 or order == None %}class="active"{% endif %} href="/tables/alltables/{{hostid}}">Size</a></th>
-		   <th><a {% if order==3 %}class="active"{% endif %} href="/tables/alltables/{{hostid}}/3">+ 7d</a></th>
-		   <th><a {% if order==4 %}class="active"{% endif %} href="/tables/alltables/{{hostid}}/4">+% 7d</a></th>
-		   <th><a {% if order==5 %}class="active"{% endif %} href="/tables/alltables/{{hostid}}/5">Index Size</a></th>
-		   <th><a {% if order==6 %}class="active"{% endif %}href="/tables/alltables/{{hostid}}/6">+ 7d</a></th>
-		   <th><a {% if order==7 %}class="active"{% endif %}href="/tables/alltables/{{hostid}}/7">+% 7d</a></th>
-		   </thead>
-	{% for row in list: %}
-		<tr><td><a target="_new" href="/tables/show/{{hostid}}/{{row.schema}}.{{row.name}}">{{ row.schema }}.{{ row.name }}</a></td>
-			<td align="right">{{ row.table_size_pretty }}</td>
-			<td align="right">{{ row.table_size_delta }}</td>	
-			<td align="right">{{ row.growth }} %</td>
-			<td align="right">{{ row.index_size_pretty }}</td>
-			<td align="right">{{ row.index_size_delta }}</td>	
-			<td align="right">{{ row.growth_index }} %</td>
-		</tr>
-	{% endfor %}
+   <thead><th><a {% if order==1 %}class="active"{% endif %} href="/tables/alltables/{{hostid}}/1">Name</a></th>
+         <th><a {% if order==2 or order == None %}class="active"{% endif %} href="/tables/alltables/{{hostid}}">Size</a></th>
+         <th><a {% if order==3 %}class="active"{% endif %} href="/tables/alltables/{{hostid}}/3">+ 7d</a></th>
+         <th><a {% if order==4 %}class="active"{% endif %} href="/tables/alltables/{{hostid}}/4">+% 7d</a></th>
+         <th><a {% if order==5 %}class="active"{% endif %} href="/tables/alltables/{{hostid}}/5">Index Size</a></th>
+         <th><a {% if order==6 %}class="active"{% endif %}href="/tables/alltables/{{hostid}}/6">+ 7d</a></th>
+         <th><a {% if order==7 %}class="active"{% endif %}href="/tables/alltables/{{hostid}}/7">+% 7d</a></th>
+         </thead>
+   {% for row in list: %}
+      <tr><td><a target="_new" href="/tables/show/{{hostid}}/{{row.schema}}.{{row.name}}">{{ row.schema }}.{{ row.name }}</a></td>
+         <td align="right">{{ row.table_size_pretty }}</td>
+         <td align="right">{{ row.table_size_delta }}</td>
+         <td align="right">{{ row.growth }} %</td>
+         <td align="right">{{ row.index_size_pretty }}</td>
+         <td align="right">{{ row.index_size_delta }}</td>
+         <td align="right">{{ row.growth_index }} %</td>
+      </tr>
+   {% endfor %}
 </table>

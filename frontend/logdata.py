@@ -9,19 +9,19 @@ _filter = ''
 
 def setFilter(users):
     global _filter
-    
-    _filter = ''    
+
+    _filter = ''
     for u in users:
         if _filter != '':
             _filter += ' OR '
         _filter += "user_name LIKE '"+u+"'"
-        
+
     if _filter != '':
         _filter = '(' + _filter + ')'
 
 def get_temporary_files_query(host_id,interval = None):
     table_name = _tables[host_id]
-    
+
     if(interval==None):
         interval = "AND log_time > ( 'now'::timestamp - '15 days'::interval ) "
     else:
@@ -30,7 +30,7 @@ def get_temporary_files_query(host_id,interval = None):
     sql = """SELECT date_trunc('hour'::text, log_time) + floor(date_part('minute'::text, log_time) / 10::double precision) * '00:10:00'::interval AS xaxis,
                      count(1) AS yaxis
                 FROM log_file_data."""+table_name+""" WHERE message like '%temporary%' """+interval+""" GROUP BY date_trunc('hour'::text, log_time) + floor(date_part('minute'::text, log_time) / 10::double precision) * '00:10:00'::interval ORDER BY 1 asc"""
-    
+
     return sql
 
 def load_temporary_lines(host_id, interval = None):
@@ -50,12 +50,12 @@ def get_filted_query(host_id, _filter = None, interval = None):
 
     if _filter == None:
         _filter = ""
-    
+
     if(interval==None):
         interval = ""
     else:
         interval = "log_time > " + interval
-    
+
     if interval != "" and _filter != "":
         interval = " AND " + interval
 

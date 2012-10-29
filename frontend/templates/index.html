@@ -4,62 +4,62 @@
 {% block body %}
 
 <div class="container_12">
-	<div class="grid_12">
-		<h4>Load Average 15min Sprocs only <a href="sprocs/all/{{hostid}}">show all sprocs</a></h4>
-		<div id="graph1" class="graphc" style="width:100%;height:200px;"></div>
-		<div id="choices1"></div>
-		{{ graph1 }}
-	</div>
+   <div class="grid_12">
+      <h4>Load Average 15min Sprocs only <a href="sprocs/all/{{hostid}}">show all sprocs</a></h4>
+      <div id="graph1" class="graphc" style="width:100%;height:200px;"></div>
+      <div id="choices1"></div>
+      {{ graph1 }}
+   </div>
 
-	<div class="clear"></div>
-	
-	<div class="grid_4">
-		<h3>Top {{ limit }} Sprocs last 1 hour by total run time</h3>
-		{{ top10hours1total }}
-	</div>
-	<div class="grid_4">
-		<h3>Top {{ limit }} Sprocs last 1 hour by total calls</h3>
-		{{ top10hours1calls }}
-	</div>
-	<div class="grid_4">
-		<h3>Top {{ limit }} Sprocs last 1 hour by avg. run time</h3>
-		{{ top10hours1avg }}
-	</div>
-	
-	<div class="clear"></div>
-	
-	<div class="grid_4">
-		<h3>Top {{ limit }} Sprocs last 3 hours by total run time</h3>
-		{{ top10hours3total }}
-	</div>
-	<div class="grid_4">
-		<h3>Top {{ limit }} Sprocs last 3 hours by total calls</h3>
-		{{ top10hours3calls }}
-	</div>
-	<div class="grid_4">
-		<h3>Top {{ limit }} Sprocs last 3 hours by avg. run time</h3>
-		{{ top10hours3avg }}
-	</div>
-	
-	<div class="clear"></div>
-	
-	<div class="grid_12">
-		<h4>Database size <a href="/tables/alltables/{{hostid}}">all tables</a></h4>
-		<div class="graphc" id="graph_size" style="width:100%;height:200px;"></div>
-		<div id="graph_size_choice"></div>
-		{{ graph_size }}
-	</div>
-	
-		<div class="clear"></div>
+   <div class="clear"></div>
+
+   <div class="grid_4">
+      <h3>Top {{ limit }} Sprocs last 1 hour by total run time</h3>
+      {{ top10hours1total }}
+   </div>
+   <div class="grid_4">
+      <h3>Top {{ limit }} Sprocs last 1 hour by total calls</h3>
+      {{ top10hours1calls }}
+   </div>
+   <div class="grid_4">
+      <h3>Top {{ limit }} Sprocs last 1 hour by avg. run time</h3>
+      {{ top10hours1avg }}
+   </div>
+
+   <div class="clear"></div>
+
+   <div class="grid_4">
+      <h3>Top {{ limit }} Sprocs last 3 hours by total run time</h3>
+      {{ top10hours3total }}
+   </div>
+   <div class="grid_4">
+      <h3>Top {{ limit }} Sprocs last 3 hours by total calls</h3>
+      {{ top10hours3calls }}
+   </div>
+   <div class="grid_4">
+      <h3>Top {{ limit }} Sprocs last 3 hours by avg. run time</h3>
+      {{ top10hours3avg }}
+   </div>
+
+   <div class="clear"></div>
+
+   <div class="grid_12">
+      <h4>Database size <a href="/tables/alltables/{{hostid}}">all tables</a></h4>
+      <div class="graphc" id="graph_size" style="width:100%;height:200px;"></div>
+      <div id="graph_size_choice"></div>
+      {{ graph_size }}
+   </div>
+
+      <div class="clear"></div>
 
     {% if settings.tags %}
-	
-	<div class="grid_12">
-		<h4>Load by Tag</h4>
-		<div class="graphc" id="graphtag" style="width:100%;height:200px;"></div>
-		<div id="graph_tag_choice"></div>
-		{{ graphtag }}
-	</div>
+
+   <div class="grid_12">
+      <h4>Load by Tag</h4>
+      <div class="graphc" id="graphtag" style="width:100%;height:200px;"></div>
+      <div id="graph_tag_choice"></div>
+      {{ graphtag }}
+   </div>
     {% endif %}
 </div>
 

@@ -228,7 +228,7 @@ Changes:
   issue 90).
 
 - Gradient bars (suggestion by stefpet).
-  
+
 - Added a "plotunselected" event which is triggered when the selection
   is removed, see "selection" example (suggestion by Meda Ugo);
 
@@ -257,7 +257,7 @@ Changes:
 
 - Added pointOffset method for converting a point in data space to an
   offset within the placeholder.
-  
+
 - Plugin system: register an init method in the $.flot.plugins array
   to get started, see PLUGINS.txt for details on how to write plugins
   (it's easy). There are also some extra methods to enable access to
@@ -267,7 +267,7 @@ Changes:
   crunching the data and doing the plot. This can be used to modify
   Flot without changing the source, useful for writing plugins. Some
   hooks are defined, more are likely to come.
-  
+
 - Threshold plugin: you can set a threshold and a color, and the data
   points below that threshold will then get the color. Useful for
   marking data below 0, for instance.
@@ -396,7 +396,7 @@ New option for bars "align". Set it to "center" to center the bars on
 the value they represent.
 
 setSelection now takes a second parameter which you can use to prevent
-the method from firing the "plotselected" handler. 
+the method from firing the "plotselected" handler.
 
 Using the "container" option in legend now overwrites the container
 element instead of just appending to it (fixes infinite legend bug,
@@ -450,7 +450,7 @@ information about the axis. It has min, max, tickDecimals, tickSize.
 
 Added support for segmented lines (based on patch from Michael
 MacDonald) and for ignoring null and bad values (suggestion from Nick
-Konidaris and joshwaihi). 
+Konidaris and joshwaihi).
 
 Added support for changing the border width (joebno and safoo).
 Label colors can be changed via CSS by selecting the tickLabel class.

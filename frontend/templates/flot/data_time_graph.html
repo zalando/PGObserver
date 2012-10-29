@@ -1,68 +1,68 @@
 <script type="text/javascript">
 $(function () {
-	var xmin;
-	var xmax;
-	
-	var direction = true;
-	var _downX = 0;
-	var _upX = 0;
+   var xmin;
+   var xmax;
+
+   var direction = true;
+   var _downX = 0;
+   var _upX = 0;
 
     var datasets = [
-    	{% for d in data %}    	
-    		{% if not loop.first %},{% endif %}
-    		{
-    			label: "{{ d.label }}",
-    			color: "{{ d.color }}",
-    			data: [
-    				{% for r in d.data %}{% if not loop.first %},{% endif %}[ {{ r.x }}, {{ r.y }} ]{% endfor %}
-    			]
-    		}
-    	{% endfor %}
+       {% for d in data %}
+          {% if not loop.first %},{% endif %}
+          {
+             label: "{{ d.label }}",
+             color: "{{ d.color }}",
+             data: [
+                {% for r in d.data %}{% if not loop.first %},{% endif %}[ {{ r.x }}, {{ r.y }} ]{% endfor %}
+             ]
+          }
+       {% endfor %}
     ];
-    
+
       function suffixFormatter( val, axis) {
-      	if ( val > 300000 ) {
-      		return (val / (60 * 1000) ).toFixed(2) + "m";
-      	}
-      	else {
-      		return (val/1000).toFixed(2) + "s";
-      	}
-	  }
-	  
-	  	  $("#{{ graphContainer }}").bind("plotselected", function (event, ranges) {
-	        from = new Date(Math.floor(ranges.xaxis.from.toFixed(1)));
-	        to = new Date(Math.ceil(ranges.xaxis.to.toFixed(1)));	        
-	        xmin = ranges.xaxis.from;
-	        xmax = ranges.xaxis.to;
-	        
-	        if(!direction) {
-	        	xmin = null;
-	        	xmax = null;
-	        }
-	        
-	        $.plot($("#{{ graphContainer }}"), datasets, {
-	        		legend : { position: "nw" },
-	    			selection : { mode : "x" },
-    				grid : { clickable: true },
+         if ( val > 300000 ) {
+            return (val / (60 * 1000) ).toFixed(2) + "m";
+         }
+         else {
+            return (val/1000).toFixed(2) + "s";
+         }
+     }
+
+          $("#{{ graphContainer }}").bind("plotselected", function (event, ranges) {
+           from = new Date(Math.floor(ranges.xaxis.from.toFixed(1)));
+           to = new Date(Math.ceil(ranges.xaxis.to.toFixed(1)));
+           xmin = ranges.xaxis.from;
+           xmax = ranges.xaxis.to;
+
+           if(!direction) {
+              xmin = null;
+              xmax = null;
+           }
+
+           $.plot($("#{{ graphContainer }}"), datasets, {
+                 legend : { position: "nw" },
+                selection : { mode : "x" },
+                grid : { clickable: true },
                 yaxis: { min: 0, color: "#9A6C3D" , tickFormatter: suffixFormatter },
                 xaxis: { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
-	    	});
-    	});
-    	
-   		$("#{{ graphContainer }}").bind("mousedown", function (event, ranges) {
-   			_downX = event.clientX;
-   			_upX = event.clientX-1;
-    	});
-    	
-    	$("#{{ graphContainer }}").bind("mouseup", function (event, ranges) {
-    		_upX = event.clientX;
-   			direction = _upX > _downX;
-    	});
-    
+          });
+       });
+
+         $("#{{ graphContainer }}").bind("mousedown", function (event, ranges) {
+            _downX = event.clientX;
+            _upX = event.clientX-1;
+       });
+
+       $("#{{ graphContainer }}").bind("mouseup", function (event, ranges) {
+          _upX = event.clientX;
+            direction = _upX > _downX;
+       });
+
     $.plot($("#{{ graphContainer }}"), datasets, {
-	        		legend : { position: "nw" },
-	    			selection : { mode : "x" },
-    				grid : { clickable: true },
+                 legend : { position: "nw" },
+                selection : { mode : "x" },
+                grid : { clickable: true },
                 yaxis: { min: 0, color: "#9A6C3D" , tickFormatter: suffixFormatter },
                 xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
     });

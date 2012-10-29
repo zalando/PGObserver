@@ -14,31 +14,31 @@ from jinja2 import Environment, FileSystemLoader
 import tplE
 
 class Show(object):
-    
+
     def default(self, *p, **params):
             graphcalls= flotgraph.Graph("graphcalls")
             graphcalls.addSeries('Number of calls', 'calls')
-            
+
             graphtime= flotgraph.TimeGraph("graphruntime")
             graphtime.addSeries('Total run time', 'runtime')
-            
+
             graphavg= flotgraph.TimeGraph("graphavg")
             graphavg.addSeries('Average run time', 'avg')
-            
+
             graphavgself= flotgraph.TimeGraph("graphselfavg")
             graphavgself.addSeries('Average self time', 'avgself')
-            
+
             if(len(p)<=1):
                 return """Error: Not enough URL paramter"""
-            
+
             hostId = p[0]
             name = p[1]
-            
+
             if len(p) > 2:
                 sprocNr = p[2]
             else:
                 sprocNr = None
-            
+
             data = sprocdata.getSingleSprocData( name, hostId , None, sprocNr)
 
             for p in data['total_time']:
@@ -83,16 +83,16 @@ class SprocFrontend(object):
             print ( len(d['avg_time']) )
             for p in d['avg_time']:
                 graph.addPoint('avg', int(time.mktime(p[0].timetuple()) * 1000) , p[1])
-                
+
             list.append( {'graph': graph.render() , 'name': s[0:s.find("(")] , 'i': i } )
         tpl = tplE.env.get_template('all_sprocs.html')
         return tpl.render(graphs=list)
-    
+
     def __init__(self):
         self.show = Show()
-    
+
     def index(self):
         return self.default()
-    
+
     index.exposed = True
     all.exposed = True

@@ -32,21 +32,21 @@ def lru_cache(lifetime=60,maxsize=100):
                     wrapper.misses += 1
                 else:
                     print ( "found entry" )
-                    wrapper.hits += 1                
+                    wrapper.hits += 1
                     result = result['result']
-                    
+
             except KeyError:
                 result = user_function(*args, **kwds)
                 wrapper.misses += 1
                 if len(cache) >= maxsize:
                     cache.popitem(0)
-                    
+
             cache[key] = { 'result' : result, 'validTo': time.time()+lifetime }
-            
+
             return result
-        
+
         wrapper.hits = wrapper.misses = 0
-        
+
         return wrapper
-    
+
     return decorating_function

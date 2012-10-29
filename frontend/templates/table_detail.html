@@ -3,111 +3,111 @@
 {% block body %}
 
 <div class="container_12">
-	<div class="grid_12">
-	<h4>Table details for: {{ name }}</h4>
-	</div>
-	<div class="clear">
-	</div>
-	
-	<div class="grid_12">
-		<h3>Table size</h3>
-		<div class="graphc" id="graphtablesize" style="width:100%;height:240px;"></div>
-		{{ graphtablesize }}
-	</div>
-	<div class="clear"></div>
-	
-	<div class="grid_12">
-		<h3>Index size</h3>
-		<div class="graphc" id="graphindexsize" style="width:100%; height:240px;">
-		</div>
-		{{ graphindexsize }}
-	</div>
-	
-	<div class="clear">	
-	</div>
-	
-	<div class="grid_12">
-		<h3>Sequential scans</h3>
-		<div class="graphc" id="graphseqscans" style="width:100%; height:240px;">
-		</div>
-		{{ graphseqscans }}
-	</div>
-			
-	<div class="clear">	
-	</div>
-	
-	<div class="grid_12">
-		<h3>Index scans</h3>
-		<div class="graphc" id="graphindexscans" style="width:100%; height:240px;">
-		</div>
-		{{ graphindexscans }}
-	</div>
-	
-	<div class="clear">	
-	</div>
-	
-	<div class="grid_12">
-		<h3>Index IO Stats ( Buffer hits )</h3>
-		<div class="graphc" id="graphindexiob" style="width:100%; height:240px;">
-		</div>
-		{{ graphindexiob }}
-	</div>
-	
-	<div class="clear">	
-	</div>
-	
-	<div class="grid_12">
-		<h3>Index IO Stats ( Disc hits )</h3>
-		<div class="graphc" id="graphindexiod" style="width:100%; height:240px;">
-		</div>
-		{{ graphindexiod }}
-	</div>
-	
-	<div class="clear">	
-	</div>
-	
-	<div class="grid_12">
-		<h3>Heap IO Stats</h3>
-		<div class="graphc" id="graphheapiob" style="width:100%; height:240px;">
-		</div>
-		{{ graphheapiob }}
-	</div>
-	
-	<div class="clear"></div>
-	
-	<div class="grid_12">
-		<h3>Heap IO Stats</h3>
-		<div class="graphc" id="graphheapiod" style="width:100%; height:240px;">
-		</div>
-		{{ graphheapiod }}
-	</div>
-	
-	<div class="clear"></div>
-	
-	<div class="grid_12">
-		<h3>Inserts</h3>
-		<div class="graphc" id="gtupins" style="width:100%; height:240px;">
-		</div>
-		{{ gtupins }}
-	</div>
-	
-	<div class="clear"></div>
-	
-	<div class="grid_12">
-		<h3>Updates</h3>
-		<div class="graphc" id="gtupupd" style="width:100%; height:240px;">
-		</div>
-		{{ gtupupd }}
-	</div>
-	
-	<div class="clear"></div>
-	
-	<div class="grid_12">
-		<h3>Deletes</h3>
-		<div class="graphc" id="gtupdel" style="width:100%; height:240px;">
-		</div>
-		{{ gtupdel }}
-	</div>
+   <div class="grid_12">
+   <h4>Table details for: {{ name }}</h4>
+   </div>
+   <div class="clear">
+   </div>
+
+   <div class="grid_12">
+      <h3>Table size</h3>
+      <div class="graphc" id="graphtablesize" style="width:100%;height:240px;"></div>
+      {{ graphtablesize }}
+   </div>
+   <div class="clear"></div>
+
+   <div class="grid_12">
+      <h3>Index size</h3>
+      <div class="graphc" id="graphindexsize" style="width:100%; height:240px;">
+      </div>
+      {{ graphindexsize }}
+   </div>
+
+   <div class="clear">
+   </div>
+
+   <div class="grid_12">
+      <h3>Sequential scans</h3>
+      <div class="graphc" id="graphseqscans" style="width:100%; height:240px;">
+      </div>
+      {{ graphseqscans }}
+   </div>
+
+   <div class="clear">
+   </div>
+
+   <div class="grid_12">
+      <h3>Index scans</h3>
+      <div class="graphc" id="graphindexscans" style="width:100%; height:240px;">
+      </div>
+      {{ graphindexscans }}
+   </div>
+
+   <div class="clear">
+   </div>
+
+   <div class="grid_12">
+      <h3>Index IO Stats ( Buffer hits )</h3>
+      <div class="graphc" id="graphindexiob" style="width:100%; height:240px;">
+      </div>
+      {{ graphindexiob }}
+   </div>
+
+   <div class="clear">
+   </div>
+
+   <div class="grid_12">
+      <h3>Index IO Stats ( Disc hits )</h3>
+      <div class="graphc" id="graphindexiod" style="width:100%; height:240px;">
+      </div>
+      {{ graphindexiod }}
+   </div>
+
+   <div class="clear">
+   </div>
+
+   <div class="grid_12">
+      <h3>Heap IO Stats</h3>
+      <div class="graphc" id="graphheapiob" style="width:100%; height:240px;">
+      </div>
+      {{ graphheapiob }}
+   </div>
+
+   <div class="clear"></div>
+
+   <div class="grid_12">
+      <h3>Heap IO Stats</h3>
+      <div class="graphc" id="graphheapiod" style="width:100%; height:240px;">
+      </div>
+      {{ graphheapiod }}
+   </div>
+
+   <div class="clear"></div>
+
+   <div class="grid_12">
+      <h3>Inserts</h3>
+      <div class="graphc" id="gtupins" style="width:100%; height:240px;">
+      </div>
+      {{ gtupins }}
+   </div>
+
+   <div class="clear"></div>
+
+   <div class="grid_12">
+      <h3>Updates</h3>
+      <div class="graphc" id="gtupupd" style="width:100%; height:240px;">
+      </div>
+      {{ gtupupd }}
+   </div>
+
+   <div class="clear"></div>
+
+   <div class="grid_12">
+      <h3>Deletes</h3>
+      <div class="graphc" id="gtupdel" style="width:100%; height:240px;">
+      </div>
+      {{ gtupdel }}
+   </div>
 </div>
 
 {% endblock %}

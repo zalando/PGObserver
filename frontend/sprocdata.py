@@ -32,37 +32,37 @@ def getSprocsOrderedBy( hostId, order = " ORDER BY SUM(delta_total_time) DESC"):
                FROM ( """ + viewSprocs() + """ ) t JOIN monitor_data.sprocs ON sp_sproc_id = sproc_id
                WHERE sproc_host_id = """ + str(hostId) + """
                GROUP BY sproc_name
-             """ + order + """;     
+             """ + order + """;
           """
-          
+
     conn = DataDB.getDataConnection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    
+
     list= []
     cur.execute( sql )
-    
+
     for r in cur:
         list.append ( r['sproc_name'] )
-    
+
     cur.close()
     DataDB.closeDataConnection(conn)
     return list
 
 def getSingleSprocSQL(name, hostId = 1, interval=None, sprocNr = None):
-    
+
     if name[-1:]!=")":
         name = name + "("
-    
+
     if(interval==None):
         interval = "AND sp_timestamp > ('now'::timestamp-'23 days'::interval)"
     else:
         interval = "AND sp_timestamp > " + interval
-        
+
     if sprocNr == None:
         nameSql = """'"""+name+"""%'"""
     else:
         nameSql = """( SELECT DISTINCT sproc_name FROM monitor_data.sprocs sp WHERE sp.sproc_name LIKE '"""+name+"""%' AND sp.sproc_host_id = """ + str(hostId) + """ ORDER BY sproc_name ASC LIMIT 1 OFFSET """ + str(sprocNr) + """)"""
-        
+
     sql = """SELECT ( SELECT sprocs.sproc_name
                         FROM monitor_data.sprocs
                        WHERE sprocs.sproc_id = t.sp_sproc_id) AS name,
@@ -84,31 +84,31 @@ def getSingleSprocSQL(name, hostId = 1, interval=None, sprocNr = None):
           ORDER BY sproc_performance_data.sp_timestamp) t
           GROUP BY t.sp_sproc_id, date_trunc('hour'::text, t.sp_timestamp) + floor(date_part('minute'::text, t.sp_timestamp) / 15::double precision) * '00:15:00'::interval
           ORDER BY date_trunc('hour'::text, t.sp_timestamp) + floor(date_part('minute'::text, t.sp_timestamp) / 15::double precision) * '00:15:00'::interval"""
-    
+
     print( sql )
-    
+
     return sql;
 
 def getSingleSprocData(name, hostId=1, interval=None, sprocNr = None):
     conn = DataDB.getDataConnection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    
+
     cur.execute( getSingleSprocSQL(name, hostId, interval, sprocNr ) )
-                
+
     data = { 'calls' : [], 'self_time': [], 'total_time' : [] , 'avg_time' : [] , 'avg_self_time': [] , 'name' : name }
-    
+
     for r in cur:
         data['calls'].append( ( r['xaxis'] , r['d_calls'] ) )
         data['total_time'].append ( ( r['xaxis'] , r['d_total_time'] ) )
         data['self_time'].append ( ( r['xaxis'] , r['d_self_time'] ) )
         data['avg_time'].append ( ( r['xaxis'] , r['d_avg_time'] ) )
         data['avg_self_time'].append ( ( r['xaxis'] , r['d_avg_self_time'] ) )
-        
+
     cur.close()
     DataDB.closeDataConnection(conn)
-    
+
     return data
-    
+
 def getAllSprocs():
     pass
 
@@ -127,20 +127,20 @@ def getSprocDataByTags():
     and tm_sproc_name = sproc_name
     and tm_schema = get_noversion_name(sproc_schema)
   group by tm_tag_id , "xaxis" order by 4 asc;"""
-  
-  
+
+
     conn = DataDB.getDataConnection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    
+
     cur.execute(sql)
-    
+
     data = collections.defaultdict(list)
-    
+
     for r in cur:
         data[r['tm_tag_id']].append((r['xaxis'], r['yaxis_t'], r['yaxis_c']))
-        
+
     cur.close()
     DataDB.closeDataConnection(conn)
-        
+
     return data
-    
+
