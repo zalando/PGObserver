@@ -39,7 +39,7 @@ SET search_path = public, pg_catalog;
 
 CREATE FUNCTION get_noversion_name(n text) RETURNS text
     LANGUAGE sql IMMUTABLE
-    AS $_$ SELECT substring ( $1 from 'z[a-z]{1,2}_api|z[a-z]{1,2}_data' ) $_$;
+    AS $_$ SELECT substring ( $1 from 'z[a-z]{1,4}_api|z[a-z]{1,2}_data' ) $_$;
 
 --
 -- Name: group_date(timestamp without time zone, double precision); Type: FUNCTION; Schema: public;
@@ -95,7 +95,14 @@ CREATE TABLE hosts (
     host_user text,
     host_password text,
     host_db text,
-    host_settings text DEFAULT '{ "settings" : { } }'::text NOT NULL,
+    host_settings text DEFAULT '{
+"loadGatherInterval": 5,
+"tableIoGatherInterval": 10,
+"sprocGatherInterval": 5,
+"tableStatsGatherInterval": 10,
+"uiLongName":"longName",
+"uiShortName":"lN"
+}'::text NOT NULL,
     host_group_id integer,
     host_enabled boolean DEFAULT false NOT NULL,
     primary key ( host_id )
