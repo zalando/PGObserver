@@ -18,9 +18,11 @@ Visit us at http://tech.zalando.org
 Setup
 -----
 
- * Create schema from sql/schema.sql
- * Copy frontend/default_config.conf to home folder
+ * Right now the gathered data needs to be on the same machine as the java gatherer
+ * Create schema from sql/schema.sql in localhost:5432/dbmonitor from where gatherer will be running
+ * Copy frontend/default_config.conf to home folder ~/.pgobserver.conf
  * Edit monitor_data.hosts table to include the databases you want to monitor
+ * Build monitor using maven, should yield one .jar file which you can run using the run.sh script
  * To connect to a database create only an unprivileged user, this user will be able to read all the required data
  * For CPU load created the stored procedure from sql/cpuload.sql , this is a plpythonu function
 
