@@ -6,6 +6,7 @@ import MonitorFrontend
 import tablesfrontend
 import sprocsfrontend
 import logfrontend
+import logdata
 import report
 import hosts
 
@@ -32,11 +33,11 @@ def main():
     with open(args.config, 'rb') as fd:
         settings = json.load(fd)
 
-    conn_string = "dbname=" + settings['database']['name'] 
-                  + " host="+settings['database']['host'] 
-                  + " user="+ settings['database']['frontend_user'] 
-                  + " password="+ settings['database']['frontend_password'] 
-                  + " port="+ settings['database']['port']
+    conn_string = ' '.join( ( "dbname=" + settings['database']['name'],
+                              "host="+settings['database']['host'],
+                              "user="+ settings['database']['frontend_user'],
+                              "password="+ settings['database']['frontend_password'],
+                              "port="+ str(settings['database']['port']) ) )
 
     print "Setting connection string to ... " + conn_string 
 
@@ -53,7 +54,7 @@ def main():
                '/static' : {'tools.staticdir.dir' : 'static' ,
                             'tools.staticdir.on' : True } } )
 
-    tplE.setup()
+    tplE.setup( settings )
 
     root = None
 

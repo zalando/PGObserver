@@ -17,8 +17,10 @@ def setup(settings = None):
     if env != None:
         return
 
-    if settings != None:
+    if settings == None:
         _settings = {"tags":False,"sizeOverview":False,"logfiles":False}
+    else:
+        _settings = settings['features']
 
     env = Environment(loader=FileSystemLoader('templates'))
 
