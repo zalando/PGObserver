@@ -18,11 +18,11 @@ Visit us at http://tech.zalando.org
 Setup
 -----
 
- * Create schema from sql/schema.sql in localhost:5432/dbmonitor from where gatherer will be running
+ * Create schema from sql/schema.sql where you want to store data
  * Copy pgobserver.conf to home folder ~/.pgobserver.conf
  * Configure .pgobserver.conf to match your system setup
  * Create an unprivileged PostgreSQL user on the database you want to monitor
- * Add entries to monitor_data.hosts table to include the databases you want to monitor
+ * Add entry to monitor_data.hosts table to include the databases you want to monitor
  * Build a single jar including dependencies using mvn clean verify assembly:single
  * Start monitoring with: java -jar target/PGObserver-Gatherer-1.0-SNAPSHOT-jar-with-dependencies.jar
  * For CPU load created the stored procedure from sql/cpuload.sql , this is a plpythonu function
