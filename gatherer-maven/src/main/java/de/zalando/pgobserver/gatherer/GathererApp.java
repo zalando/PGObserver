@@ -1,5 +1,6 @@
 package de.zalando.pgobserver.gatherer;
 
+import de.zalando.pgobserver.gatherer.config.Config;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,8 @@ import org.restlet.resource.ServerResource;
 public class GathererApp extends ServerResource {
 
     public static final List<AGatherer> ListOfRunnableChecks = new LinkedList<AGatherer>();
+    
+    public static final Logger LOG =  Logger.getLogger(GathererApp.class.getName());
 
     public static void registerGatherer(final AGatherer a) {
         ListOfRunnableChecks.add(a);
@@ -28,7 +31,20 @@ public class GathererApp extends ServerResource {
      * @param  args  the command line arguments
      */
     public static void main(final String[] args) {
-
+        
+        Config config = Config.LoadConfigFromFile(System.getProperty("user.home") + "/.pgobserver.conf");
+        
+        System.out.println(config);
+        
+        if ( config == null ) {
+            LOG.warning("Configfile could not be read");
+            return;
+        }
+        
+        System.out.println("Connection to db:" + config.database.host + " using user: " + config.database.backend_user );
+        
+        DBPools.initializePool(config);
+        
         Map<Integer, Host> hosts = Host.LoadAllHosts();
 
         for (Host h : hosts.values()) {
@@ -38,7 +54,7 @@ public class GathererApp extends ServerResource {
         try {
             new Server(Protocol.HTTP, 8182, GathererApp.class).start();
         } catch (Exception ex) {
-            Logger.getLogger(GathererApp.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, null, ex);
         }
     }
 

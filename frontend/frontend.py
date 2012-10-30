@@ -32,9 +32,15 @@ def main():
     with open(args.config, 'rb') as fd:
         settings = json.load(fd)
 
-    print "Setting connection string to ... " + settings['database']['url']
+    conn_string = "dbname=" + settings['database']['name'] 
+                  + " host="+settings['database']['host'] 
+                  + " user="+ settings['database']['frontend_user'] 
+                  + " password="+ settings['database']['frontend_password'] 
+                  + " port="+ settings['database']['port']
 
-    DataDB.setConnectionString ( settings['database']['url'] )
+    print "Setting connection string to ... " + conn_string 
+
+    DataDB.setConnectionString ( conn_string )
 
     if 'logfiles' in settings:
         logdata.setFilter( settings['logfiles']['liveuserfilter'] )
