@@ -1,5 +1,6 @@
 package de.zalando.pgobserver.gatherer;
 
+import de.zalando.pgobserver.gatherer.config.Config;
 import java.io.IOException;
 
 import java.sql.Connection;
@@ -58,7 +59,7 @@ public class Host {
         return name + "[" + dbname + "]";
     }
 
-    public static Map<Integer, Host> LoadAllHosts() {
+    public static Map<Integer, Host> LoadAllHosts(Config config) {
 
         /*
          * host_id serial NOT NULL,
@@ -75,7 +76,7 @@ public class Host {
             conn = DBPools.getDataConnection();
 
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM monitor_data.hosts WHERE host_enabled = true;");
+            ResultSet rs = st.executeQuery("SELECT * FROM monitor_data.hosts WHERE host_enabled = true AND host_gather_group = '"+ config.database.gather_group  +"';");
             while (rs.next()) {
                 Host h = new Host();
                 h.id = rs.getInt("host_id");

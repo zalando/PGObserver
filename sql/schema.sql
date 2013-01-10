@@ -105,6 +105,7 @@ CREATE TABLE hosts (
 }'::text NOT NULL,
     host_group_id integer,
     host_enabled boolean DEFAULT false NOT NULL,
+    host_grather_group text default 'host1' not null
     primary key ( host_id )
 );
 

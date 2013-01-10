@@ -12,4 +12,5 @@ public class Database {
     public String frontend_password;
     public String backend_user;
     public String backend_password;
+    public String gather_group = "host1";
 }

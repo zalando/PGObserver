@@ -45,7 +45,7 @@ public class GathererApp extends ServerResource {
         
         DBPools.initializePool(config);
         
-        Map<Integer, Host> hosts = Host.LoadAllHosts();
+        Map<Integer, Host> hosts = Host.LoadAllHosts(config);
 
         for (Host h : hosts.values()) {
             h.scheduleGatheres();
