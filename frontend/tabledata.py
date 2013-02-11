@@ -301,8 +301,8 @@ def getTopTables(hostId=1, limit=10, order=None):
                           t_name AS name,
                           tsd_table_size AS table_size,
                           tsd_index_size AS index_size,
-                          ( SELECT MIN(tsd_table_size) FROM monitor_data.table_size_data st WHERE td.tsd_table_id = st.tsd_table_id AND st.tsd_timestamp > ('now'::timestamp - '7 days'::interval) ) AS min_table_size,
-                          ( SELECT MIN(tsd_index_size) FROM monitor_data.table_size_data st WHERE td.tsd_table_id = st.tsd_table_id AND st.tsd_timestamp > ('now'::timestamp - '7 days'::interval) ) AS min_index_size
+                          COALESCE ( ( SELECT MIN(tsd_table_size) FROM monitor_data.table_size_data st WHERE td.tsd_table_id = st.tsd_table_id AND st.tsd_timestamp > ('now'::timestamp - '7 days'::interval) ), 0) AS min_table_size,
+                          COALESCE ( ( SELECT MIN(tsd_index_size) FROM monitor_data.table_size_data st WHERE td.tsd_table_id = st.tsd_table_id AND st.tsd_timestamp > ('now'::timestamp - '7 days'::interval) ), 0) AS min_index_size
 
                      FROM monitor_data.table_size_data td
                      JOIN monitor_data.tables ON t_id = td.tsd_table_id
