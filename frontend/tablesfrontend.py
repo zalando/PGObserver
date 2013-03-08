@@ -8,6 +8,7 @@ import flotgraph
 import time
 import tabledata
 import hosts
+import datetime
 
 from jinja2 import Environment, FileSystemLoader
 from tabledata import getTableIOData
@@ -23,7 +24,19 @@ class ShowTable(object):
         host = p[0]
         name = p[1]
 
-        data = tabledata.getTableData(host, name)
+        if 'interval' in params:
+            interval = {}
+            interval['interval'] = str(params['interval'])+' days'
+        elif 'from' in params and 'to' in params:
+            interval = {}
+            interval['from'] = params['from']
+            interval['to'] = params['to']
+        else:
+            interval = {}
+            interval['from'] = (datetime.datetime.now() - datetime.timedelta(days=14)).strftime('%Y-%m-%d')
+            interval['to'] = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+
+        data = tabledata.getTableData(host, name, interval)
 
         graph_table_size = flotgraph.SizeGraph ("graphtablesize","right")
         graph_table_size.addSeries("Table Size","size")
@@ -89,7 +102,8 @@ class ShowTable(object):
 
 
         tpl = tplE.env.get_template('table_detail.html')
-        return tpl.render(name=name,host=host,
+        return tpl.render(name=name,host=host,interval=interval,
+                          hostname = hosts.getHostData()[int(host)]['settings']['uiLongName'],
                           graphtablesize=graph_table_size.render(),
                           graphindexsize=graph_index_size.render(),
                           graphseqscans=graph_seq_scans.render(),

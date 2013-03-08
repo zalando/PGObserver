@@ -8,6 +8,7 @@ import time
 import flotgraph
 import sprocdata
 import hosts
+import datetime
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -39,7 +40,16 @@ class Show(object):
             else:
                 sprocNr = None
 
-            data = sprocdata.getSingleSprocData( name, hostId , None, sprocNr)
+            if 'from' in params and 'to' in params:
+                interval = {}
+                interval['from'] = params['from']
+                interval['to'] = params['to']
+            else:
+                interval = {}
+                interval['from'] = (datetime.datetime.now() - datetime.timedelta(days=14)).strftime('%Y-%m-%d')
+                interval['to'] = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+
+            data = sprocdata.getSingleSprocData( name, hostId , interval, sprocNr)
 
             for p in data['total_time']:
                     graphtime.addPoint('runtime', int(time.mktime(p[0].timetuple()) * 1000) , p[1])
@@ -55,13 +65,14 @@ class Show(object):
 
             table = tplE.env.get_template('sproc_detail.html')
 
-            return table.render(hostid=int(hostId),
-                                hostname=hosts.getHostData()[int(hostId)]['settings']['uiLongName'],
+            return table.render(hostid = int(hostId),                
+                                hostname = hosts.getHostData()[int(hostId)]['settings']['uiLongName'],
                                 name = data['name'],
-                                graphavg=graphavg.render(),
-                                graphselfavg=graphavgself.render(),
-                                graphcalls=graphcalls.render(),
-                                graphruntime=graphtime.render())
+                                interval = interval,
+                                graphavg = graphavg.render(),
+                                graphselfavg = graphavgself.render(),
+                                graphcalls = graphcalls.render(),
+                                graphruntime = graphtime.render())
 
     default.exposed = True
 

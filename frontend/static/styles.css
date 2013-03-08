@@ -60,6 +60,8 @@ h2 { font-size: 13px; color: #E65217; font-weight:800; }
 h3 { font-size: 14px; color: #E65217; font-weight:800; }
 h3 a { font-size: 13px; }
 
+.text3 { font-size: 14px; color: #E65217; font-weight:800; }
+
 h4 { font-size: 15px; color: #E65217; font-weight:800; }
 body { background-color: #404040; font-family: Verdana ; font-size: 13px; }
 
@@ -76,3 +78,5 @@ a { color: #F6AD62; text-decoration: none; }
 #reports h2 { font-size: 15px; color: #E65217; font-weight:800; }
 #reports td { font-size: 13px; color: #F6AD62; }
 
+input { background-color: #404040; color: #FFFFFF; font-weight:400; border: 1px solid grey; }
+.datefield { width:75px; }

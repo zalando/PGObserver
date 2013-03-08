@@ -56,7 +56,10 @@ def getSingleSprocSQL(name, hostId = 1, interval=None, sprocNr = None):
     if(interval==None):
         interval = "AND sp_timestamp > ('now'::timestamp-'23 days'::interval)"
     else:
-        interval = "AND sp_timestamp > " + interval
+        if 'interval' in interval:
+          interval = "AND sp_timestamp > " + interval
+        else:
+          interval = "AND sp_timestamp BETWEEN '%s'::timestamp AND '%s'::timestamp" % ( interval['from'], interval['to'], )
 
     if sprocNr == None:
         nameSql = """'"""+name+"""%'"""
@@ -84,8 +87,6 @@ def getSingleSprocSQL(name, hostId = 1, interval=None, sprocNr = None):
           ORDER BY sproc_performance_data.sp_timestamp) t
           GROUP BY t.sp_sproc_id, date_trunc('hour'::text, t.sp_timestamp) + floor(date_part('minute'::text, t.sp_timestamp) / 15::double precision) * '00:15:00'::interval
           ORDER BY date_trunc('hour'::text, t.sp_timestamp) + floor(date_part('minute'::text, t.sp_timestamp) / 15::double precision) * '00:15:00'::interval"""
-
-    print( sql )
 
     return sql;
 

@@ -128,7 +128,10 @@ def getSingleTableSql(host, name, interval=None):
     if interval==None:
         interval = "AND tsd_timestamp > ('now'::timestamp - '14 days'::interval)"
     else:
-        interval = "AND tsd_timestamp > " + interval
+        if 'interval' in interval:
+            interval = "AND tsd_timestamp > " + interval['interval']+'::interval'
+        else:
+            interval = "AND tsd_timestamp BETWEEN '%s'::timestamp and '%s'::timestamp" % (interval['from'],interval['to'], )
 
     sql = """
     SELECT tsd_table_id,
@@ -154,7 +157,10 @@ def getSingleTableIOSql(host, name, interval=None):
     if interval==None:
         interval = "AND tio_timestamp > ('now'::timestamp - '14 days'::interval)"
     else:
-        interval = "AND tio_timestamp > " + interval
+        if 'interval' in interval:
+            interval = "AND tio_timestamp > " + interval['interval']+'::interval'
+        else:
+            interval = "AND tio_timestamp BETWEEN '%s'::timestamp and '%s'::timestamp" % (interval['from'],interval['to'], )
 
     sql = """
     SELECT tio_table_id, tio_timestamp, tio_heap_read, tio_heap_hit, tio_idx_read,

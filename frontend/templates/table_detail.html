@@ -4,8 +4,16 @@
 
 <div class="container_12">
    <div class="grid_12">
-   <h4>Table details for: {{ name }}</h4>
+   <h4>Table details for: {{ name }} on {{ hostname }}</h4>
+      <form method="GET" action="/tables/show/{{host}}/{{name}}">
+      <span class="text3">Timeframe:&nbsp;</span><input class="datefield" type="text" name="from" value="{{ interval['from'] }}"><input class="datefield" type="text" name="to" value="{{ interval['to'] }}">
+      <input type="submit" value="show"></form>   
    </div>
+   <script>
+  $(function() {
+     $( ".datefield" ).datepicker({"dateFormat":"yy-mm-dd"});
+  });
+  </script>
    <div class="clear">
    </div>
 

@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 
@@ -14,6 +15,7 @@ import org.codehaus.jackson.map.ObjectMapper;
  *
  * @author jmussler
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Config {
     public Database database;
     public Logfiles logfiles;
