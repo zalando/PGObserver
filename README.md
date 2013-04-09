@@ -13,7 +13,7 @@ The web frontend is a Python CherryPy app. See the screenshot folder for example
 
 A testdata.py script is included to generate minimalistic testdata.
 
-Visit us at http://tech.zalando.org
+Visit us at http://tech.zalando.com
 
 Setup
 -----
