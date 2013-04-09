@@ -4,14 +4,20 @@ PGObserver
 Tool to monitor PostgreSQL performance metrics including:
 
  * Stored procedure data
+   - number of calls
+   - run time per procedure
+   - self time per procedure
  * Table IO statistics
+   - number of sequential and index scans
+   - number inserts,updates,deletes
+   - table and index size
  * CPU load
 
-Data is gathered by a single Java application. Gather intervals for the different metrics can be set on a per host per metric basis.
+The performance data is gathered by a Java application querying the different PostgreSQL performance views. Gather intervals for the different metrics can be configured on a per host per metric basis, enabling more detailed monitoring for critical systems and less details for less important systems, thus reducing the amount of data gathered.
 
-The web frontend is a Python CherryPy app. See the screenshot folder for examples.
+The web frontend is a Python CherryPy standalone application. See the screenshot folder for basic examples. Chart visualization is rendered using JS flot library.
 
-A testdata.py script is included to generate minimalistic testdata.
+A testdata.py script is included to generate minimalistic test data for a local setup.
 
 Visit us at http://tech.zalando.com
 
