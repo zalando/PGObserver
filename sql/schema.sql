@@ -37,6 +37,13 @@ SET search_path = public, pg_catalog;
 -- Name: get_noversion_name(text); Type: FUNCTION; Schema: public;
 --
 
+/*
+
+ This function is used to extract normalized API schema names, because we version our API schemas from release to release.
+
+ See: http://tech.valgog.com/2012/01/schema-based-versioning-and-deployment.html
+
+*/
 CREATE FUNCTION get_noversion_name(n text) RETURNS text
     LANGUAGE sql IMMUTABLE
     AS $_$ SELECT substring ( $1 from 'z[a-z]{1,4}_api|z[a-z]{1,2}_data' ) $_$;

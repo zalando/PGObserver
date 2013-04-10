@@ -1,3 +1,9 @@
+/*
+
+ Python function that is used to extract CPU load from machine via SQL
+
+*/
+
 CREATE SCHEMA zz_utils;
 
 GRANT USAGE ON SCHEMA zz_utils TO public;
