@@ -68,7 +68,8 @@ public class GathererApp extends ServerResource {
 
             result += "{ \"name\": \"" + g.getName() + "\", \"last_run\": " + g.getLastRunFinishedInSeconds()
                     + ", \"run_time\" : " + (g.getLastRunFinishedInSeconds() - g.getLastRunInSeconds())
-                    + ", \"next_run\" : " + (g.getNextRunInSeconds()) + "} ";
+                    + ", \"next_run\" : " + (g.getNextRunInSeconds())
+                    + ", \"last_persist\" : " + ( g.getLastSuccessfullPersist() ) + "} ";
         }
 
         return "{ \"current_time\" : " + System.currentTimeMillis() / 1000 + " , \"jobs\": [" + result + "] }";
