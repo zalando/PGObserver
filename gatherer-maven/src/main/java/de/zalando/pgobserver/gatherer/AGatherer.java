@@ -14,6 +14,7 @@ public abstract class AGatherer implements Runnable {
     private long nextRunInSeconds = 0;
     private long lastRunFinishedInSeconds = 0;
     private long intervalInSeconds = 0;
+    private long lastSuccessfullPersist = 0;
     private ScheduledThreadPoolExecutor executor = null;
     private String name = "";
 
@@ -34,7 +35,9 @@ public abstract class AGatherer implements Runnable {
                 + " s");
 
         try {
-            gatherData();
+            if ( gatherData() ) {
+                markSuccessfullPersistance();
+            }
         } catch (Throwable t) {
             Logger.getLogger(AGatherer.class.getName()).log(Level.SEVERE, "Exception", t);
         }
@@ -43,6 +46,10 @@ public abstract class AGatherer implements Runnable {
 
         Logger.getLogger(AGatherer.class.getName()).info("[" + name + "] finished after "
                 + (lastRunFinishedInSeconds - lastRunInSeconds) + " s");
+    }
+    
+    public void markSuccessfullPersistance() {
+        lastSuccessfullPersist = System.currentTimeMillis();
     }
 
     public String getName() {
@@ -71,6 +78,10 @@ public abstract class AGatherer implements Runnable {
 
     public long getIntervalInSeconds() {
         return intervalInSeconds;
+    }
+    
+    public long getLastSuccessfullPersist() {
+        return lastSuccessfullPersist;
     }
 
     public void schedule() {
