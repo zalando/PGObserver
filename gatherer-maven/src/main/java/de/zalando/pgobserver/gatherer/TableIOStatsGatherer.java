@@ -70,7 +70,7 @@ public class TableIOStatsGatherer extends ADBGatherer {
             conn.close(); // we close here, because we are done
             conn = null;
 
-            Logger.getLogger(SprocGatherer.class.getName()).log(Level.INFO, "[{0}] finished getting table io data",
+            LOG.log(Level.INFO, "[{0}] finished getting table io data",
                 host.name);
 
             conn = DBPools.getDataConnection();

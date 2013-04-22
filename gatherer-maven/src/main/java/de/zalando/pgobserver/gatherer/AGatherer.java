@@ -17,6 +17,8 @@ public abstract class AGatherer implements Runnable {
     private long lastSuccessfullPersistInSeconds = 0;
     private ScheduledThreadPoolExecutor executor = null;
     private String name = "";
+    
+    public static final Logger LOG = Logger.getLogger(AGatherer.class.getName());
 
     protected abstract boolean gatherData();
 
@@ -31,21 +33,19 @@ public abstract class AGatherer implements Runnable {
         nextRunInSeconds = (System.currentTimeMillis() / 1000) + intervalInSeconds;
         lastRunInSeconds = System.currentTimeMillis() / 1000;
 
-        Logger.getLogger(AGatherer.class.getName()).info("[" + name + "] started after interval " + intervalInSeconds
-                + " s");
+        LOG.log(Level.INFO, "[{0}] started after interval {1} s", new Object[]{name, intervalInSeconds});
 
         try {
             if ( gatherData() ) {
                 markSuccessfullPersistance();
             }
         } catch (Throwable t) {
-            Logger.getLogger(AGatherer.class.getName()).log(Level.SEVERE, "Exception", t);
+            LOG.log(Level.SEVERE, "Exception", t);
         }
 
         lastRunFinishedInSeconds = System.currentTimeMillis() / 1000;
 
-        Logger.getLogger(AGatherer.class.getName()).info("[" + name + "] finished after "
-                + (lastRunFinishedInSeconds - lastRunInSeconds) + " s");
+        LOG.log(Level.INFO, "[{0}] finished after {1} s", new Object[]{name, lastRunFinishedInSeconds - lastRunInSeconds});
     }
     
     public void markSuccessfullPersistance() {
@@ -86,11 +86,10 @@ public abstract class AGatherer implements Runnable {
 
     public void schedule() {
         if (intervalInSeconds > 0) {
-            Logger.getLogger(AGatherer.class.getName()).severe("Schedule: Interval " + intervalInSeconds + " for Host: "
-                    + name);
+            LOG.log(Level.SEVERE, "Schedule: Interval {0} for Host: {1}", new Object[]{intervalInSeconds, name});
             executor.scheduleAtFixedRate(this, 1, intervalInSeconds, TimeUnit.SECONDS);
         } else {
-            Logger.getLogger(AGatherer.class.getName()).severe("Interval 0 for Host: " + name);
+            LOG.log(Level.SEVERE, "Interval 0 for Host: {0}", name);
         }
     }
 

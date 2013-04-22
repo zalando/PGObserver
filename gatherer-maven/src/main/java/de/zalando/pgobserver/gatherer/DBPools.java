@@ -16,6 +16,8 @@ import de.zalando.pgobserver.gatherer.config.Config;
 public class DBPools {
     private static BoneCP dataPool = null;
     
+    public static final Logger LOG = Logger.getLogger(DBPools.class.getName());
+    
     public static synchronized void initializePool(Config settings) {
         if (dataPool == null) {
             BoneCPConfig config = new BoneCPConfig();
@@ -31,7 +33,7 @@ public class DBPools {
             try {
                 dataPool = new BoneCP(config);
             } catch (SQLException ex) {
-                Logger.getLogger(DBPools.class.getName()).log(Level.SEVERE, null, ex);
+                LOG.log(Level.SEVERE, null, ex);
                 System.exit(1);
             }
         }

@@ -34,14 +34,14 @@ public class GathererApp extends ServerResource {
         
         Config config = Config.LoadConfigFromFile(System.getProperty("user.home") + "/.pgobserver.conf");
         
-        System.out.println(config);
-        
         if ( config == null ) {
             LOG.warning("Configfile could not be read");
             return;
         }
         
-        System.out.println("Connection to db:" + config.database.host + " using user: " + config.database.backend_user );
+        LOG.log(Level.INFO, config.toString());
+        
+        LOG.log(Level.INFO, "Connection to db:{0} using user: {1}", new Object[]{config.database.host, config.database.backend_user});
         
         DBPools.initializePool(config);
         

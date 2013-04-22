@@ -74,7 +74,7 @@ public class TableStatsGatherer extends ADBGatherer {
             conn.close(); // we close here, because we are done
             conn = null;
 
-            Logger.getLogger(SprocGatherer.class.getName()).log(Level.INFO, "[{0}] finished getting table size data",
+            LOG.log(Level.INFO, "[{0}] finished getting table size data",
                 host.name);
 
             conn = DBPools.getDataConnection();
@@ -89,7 +89,7 @@ public class TableStatsGatherer extends ADBGatherer {
                     int id = idCache.getId(conn, v.schema, v.name);
 
                     if (!(id > 0)) {
-                        LOG.log(Level.SEVERE, "\t could not retrieve sproc key");
+                        LOG.log(Level.SEVERE, "could not retrieve sproc key");
                         continue;
                     }
 
@@ -139,12 +139,13 @@ public class TableStatsGatherer extends ADBGatherer {
         return false;
     }
 
-    public String getQuery() {
+    public static String getQuery() {
 
         String sql = "select schemaname, relname," + "pg_table_size(relid) as table_size,"
                 + "pg_indexes_size(relid) as index_size," + "seq_scan," + "seq_tup_read," + "idx_scan,"
                 + "idx_tup_fetch," + " n_tup_ins , n_tup_upd , n_tup_del , n_tup_hot_upd "
                 + " from pg_stat_user_tables;";
+        
         return sql;
     }
 }

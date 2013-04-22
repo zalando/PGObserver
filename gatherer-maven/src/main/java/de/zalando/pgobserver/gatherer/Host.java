@@ -91,7 +91,7 @@ public class Host {
                 try {
                     h.settings = mapper.readValue(h.settingsAsString, HostSettings.class);
                 } catch (IOException e) {
-                    Logger.getLogger(Host.class.getName()).log(Level.SEVERE, "Could not deserialize settings object!",
+                    LOG.log(Level.SEVERE, "Could not deserialize settings object!",
                         e);
                 }
 
@@ -101,13 +101,13 @@ public class Host {
             }
 
         } catch (SQLException se) {
-            Logger.getLogger(Host.class.getName()).log(Level.SEVERE, "", se);
+            LOG.log(Level.SEVERE, "", se);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException e) {
-                    Logger.getLogger(Host.class.getName()).log(Level.SEVERE, "", e);
+                    LOG.log(Level.SEVERE, "", e);
                 }
             }
         }

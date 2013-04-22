@@ -20,7 +20,10 @@ import java.util.logging.Logger;
 public class LoadGatherer extends ADBGatherer {
 
     // used to store values until storage db is available again
+    // could have used linked list for pop, but decided for arraylist due to space reasons in case of prolonged connection problems.
     private final List<LoadStatsValue> valueStore = new ArrayList<LoadStatsValue>();
+    
+    public static final Logger LOG = Logger.getLogger(LoadGatherer.class.getName());
 
     public LoadGatherer(final Host h, final long interval, final ScheduledThreadPoolExecutor ex) {
         super(h, ex, interval);
@@ -61,10 +64,10 @@ public class LoadGatherer extends ADBGatherer {
                 conn = DBPools.getDataConnection();                
 
                 PreparedStatement ps = conn.prepareStatement(
-                        "INSERT INTO monitor_data.host_load(load_timestamp,load_host_id , load_1min_value, load_5min_value, load_15min_value )    VALUES (?, ?, ?, ?, ?);");
+                        "INSERT INTO monitor_data.host_load(load_timestamp,load_host_id , load_1min_value, load_5min_value, load_15min_value ) VALUES (?, ?, ?, ?, ?);");
 
-                while ( !valueStore.isEmpty()) {
-                    
+                while ( !valueStore.isEmpty()) {                    
+                                        
                     v = valueStore.remove(valueStore.size()-1);
                 
                     ps.setTimestamp(1, new Timestamp( v.timestamp ) );
@@ -80,24 +83,24 @@ public class LoadGatherer extends ADBGatherer {
                 conn.close();
                 conn = null;
 
-                Logger.getLogger(SprocGatherer.class.getName()).log(Level.INFO, "[{0}] current load value stored",
+                LOG.log(Level.INFO, "[{0}] current load value stored",
                     this.getName());
                 
             } else {
-                Logger.getLogger(SprocGatherer.class.getName()).log(Level.WARNING,
+                LOG.log(Level.WARNING,
                     "[{0}] could not retrieve load value!", this.getName());
             }
 
             return true;
         } catch (SQLException se) {
-            Logger.getLogger(SprocGatherer.class.getName()).log(Level.SEVERE, "", se);
+            LOG.log(Level.SEVERE, "", se);
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(SprocGatherer.class.getName()).log(Level.SEVERE, "", ex);
+                    LOG.log(Level.SEVERE, "", ex);
                 }
             }
         }

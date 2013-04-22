@@ -36,6 +36,14 @@ public class HostSettings {
 
     private String uiLongName = "";
     private String uiShortName = "";
+    
+    public String getUiShortName() {
+        return uiShortName;
+    }
+    
+    public String getUiLongName() {
+        return uiLongName;
+    }
 
     public int getLoadGatherInterval() {
         return loadGatherInterval * 60;

@@ -29,6 +29,8 @@ public class SprocGatherer extends ADBGatherer {
     private Map<Integer, Long> lastValueStore = new HashMap<Integer, Long>();
     private int sprocsRead = 0;
     private int sprocValuesInserted = 0;
+    
+    public static final Logger LOG = Logger.getLogger(SprocGatherer.class.getName());
 
     public SprocGatherer(final Host h, final long interval, final ScheduledThreadPoolExecutor ex) {
         super(h, ex, interval);
@@ -132,20 +134,18 @@ public class SprocGatherer extends ADBGatherer {
 
             valueStore.clear();
 
-            Logger.getLogger(SprocGatherer.class.getName()).log(Level.INFO,
-                "[" + this.getName() + "] Sprocs read: " + this.sprocsRead + " Sprocs written: "
-                    + this.sprocValuesInserted);
+            LOG.log(Level.INFO, "[{0}] Sprocs read: {1} Sprocs written: {2}", new Object[]{this.getName(), this.sprocsRead, this.sprocValuesInserted});
 
             return true;
         } catch (SQLException se) {
-            Logger.getLogger(SprocGatherer.class.getName()).log(Level.SEVERE, "", se);
+            LOG.log(Level.SEVERE, "", se);
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(SprocGatherer.class.getName()).log(Level.SEVERE, "", ex);
+                    LOG.log(Level.SEVERE, "", ex);
                 }
             }
         }
