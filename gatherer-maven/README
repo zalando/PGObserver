@@ -1,9 +1,15 @@
-Build jar:
-mvn clean verify assembly:single
+PGObserver's gatherer
+=====================
 
-How-to run:
-Change the config script according to your needs, important field is the host group.
-The host group will specify which hosts ( defined in DB ) will actually be monitored from this instance.
-Set the proper jdbc connection settings to connect to the database where databases to monitor are defined and host connections can be found.
+Building
+--------
 
-execute run.sh script, this will start gatherer process. Logger writers to pgmon_java.log
+Build single jar file with dependencies included:
+	mvn clean verify assembly:single
+
+Running
+-------
+
+	copy .pgobserver.conf to home folder
+	configure .pgobserver.conf to access the database where you store gathered metrics
+	execute ./run.sh script to start
