@@ -3,4 +3,4 @@
 *log
 *pyc
 .svn/
-/gatherer-maven/target/
+/gatherer/target/
