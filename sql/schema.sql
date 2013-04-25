@@ -46,7 +46,10 @@ SET search_path = public, pg_catalog;
  See: http://tech.valgog.com/2012/01/schema-based-versioning-and-deployment.html
 
 */
-CREATE FUNCTION get_noversion_name(n text) RETURNS text
+
+SET search_path TO public;
+
+CREATE OR REPLACE FUNCTION get_noversion_name(n text) RETURNS text
     LANGUAGE sql IMMUTABLE
     AS $_$ SELECT substring ( $1 from '[a-z]{1,4}_api|[a-z]{1,4}_data' ) $_$;
 
@@ -54,7 +57,7 @@ CREATE FUNCTION get_noversion_name(n text) RETURNS text
 -- Name: group_date(timestamp without time zone, double precision); Type: FUNCTION; Schema: public;
 --
 
-CREATE FUNCTION group_date(d timestamp without time zone, m double precision) RETURNS timestamp without time zone
+CREATE OR REPLACE FUNCTION group_date(d timestamp without time zone, m double precision) RETURNS timestamp without time zone
     LANGUAGE sql IMMUTABLE
     AS $_$
 select date_trunc('hour'::text, $1) + floor(date_part('minute'::text, $1 ) / $2) * ($2 * '00:01:00'::interval)
@@ -114,7 +117,7 @@ CREATE TABLE hosts (
     }'::text NOT NULL,
     host_group_id integer,
     host_enabled boolean DEFAULT false NOT NULL,
-    host_grather_group text default 'host1' not null
+    host_grather_group text default 'host1' not null,
     primary key ( host_id )
 );
 
