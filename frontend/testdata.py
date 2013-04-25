@@ -33,7 +33,7 @@ def clear_test_data(conn):
     cur.close()
 
 def create_n_sprocs(conn,n):
-    print "Creating sprocs..."
+    print "Creating stored procedures..."
     cur = conn.cursor()
     i = 0
     while i < n:
@@ -53,13 +53,13 @@ def create_n_tables(conn,n):
     cur.close()
 
 def create_sproc_data(conn,days,interval):
-    print "Creating sproc data points..."
+    print "Creating stored procedure data points..."
     cur = conn.cursor()
     cur.execute("SELECT 'now'::timestamp - ('1 day'::interval * %s)",(days,))
     (n) = cur.fetchone()
 
     rows = (days*24*60)/(interval)
-    print "\tInserting " + str(rows) + " data points for each sproc"
+    print "\tInserting " + str(rows) + " data points for each procedure"
 
     cur.execute("SELECT sproc_id FROM sprocs WHERE sproc_host_id = 1111")
     sprocs = cur.fetchall()
@@ -137,10 +137,16 @@ def main():
     with open(args.config, 'rb') as fd:
         settings = json.load(fd)
 
+    connection_url = ' '.join ( ("host="     + settings['database']['host'],
+                                 "port="     + str(settings['database']['port']),
+                                 "user="     + settings['database']['backend_user'],
+                                 "password=" + settings['database']['backend_password'],
+                                 "dbname="   + settings['database']['name'] ) )
+
     print "PGObserver testdata generator:"
     print "=============================="
     print ""
-    print "Setting connection string to ... " + settings['database']['url']
+    print "Setting connection string to ... " + connection_url
     print ""
     print "Creating " + str(args.gt) + " tables"
     print "Creating " + str(args.gp) + " stored procedures"
@@ -148,7 +154,7 @@ def main():
     print "Creating data points every " + str(args.gi) + " minutes"
     print ""
 
-    generate_test_data(settings['database']['url'] , args.gt , args.gp,  args.gd,  args.gi)
+    generate_test_data(connection_url , args.gt , args.gp,  args.gd,  args.gi)
 
 if __name__ == '__main__':
     main()
