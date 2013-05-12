@@ -10,9 +10,6 @@ import tabledata
 import hosts
 import datetime
 
-from jinja2 import Environment, FileSystemLoader
-from tabledata import getTableIOData
-
 import tplE
 
 class ShowTable(object):

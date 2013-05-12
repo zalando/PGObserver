@@ -6,11 +6,9 @@ Created on Sep 20, 2011
 from __future__ import print_function
 import psycopg2
 import psycopg2.extras
-import time
-import datetime
 import DataDB
-import funccache
 import collections
+from psycopg2.extensions import adapt
 
 def viewSprocs(interval="AND sp_timestamp > ('now'::timestamp - '2 days'::interval)"):
     sql = """
@@ -30,7 +28,7 @@ def viewSprocs(interval="AND sp_timestamp > ('now'::timestamp - '2 days'::interv
 def getSprocsOrderedBy( hostId, order = " ORDER BY SUM(delta_total_time) DESC"):
     sql = """SELECT sproc_name
                FROM ( """ + viewSprocs() + """ ) t JOIN monitor_data.sprocs ON sp_sproc_id = sproc_id
-               WHERE sproc_host_id = """ + str(hostId) + """
+               WHERE sproc_host_id = """ + str(adapt(hostId)) + """
                GROUP BY sproc_name
              """ + order + """;
           """
@@ -59,12 +57,12 @@ def getSingleSprocSQL(name, hostId = 1, interval=None, sprocNr = None):
         if 'interval' in interval:
           interval = "AND sp_timestamp > " + interval
         else:
-          interval = "AND sp_timestamp BETWEEN '%s'::timestamp AND '%s'::timestamp" % ( interval['from'], interval['to'], )
+          interval = "AND sp_timestamp BETWEEN %s::timestamp AND %s::timestamp" % ( adapt(interval['from']), adapt(interval['to']), )
 
     if sprocNr == None:
-        nameSql = """'"""+name+"""%'"""
+        nameSql = str(adapt(name+'%'))
     else:
-        nameSql = """( SELECT DISTINCT sproc_name FROM monitor_data.sprocs sp WHERE sp.sproc_name LIKE '"""+name+"""%' AND sp.sproc_host_id = """ + str(hostId) + """ ORDER BY sproc_name ASC LIMIT 1 OFFSET """ + str(sprocNr) + """)"""
+        nameSql = """( SELECT DISTINCT sproc_name FROM monitor_data.sprocs sp WHERE sp.sproc_name LIKE %s AND sp.sproc_host_id = %s ORDER BY sproc_name ASC LIMIT 1 OFFSET %s)""" % ( adapt(name+"%"), adapt(hostId),adapt(sprocNr), )
 
     sql = """SELECT ( SELECT sprocs.sproc_name
                         FROM monitor_data.sprocs
@@ -82,7 +80,7 @@ def getSingleSprocSQL(name, hostId = 1, interval=None, sprocNr = None):
                 COALESCE(sproc_performance_data.sp_total_time - lag(sproc_performance_data.sp_total_time) OVER (PARTITION BY sproc_performance_data.sp_sproc_id ORDER BY sproc_performance_data.sp_timestamp), 0::bigint) AS delta_total_time
            FROM monitor_data.sproc_performance_data
           WHERE (sproc_performance_data.sp_sproc_id IN ( SELECT sprocs.sproc_id
-                   FROM monitor_data.sprocs WHERE sproc_name LIKE """ + nameSql + """  AND sproc_host_id = """+str(hostId)+""" ))
+                   FROM monitor_data.sprocs WHERE sproc_name LIKE """ + nameSql + """  AND sproc_host_id = """+ str(adapt(hostId))+""" ))
             """ + interval + """
           ORDER BY sproc_performance_data.sp_timestamp) t
           GROUP BY t.sp_sproc_id, date_trunc('hour'::text, t.sp_timestamp) + floor(date_part('minute'::text, t.sp_timestamp) / 15::double precision) * '00:15:00'::interval

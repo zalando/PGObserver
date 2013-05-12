@@ -10,8 +10,6 @@ import sprocdata
 import hosts
 import datetime
 
-from jinja2 import Environment, FileSystemLoader
-
 import tplE
 
 class Show(object):
@@ -88,10 +86,10 @@ class SprocFrontend(object):
         for s in sprocs:
             d = sprocdata.getSingleSprocData(s, hostId, "('now'::timestamp - '4 days'::interval)")
             i += 1
+
             graph= flotgraph.TimeGraph("graph"+str(i))
             graph.addSeries('Avg.', 'avg')
-            print (s)
-            print ( len(d['avg_time']) )
+
             for p in d['avg_time']:
                 graph.addPoint('avg', int(time.mktime(p[0].timetuple()) * 1000) , p[1])
 

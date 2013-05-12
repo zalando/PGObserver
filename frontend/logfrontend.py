@@ -5,7 +5,6 @@ from __future__ import print_function
 import logdata
 import flotgraph
 import time
-from jinja2 import Environment, FileSystemLoader
 import tplE
 
 env = tplE.env

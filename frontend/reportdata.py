@@ -5,7 +5,6 @@ Created on Feb 1, 2012
 @author: jmussler
 '''
 
-import funccache
 import DataDB
 import psycopg2
 import psycopg2.extras
@@ -33,10 +32,6 @@ def getLoadReportData():
                     order by 1 ASC,7 DESC""")
 
     data = defaultdict(list)
-
-    lastAvg = None
-    lastMax = None
-    lastId = 0
 
     lastRR = None
 

@@ -2,9 +2,9 @@ from __future__ import print_function
 import psycopg2
 import psycopg2.extras
 import time
-import datetime
 import DataDB
 import funccache
+from psycopg2.extensions import adapt
 
 '''
 Created on 17.09.2011
@@ -62,7 +62,7 @@ def getSQL(interval=None,hostId = 1):
                             COALESCE(sproc_performance_data.sp_total_time - lag(sproc_performance_data.sp_total_time) OVER w, 0::bigint) AS delta_total_time
                        FROM monitor_data.sproc_performance_data
                       WHERE (sproc_performance_data.sp_sproc_id IN ( SELECT sprocs.sproc_id
-                                                                       FROM monitor_data.sprocs WHERE sproc_host_id = """ + str(hostId) + """ ))
+                                                                       FROM monitor_data.sprocs WHERE sproc_host_id = """ + str(adapt(hostId)) + """ ))
                                                                        """ + interval + """
                           WINDOW w AS ( PARTITION BY sproc_performance_data.sp_sproc_id ORDER BY sproc_performance_data.sp_timestamp )
                           ORDER BY sproc_performance_data.sp_timestamp) t
@@ -80,15 +80,13 @@ def getTop10Interval(order=avgRuntimeOrder,interval=None,hostId = 1, limit = 10)
                from ( """ + getSQL(interval, hostId) + """) tt
               where d_calls > 0
               group by "name"
-              order by """+order+"""  limit """ + str(limit)
+              order by """+order+"""  limit """ + str(adapt(limit))
 
     conn = DataDB.getDataConnection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
-    print ( sql )
-
     cur.execute(sql)
-    print ( sql )
+
     sprocs = []
 
     for record in cur:
@@ -104,7 +102,7 @@ def getTop10AllTimes(order, hostId = 1):
     return getTop10Interval(order)
 
 def getTop10LastXHours(order,hours=1, hostId = 1, limit = 10):
-    return getTop10Interval(order,"""('now'::timestamp-'"""+str(hours)+""" hours'::interval)""", hostId , limit )
+    return getTop10Interval(order,"('now'::timestamp- %s::interval)" % ( adapt("%s hours" % ( hours, )), ), hostId , limit )
 
 @funccache.lru_cache(60, 1)
 def getLoad(hostId=1):
@@ -116,8 +114,6 @@ def getLoad(hostId=1):
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     load = { 'load_15min' : [], 'load_1hour': [] }
-
-    print ( sql )
 
     cur.execute(sql)
     lastTime = None
@@ -154,11 +150,9 @@ def getCpuLoad(hostId=1):
     sql = """ SELECT date_trunc('hour'::text, load_timestamp) + floor(date_part('minute'::text, load_timestamp) / 15::double precision) * '00:15:00'::interval AS load_timestamp,
                      AVG(load_1min_value) AS load_15min_avg,
                      MAX(load_1min_value) AS load_15min_max
-                FROM monitor_data.host_load WHERE load_host_id = """ + str(hostId) + """ AND load_timestamp > ('now'::timestamp - '9 days'::interval)
+                FROM monitor_data.host_load WHERE load_host_id = """ + str(adapt(hostId)) + """ AND load_timestamp > ('now'::timestamp - '9 days'::interval)
                 GROUP BY date_trunc('hour'::text, load_timestamp) + floor(date_part('minute'::text, load_timestamp) / 15::double precision) * '00:15:00'::interval
                 ORDER BY 1 ASC """
-
-    print ( sql )
 
     conn = DataDB.getDataConnection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
@@ -184,7 +178,7 @@ def getSproc(name):
        COALESCE( sp_calls - lag(sp_calls) OVER ( PARTITION BY sp_sproc_id ORDER BY sp_timestamp), 0 ) AS "delta_calls",
        COALESCE( sp_self_time - lag(sp_self_time) OVER ( PARTITION BY sp_sproc_id ORDER BY sp_timestamp), 0 ) AS "delta_self_time",
        COALESCE( sp_total_time- lag(sp_total_time) OVER ( PARTITION BY sp_sproc_id ORDER BY sp_timestamp), 0 ) AS "delta_total_time"
-FROM monitor_data.sproc_performance_data WHERE sp_sproc_id IN ( SELECT sproc_id FROM monitor_data.sprocs WHERE sproc_name LIKE ANY(ARRAY['%"""+name+"""%'])) ORDER BY sp_timestamp ) t
+FROM monitor_data.sproc_performance_data WHERE sp_sproc_id IN ( SELECT sproc_id FROM monitor_data.sprocs WHERE sproc_name LIKE ANY(ARRAY['%"""+str(adapt(name))+"""%'])) ORDER BY sp_timestamp ) t
 GROUP BY sp_sproc_id, date_trunc('hour', sp_timestamp)::timestamp +  ( floor(extract('minute' from sp_timestamp) / 15)*'15 minutes'::interval ) ORDER BY "xaxis" """
     pass
 

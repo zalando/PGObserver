@@ -74,7 +74,6 @@ def load_filter_lines(host_id, _filter = None, interval = None):
 
     cur.execute(get_filted_query(host_id,_filter,interval))
     l = []
-    last_x = 0
     for row in cur:
         l.append ( ( row['xaxis'], row['yaxis'] ) )
 

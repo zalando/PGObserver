@@ -7,16 +7,14 @@ from __future__ import print_function
 import psycopg2
 import psycopg2.extras
 import time
-import datetime
 import DataDB
-import funccache
-import collections
+from psycopg2.extensions import adapt
 
 def getSizeTrendSQL(host_id = None):
     if host_id == None:
         host_sql = ''
     else:
-        host_sql = ' AND t_host_id = ' + str(host_id)
+        host_sql = ' AND t_host_id = %s' % (adapt(host_id),)
 
     sql = """SELECT t_host_id,
                      tsd_timestamp,
@@ -26,7 +24,7 @@ def getSizeTrendSQL(host_id = None):
                     SUM(tsd_tup_del) AS s_del
                 FROM monitor_data.table_size_data
                 JOIN monitor_data.tables ON t_id = tsd_table_id
-                WHERE tsd_timestamp > 'now'::timestamp - '9 days'::interval"""+host_sql+"""
+                WHERE tsd_timestamp > 'now'::timestamp - '9 days'::interval""" + host_sql + """
               GROUP BY t_host_id, tsd_timestamp ORDER BY t_host_id, tsd_timestamp"""
 
     return sql
@@ -35,7 +33,7 @@ def getIOTrendSQL(host_id = None):
     if host_id == None:
         host_sql = ''
     else:
-        host_sql = ' AND t_host_id = ' + str(host_id)
+        host_sql = ' AND t_host_id = %s' % (adapt(host_id),)
 
 # group by timestamp is ok, gatherer puts same timestamp for every interval into all values
 
@@ -129,9 +127,9 @@ def getSingleTableSql(host, name, interval=None):
         interval = "AND tsd_timestamp > ('now'::timestamp - '14 days'::interval)"
     else:
         if 'interval' in interval:
-            interval = "AND tsd_timestamp > " + interval['interval']+'::interval'
+            interval = "AND tsd_timestamp > %s::interval" % (adapt(interval['interval']), )
         else:
-            interval = "AND tsd_timestamp BETWEEN '%s'::timestamp and '%s'::timestamp" % (interval['from'],interval['to'], )
+            interval = "AND tsd_timestamp BETWEEN %s::timestamp and %s::timestamp" % (adapt(interval['from']),adapt(interval['to']), )
 
     sql = """
     SELECT tsd_table_id,
@@ -145,7 +143,7 @@ def getSingleTableSql(host, name, interval=None):
            tsd_tup_del,
            tsd_tup_hot_upd
       FROM monitor_data.table_size_data
-     WHERE tsd_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_schema || '.' || t_name = '""" + name + """' AND t_host_id = """ + host + """ )
+     WHERE tsd_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_schema || '.' || t_name = '""" + str(adapt(name)) + """' AND t_host_id = """ + str(adapt(host)) + """ )
        """+interval+"""
       ORDER BY tsd_timestamp ASC
     """
@@ -158,15 +156,15 @@ def getSingleTableIOSql(host, name, interval=None):
         interval = "AND tio_timestamp > ('now'::timestamp - '14 days'::interval)"
     else:
         if 'interval' in interval:
-            interval = "AND tio_timestamp > " + interval['interval']+'::interval'
+            interval = "AND tio_timestamp > %s::interval" % ( adapt(interval['interval']), )
         else:
-            interval = "AND tio_timestamp BETWEEN '%s'::timestamp and '%s'::timestamp" % (interval['from'],interval['to'], )
+            interval = "AND tio_timestamp BETWEEN %s::timestamp and %s::timestamp" % (adapt(interval['from']),adapt(interval['to']), )
 
     sql = """
     SELECT tio_table_id, tio_timestamp, tio_heap_read, tio_heap_hit, tio_idx_read,
            tio_idx_hit
       FROM monitor_data.table_io_data
-     WHERE tio_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_schema || '.' || t_name = '""" + name + """' AND t_host_id = """ + host + """ )
+     WHERE tio_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_schema || '.' || t_name = '""" + str(adapt(name)) + """' AND t_host_id = """ + str(adapt(host)) + """ )
        """+interval+"""
       ORDER BY tio_timestamp ASC
     """
@@ -279,7 +277,7 @@ def getTopTables(hostId=1, limit=10, order=None):
     if limit == None:
         limit = ""
     else:
-        limit = """ LIMIT """ + str(limit)
+        limit = """ LIMIT """ + str(adapt(limit))
 
     if order == None:
         order = 2
@@ -294,7 +292,7 @@ def getTopTables(hostId=1, limit=10, order=None):
 
     cur.execute("""SELECT MAX(tsd_timestamp) AS max_date
                      FROM monitor_data.table_size_data
-                    WHERE tsd_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_host_id = """+str(hostId)+""" LIMIT 1)""")
+                    WHERE tsd_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_host_id = """+str(adapt(hostId))+""" LIMIT 1)""")
 
     maxTime = None
     for record in cur:
@@ -312,7 +310,7 @@ def getTopTables(hostId=1, limit=10, order=None):
 
                      FROM monitor_data.table_size_data td
                      JOIN monitor_data.tables ON t_id = td.tsd_table_id
-                    WHERE td.tsd_timestamp = '""" + str(maxTime) + """' AND t_host_id = """ + str(hostId) + """ ) _t """ + order + """ """ + limit
+                    WHERE td.tsd_timestamp = """ + adapt(maxTime) + """ AND t_host_id = """ + str(adapt(hostId)) + """ ) _t """ + order + """ """ + limit
 
     cur.execute( sql )
 

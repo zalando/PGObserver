@@ -4,11 +4,8 @@ Created on Sep 20, 2011
 
 @author: jmussler
 '''
-import time
 import hosts
 import reportdata
-
-from jinja2 import Environment, FileSystemLoader
 
 import tplE
 
