@@ -143,7 +143,7 @@ def getSingleTableSql(host, name, interval=None):
            tsd_tup_del,
            tsd_tup_hot_upd
       FROM monitor_data.table_size_data
-     WHERE tsd_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_schema || '.' || t_name = '""" + str(adapt(name)) + """' AND t_host_id = """ + str(adapt(host)) + """ )
+     WHERE tsd_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_schema || '.' || t_name = """ + str(adapt(name)) + """ AND t_host_id = """ + str(adapt(host)) + """ )
        """+interval+"""
       ORDER BY tsd_timestamp ASC
     """
@@ -164,7 +164,7 @@ def getSingleTableIOSql(host, name, interval=None):
     SELECT tio_table_id, tio_timestamp, tio_heap_read, tio_heap_hit, tio_idx_read,
            tio_idx_hit
       FROM monitor_data.table_io_data
-     WHERE tio_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_schema || '.' || t_name = '""" + str(adapt(name)) + """' AND t_host_id = """ + str(adapt(host)) + """ )
+     WHERE tio_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_schema || '.' || t_name = """ + str(adapt(name)) + """ AND t_host_id = """ + str(adapt(host)) + """ )
        """+interval+"""
       ORDER BY tio_timestamp ASC
     """
@@ -310,7 +310,7 @@ def getTopTables(hostId=1, limit=10, order=None):
 
                      FROM monitor_data.table_size_data td
                      JOIN monitor_data.tables ON t_id = td.tsd_table_id
-                    WHERE td.tsd_timestamp = """ + adapt(maxTime) + """ AND t_host_id = """ + str(adapt(hostId)) + """ ) _t """ + order + """ """ + limit
+                    WHERE td.tsd_timestamp = """ + str(adapt(maxTime)) + """ AND t_host_id = """ + str(adapt(hostId)) + """ ) _t """ + order + """ """ + limit
 
     cur.execute( sql )
 
