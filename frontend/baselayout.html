@@ -1,0 +1,58 @@
+{% set active_page = active_page|default('index') -%}
+{% set auto_reload = auto_reload|default(-1) -%}
+<html>
+<head>
+   <title>DB Monitor - Frontend</title>
+   <link href="/static/styles.css" rel="stylesheet" type="text/css" />
+   <link href="/static/jquery-ui-1.10.1.custom.min.css" rel="stylesheet" type="text/css" />
+   <link href="/static/fluid_1680.css" rel="stylesheet" type="text/css" />
+   <script src="/static/js/jquery-1.9.1.min.js" type="text/javascript"></script>
+   <script src="/static/js/jquery-ui-1.10.1.custom.min.js" type="text/javascript"></script>
+   <script src="/static/js/flot/jquery.flot.js" type="text/javascript"></script>
+   <script src="/static/js/flot/jquery.flot.selection.js" type="text/javascript"></script>
+   <script src="/static/js/flot/jquery.flot.stack.js" type="text/javascript"></script>
+        {% if auto_reload != -1 %} <meta http-equiv="refresh" content="{{ auto_reload }}">{% endif %}
+</head>
+<body>
+   <div class="container_12">
+      <div class="grid_12" style="z-index:1000;">
+         <div id="navcontainer">
+            <ul id="navlist">
+            {% for h in hostlist: %}
+            {% if h['host_group_id'] in groups: %}
+            <li>
+            <a href="#">{{ groups[h['host_group_id']] }}</a>
+            <ul>
+               {% for hh in hostgroups[h['host_group_id']]: %}
+                  <li><a {% if h['host_id'] == active_page %}id="current"{% endif %} href="/{{ hh['settings']['uiShortName'].lower().replace('-','') }}">{{hh['settings']['uiLongName']}}</a></li>
+               {% endfor %}
+            </ul>
+            </li>
+            {% else: %}
+            <li><a {% if h['host_id'] == active_page %}id="current"{% endif %} href="/{{ h['settings']['uiShortName'].lower().replace('-','') }}">{{h['settings']['uiShortName']}}</a></li>
+            {% endif %}
+            {% endfor %}
+
+                {% if settings.sizeoverview %}
+            <li><a href="/tables">Size-Overview</a></li>
+                {% endif %}
+            <li><a href="/report">Load-Overview</a></li>
+                <li><a href="/perftables">Perf-Issues-Tables</a></li>
+                <li><a href="/perfapi">Perf-Issues-Sprocs</a></li>
+
+                    {% if settings.sizeOverview %}
+            <li><a href="/tags">Tags</a></li>
+                    {% endif %}
+
+                    {% if settings.logfiles %}
+            <li><a href="/tags">Logfiles</a>
+                    {% endif %}
+            </li>
+            </ul>
+         </div>
+      </div>
+   </div>
+   {% block body %}
+   {% endblock %}
+</body>
+</html>

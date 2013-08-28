@@ -1,0 +1,63 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'perf' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+        <h3>Possible Table access/growth issues report</h3>
+        <form method="GET" action="/perftables">
+            <span class="text3">Hostname:</span>
+            <select name="hostname">
+                <option value="all">all</option>
+                {% for host_id, host in host_names: %}
+                <option value="{{ host['host_name'] }}" {% if interval['hostname'] == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
+                {% endfor %}
+                <!--<option value="customer1-master.db.zalando">customer1-master.db.zalando</option>-->
+            </select>
+            <br />
+            <span class="text3">Timeframe:</span>
+            <input class="datefield" type="text" name="from" value="{{ interval['from'] }}">
+            <input class="datefield" type="text" name="to" value="{{ interval['to'] }}">
+            <input name="show" type="submit" value="show"></form>
+    </div>
+    <script>
+        $(function() {
+            $(".datefield").datepicker({"dateFormat": "yy-mm-dd"});
+        });
+    </script>
+    <div class="clear"></div>
+    <div class="grid_4">
+        <table class="perftable" border="1">
+            <tr>
+                <th>Host</th>
+                <th>Schema</th>
+                <th>Table</th>
+                <th>Date</th>
+                <th>Scan change %</th>
+                <th>Scans1</th>
+                <th>Scans2</th>
+                <th>Allowed scan %</th>
+                <th>Size1</th>
+                <th>Size2</th>
+                <th>Size change %</th>
+            </tr>
+            {% for d in data: %}
+            <tr>                
+                <td><a href="/tables/alltables/{{ d['host_id'] }}">{{ d['host_name'] }} </a></td>
+                <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['schema_name'] }} </a></td>
+                <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['table_name'] }} </a></td>
+                <td>{{ d['day'] }} </td>
+                <td>{{ d['scan_change_percentage'] }} </td>
+                <td>{{ d['scans1'] }} </td>
+                <td>{{ d['scans2'] }} </td>
+                <td>{{ d['allowed_seq_scan_percentage'] }} </td>
+                <td>{{ d['size1'] }} </td>
+                <td>{{ d['size2'] }} </td>
+                <td>{{ d['size_change_percentage'] }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+{% endblock %}

@@ -6,7 +6,7 @@ Created on Sep 19, 2011
 import psycopg2
 import psycopg2.extras
 
-connection_string = "dbname=dbmonitor host=localhost user= password=postgres"
+connection_string = "dbname=dbmonitor host=localhost user=pgobserver_frontend_test password=ndowifwensa"
 
 def setConnectionString(conn_string):
     global connection_string
