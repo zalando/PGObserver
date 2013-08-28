@@ -36,10 +36,8 @@
                 <th>Scan change %</th>
                 <th>Scans1</th>
                 <th>Scans2</th>
-                <th>Allowed scan %</th>
                 <th>Size1</th>
                 <th>Size2</th>
-                <th>Size change %</th>
             </tr>
             {% for d in data: %}
             <tr>                
@@ -47,13 +45,11 @@
                 <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['schema_name'] }} </a></td>
                 <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['table_name'] }} </a></td>
                 <td>{{ d['day'] }} </td>
-                <td>{{ d['scan_change_percentage'] }} </td>
+                <td>{{ d['scan_change_pct'] }} ({{ d['allowed_seq_scan_pct'] }})</td>
                 <td>{{ d['scans1'] }} </td>
                 <td>{{ d['scans2'] }} </td>
-                <td>{{ d['allowed_seq_scan_percentage'] }} </td>
                 <td>{{ d['size1'] }} </td>
                 <td>{{ d['size2'] }} </td>
-                <td>{{ d['size_change_percentage'] }} </td>
             </tr>
             {% endfor %}
         </table>

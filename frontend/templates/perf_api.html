@@ -36,29 +36,25 @@
                 <th>Schema</th>
                 <th>Sproc</th>
                 <th>Calltime change %</th>
-                <th>Share on total runtime</th>
+                <th>Share on total runtime %</th>
                 <th>Avg1</th>
                 <th>Avg2</th>
+                <th>Callscount change %</th>
                 <th>Calls1</th>
                 <th>Calls2</th>
-                <th>Callscount change %</th>
-                <th>Allowed growth %</th>
-                <th>Allowed share on total runtime %</th>
             </tr>
             {% for d in data: %}
             <tr>                             
                 <td><a href="/{{ hosts[d['host_id']]['settings']['uiShortName'].lower() }}">{{ d['host_name'] }}</a></td>
                 <td><a href="/sprocs/show/{{ d['host_id'] }}/{{ d['sproc_name'] }}">{{ d['sproc_schema'] }}</a></td>
                 <td><a href="/sprocs/show/{{ d['host_id'] }}/{{ d['sproc_name'] }}">{{ d['sproc_name'] }}</a></td>
-                <td>{{ d['calltime_change_pct'] }} </td>
-                <td>{{ d['share_on_total_runtime'] }} </td>
+                <td>{{ d['calltime_change_pct'] }} ({{ d['allowed_runtime_growth_pct'] }})</td>
+                <td>{{ d['share_on_total_runtime'] }} ({{ d['allowed_share_on_total_runtime_pct'] }})</td>
                 <td>{{ d['execution_avg1'] }} </td>
                 <td>{{ d['execution_avg2'] }} </td>
+                <td>{{ d['callscount_change_pct'] }} </td>
                 <td>{{ d['calls1'] }} </td>
                 <td>{{ d['calls2'] }} </td>
-                <td>{{ d['callscount_change_pct'] }} </td>
-                <td>{{ d['allowed_runtime_growth_pct'] }} </td>
-                <td>{{ d['allowed_share_on_total_runtime_pct'] }} </td>
             </tr>
             {% endfor %}
         </table>

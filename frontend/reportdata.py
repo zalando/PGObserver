@@ -112,13 +112,13 @@ def getTablePerformanceIssues(hostname, date_from, date_to):
               'schema_name' : r['schema_name'],
               'table_name' : r['table_name'],
               'day' : r['day'],
-              'scan_change_percentage' : r['scan_change_percentage'],
+              'scan_change_pct' : r['scan_change_pct'],
               'scans1': r['scans1'],
               'scans2': r['scans2'],
               'size1': r['size1'],
               'size2': r['size2'],
-              'size_change_percentage': r['size_change_percentage'],
-              'allowed_seq_scan_percentage': r['allowed_seq_scan_percentage'],
+              'size_change_pct': r['size_change_pct'],
+              'allowed_seq_scan_pct': r['allowed_seq_scan_pct'],
               }
         data.append(row)
     cur.close()

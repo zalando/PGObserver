@@ -1,84 +1,46 @@
 SET search_path = monitor_data, public;
 
 /*
-sprocs
-*/
-
-drop table if exists perf_comparison_sproc_thresholds;
-
-create table perf_comparison_sproc_thresholds (
-pcst_host_name text primary key,
-pcst_allowed_runtime_growth_percentage numeric, --percentages
-pcst_allowed_total_runtime_growth bigint,
-pcst_allowed_call_count_growth_percentage numeric --percentages
-);
-
-/*
-insert into perf_comparison_sproc_thresholds
-select 'catalog1.db.zalando', 25, 1000, 100, null;
+sproc report tuning tables
 */
 
 drop table if exists perf_comparison_default_sproc_thresholds;
 
-create table perf_comparison_default_sproc_thresholds ( --weekly
-pcdst_allowed_runtime_growth_percentage numeric,
-pcdst_allowed_callcount_growth_percentage numeric, --not used currently
-pcdst_share_on_total_runtime_percentage numeric,
-pcdst_share_on_total_runtime_percentage numeric,
+create table perf_comparison_default_sproc_thresholds (
+pcdst_allowed_runtime_growth_pct numeric,
+pcdst_allowed_callcount_growth_pct numeric, --not used currently
+pcdst_share_on_total_runtime_pct numeric,
 pcdst_min_reported_call_count bigint
 );
 
 insert into perf_comparison_default_sproc_thresholds
-select 25, 500,0.5,100;
+select 25, 500,2,100;
+
+
+drop table if exists perf_comparison_sproc_thresholds;
+--for fine tuning of sprocs
+create table perf_comparison_sproc_thresholds (
+pcst_host_name text primary key,
+pcst_sproc_name text,
+pcst_allowed_runtime_growth_pct numeric,
+pcst_allowed_call_count_growth_pct numeric
+);
+
+
+
 
 
 
 /*
 tables
-
-todo, should start checking for unused indexes also? no per index data in pgmon currently...
 */
 
---todo - def. vals into coalesce + left join
-
-drop table if exists perf_comparison_thresholds_tables;
-
-create table perf_comparison_thresholds_tables (
-pctt_host_name text,
-pctt_schema_name text,
-pctt_table_name text,
-pctt_allowed_seq_scan_count bigint, --for week
-pctt_allowed_seq_scan_percentage numeric, --for week
-pctt_allowed_size_growth bigint, --bytes, for week
-pctt_allowed_size_growth_percentage numeric, --for week
-primary key (pctt_host_name, pctt_schema_name, pctt_table_name)
-);
-
-insert into perf_comparison_thresholds_tables
-select 'catalog1.db.zalando', 'zcat_data', 'price_current',null,50,50;
-insert into perf_comparison_thresholds_tables
-select 'catalog1.db.zalando', 'zcat_data', 'price_definition',null,50,50;
-
-
-
-drop table if exists perf_comparison_ignored_tables;
-
-create table perf_comparison_ignored_tables (
-pcit_schema text,
-pcit_table text,
-primary key (pcit_schema, pcit_table)
-);
-
-insert into perf_comparison_ignored_tables
-select 'zcat_data', 'price_definition';
-
-
 drop table if exists perf_comparison_default_tables_thresholds;
---weekly
+--pct are for one day
 create table perf_comparison_default_tables_thresholds (
-pcdtt_allowed_seq_scan_percentage numeric,
-pcdtt_allowed_size_growth bigint, --not used
-pcdtt_allowed_size_growth_percentage numeric,
+pcdtt_allowed_seq_scan_pct numeric,
+pcdtt_allowed_size_growth bigint,
+pcdtt_allowed_size_growth_pct numeric,
 pcdtt_min_reported_table_size_threshold bigint,
 pcdtt_min_reported_scan_count bigint
 );
@@ -86,6 +48,27 @@ insert into perf_comparison_default_tables_thresholds
 select 50, null, 10, 50*1000*1000, 50;
 
 
+drop table if exists perf_comparison_table_thresholds;
+--fine tuning of tables
+create table perf_comparison_table_thresholds (
+pctt_host_name text,
+pctt_schema_name text,
+pctt_table_name text,
+pctt_allowed_seq_scan_count bigint,
+pctt_allowed_seq_scan_pct numeric,
+pctt_allowed_size_growth bigint, --bytes
+pctt_allowed_size_growth_pct numeric,
+primary key (pctt_host_name, pctt_schema_name, pctt_table_name)
+);
+
+
+drop table if exists perf_comparison_tables_ignored;
+
+create table perf_comparison_tables_ignored(
+pcti_schema text not null,
+pcti_table text not null,
+primary key (pcti_schema, pcti_table)
+);
 
 
 
@@ -96,8 +79,8 @@ sprocs api
 
 */
 
---select * from get_sproc_threshold_sinners_for_release('catalog1.db.zalando','r13_00_24','r13_00_25')
---drop function get_sproc_threshold_sinners_for_release(text,text,text)
+--select * from get_sproc_threshold_sinners_for_release('all','r13_00_33','r13_00_34');
+drop function if exists get_sproc_threshold_sinners_for_release(text,text,text);
 
 create or replace function get_sproc_threshold_sinners_for_release(
           in p_host_name text
@@ -132,8 +115,8 @@ select
 , calls1
 , calls2
 , callscount_change_pct
-, allowed_runtime_growth_percentage
-, allowed_share_on_total_runtime_percentage
+, allowed_runtime_growth_pct
+, allowed_share_on_total_runtime_pct
 from
 (
     select
@@ -148,10 +131,10 @@ from
         , exec_avg2
         , calls1
         , calls2
-        , coalesce (pcst_allowed_runtime_growth_percentage, pcdst_allowed_runtime_growth_percentage) as allowed_runtime_growth_percentage
-        , coalesce (pcst_allowed_runtime_growth_percentage, pcdst_allowed_runtime_growth_percentage) as calltime_threshold_pct
+        , coalesce (pcst_allowed_runtime_growth_pct, pcdst_allowed_runtime_growth_pct) as allowed_runtime_growth_pct
+        , coalesce (pcst_allowed_call_count_growth_pct, pcst_allowed_call_count_growth_pct) as allowed_calls_growth_pct
         , global_total_time
-        , pcdst_share_on_total_runtime_percentage as allowed_share_on_total_runtime_percentage
+        , pcdst_share_on_total_runtime_pct as allowed_share_on_total_runtime_pct
     from (
 
       select
@@ -188,45 +171,16 @@ from
        ) a
      ) b
      join perf_comparison_default_sproc_thresholds on true -- 1 row
-     left join perf_comparison_sproc_thresholds on pcst_host_name = host_name --custom thresholds
+     left join perf_comparison_sproc_thresholds on (pcst_host_name, pcst_sproc_name) = (host_name, sproc_name)  --custom thresholds
      where ($1 = 'all' or b.host_name = $1)
      and exec_avg1 is not null
 ) c
-where calltime_change_pct >= allowed_runtime_growth_percentage
-and share_on_total_runtime >= allowed_share_on_total_runtime_percentage
+where ( calltime_change_pct >= allowed_runtime_growth_pct
+    or callscount_change_pct >= allowed_calls_growth_pct)
+and share_on_total_runtime >= allowed_share_on_total_runtime_pct
 order by 5 desc, 2
 
 $$ language sql set work_mem = '256MB';
-
-
-
-
-
-
---select * from get_sproc_threshold_sinners_for_period('catalog1.db.zalando','2013-07-01','2013-07-04')
---drop function get_sproc_threshold_sinners_for_period(text,timestamp,timestamp)
-
-create or replace function get_sproc_threshold_sinners_for_period(
-          in p_host_name text
-        , in p_date1 timestamp
-        , in p_date2 timestamp
-        , out host_name text
-        , out sproc_name text
-        , out avg_arr numeric[]
-        , out calls_arr bigint[]
-        , out calltime_change int
-        , out is_slower boolean
-        , out callscount_change int
-        , out calltime_threshold int
-)
-returns setof record
-as $$
-
---todo
-
-$$ language sql;
-
-
 
 
 
@@ -244,9 +198,8 @@ tables api
 */
 
 
---select * from get_table_threshold_sinners_for_period('catalog1.db.zalando','2013-07-01','2013-07-04')
---select * from get_table_threshold_sinners_for_period('catalog1.db.zalando','2013-07-01','2013-07-04')
---drop function get_table_threshold_sinners_for_period(text,timestamp,timestamp)
+--select * from get_table_threshold_sinners_for_period('all','2013-08-26','2013-08-28');
+drop function if exists get_table_threshold_sinners_for_period(text,date,date);
 
 create or replace function get_table_threshold_sinners_for_period(
           in p_host_name text
@@ -257,13 +210,13 @@ create or replace function get_table_threshold_sinners_for_period(
         , out schema_name text
         , out table_name text
         , out day date
-        , out scan_change_percentage numeric
+        , out scan_change_pct numeric
         , out scans1 bigint
         , out scans2 bigint
         , out size1 text
         , out size2 text
-        , out size_change_percentage numeric
-        , out allowed_seq_scan_percentage numeric
+        , out size_change_pct numeric
+        , out allowed_seq_scan_pct numeric
 )
 returns setof record
 as $$
@@ -278,15 +231,16 @@ select
     , schema_name
     , table_name
     , day
-    , scan_change_percentage
+    , scan_change_pct
     , scans1
     , scans2
     , pg_size_pretty(size1) as size1
     , pg_size_pretty(size2) as size2
-    , size_change_percentage
-    , allowed_seq_scan_percentage
---    , allowed_size_growth_percentage
+    , size_change_pct
+    , allowed_seq_scan_pct
+--    , allowed_size_growth_pct
 --    , gloal_scans_on_day
+--    , min_reported_scan_count
 from (
 
 select
@@ -297,14 +251,15 @@ select
     , day
     , scans1
     , scans2
-    , case when scans1 = 0 then 0 else round((scans2-scans1)/scans1::numeric*100,2) end as scan_change_percentage
+    , case when scans1 = 0 then 0 else round((scans2-scans1)/scans1::numeric*100,2) end as scan_change_pct
     , size1
     , size2
-    , case when size1 = 0 then 0 else round((size2-size1)/size1::numeric*100,2) end as size_change_percentage
-    , pcdtt_allowed_seq_scan_percentage as allowed_seq_scan_percentage
-    , pcdtt_allowed_size_growth_percentage as allowed_size_growth_percentage
+    , case when size1 = 0 then 0 else round((size2-size1)/size1::numeric*100,2) end as size_change_pct
+    , coalesce(pctt_allowed_seq_scan_pct,pcdtt_allowed_seq_scan_pct) as allowed_seq_scan_pct
+    , coalesce(pctt_allowed_size_growth_pct, pcdtt_allowed_size_growth_pct) as allowed_size_growth_pct
+    , coalesce(pctt_allowed_seq_scan_count,pcdtt_min_reported_scan_count) as min_reported_scan_count    
     , pcdtt_min_reported_table_size_threshold as min_reported_table_size_threshold
-    , pcdtt_min_reported_scan_count as min_reported_scan_count
+    , coalesce(pctt_allowed_size_growth,pcdtt_allowed_size_growth) as allowed_size_growth
     , global_scans_on_day
 from
 (
@@ -334,27 +289,32 @@ from (
           join tables on t_id = tsd_table_id
           join hosts on host_id = t_host_id
       where tsd_timestamp between $2 - '1d'::interval and $3
+      --where tsd_timestamp between '2013-08-26'::date and '2013-08-28'::date
         and ( $1 = 'all' or host_name = $1) --like 'customer1-master.db.zalando'
+        --and ( 'catalog1.db.zalando' = 'all' or host_name = 'catalog1.db.zalando') --like 'customer1-master.db.zalando'
         and t_name not similar to '(temp|_backup)%'
         and t_schema like 'z%'
         and t_schema not similar to '(public|pg_temp|_v|zz_commons|z_sync|temp)%'
         and t_schema not similar to '%_api_r%'
+        and t_schema||t_name not in (select pcti_schema||pcti_table from perf_comparison_tables_ignored)
         group by tsd_timestamp::date, host_name, host_id, t_schema, t_name
 
     ) a
 
 ) b
 join perf_comparison_default_tables_thresholds on true
-left join perf_comparison_thresholds_tables
-  on (pctt_table_name, pctt_host_name, pctt_schema_name) = (t_name, host_name, t_schema)
+left join perf_comparison_table_thresholds
+  on (pctt_table_name, pctt_host_name, pctt_schema_name) = (table_name, host_name, schema_name)
 where scans1 is not null
 ) c
-where scan_change_percentage >= allowed_seq_scan_percentage
-and size2 >= min_reported_table_size_threshold
+where size2 >= min_reported_table_size_threshold
 and scans2 >= min_reported_scan_count
-order by scan_change_percentage desc
+and (
+     scan_change_pct >= allowed_seq_scan_pct
+  or size_change_pct >= allowed_size_growth_pct
+  or (size2 - size1) > allowed_size_growth
+)
+order by scan_change_pct desc
+
 
 $$ language sql;
-
-
-
