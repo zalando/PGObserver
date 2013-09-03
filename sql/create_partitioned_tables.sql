@@ -31,7 +31,6 @@ BEGIN
 
     IF FOUND THEN
       RAISE WARNING '% already existing!', l_table_full_name;
-      --RETURN;
       CONTINUE;
     END IF;
 
@@ -52,7 +51,6 @@ LANGUAGE plpgsql;
 
 
 
---array['sproc_performance_data', 'table_io_data', 'table_size_data'];
 DROP TRIGGER IF EXISTS sproc_performance_data_insert_trigger ON monitor_data.sproc_performance_data;
 DROP FUNCTION IF EXISTS monitor_data.sproc_performance_data_insert_trigger();
 
@@ -70,7 +68,6 @@ BEGIN
   l_row_as_text := NEW;
   --RAISE WARNING 'l_partitioned_table_name: %', l_partitioned_table_name;
 
-  --if not exist table, insert
   IF NOT EXISTS (SELECT 1
                    FROM pg_tables
                   WHERE tablename = l_partitioned_table_name
@@ -80,13 +77,11 @@ BEGIN
   END IF;
 
   EXECUTE 'INSERT INTO '|| l_partitioned_table_name ||' SELECT (' || quote_literal( NEW ) || '::monitor_data.'||l_partitioned_table_name || ').*' ;
-  --RETURN NEW;
   RETURN NULL;
 END;
 $$
 LANGUAGE plpgsql;
 
----monitor_data.table_io_data
 DROP TRIGGER IF EXISTS table_io_data_insert_trigger ON monitor_data.table_io_data;
 DROP FUNCTION IF EXISTS monitor_data.table_io_data_insert_trigger();
 
@@ -102,7 +97,6 @@ BEGIN
   l_partitioned_table_name := 'table_io_data_' || l_year || l_month;
   --RAISE WARNING 'l_partitioned_table_name: %', l_partitioned_table_name;
 
-  --if not exist table, insert
   IF NOT EXISTS (SELECT 1
                    FROM pg_tables
                   WHERE tablename = l_partitioned_table_name
@@ -113,14 +107,12 @@ BEGIN
 
 
   EXECUTE 'INSERT INTO '|| l_partitioned_table_name ||' SELECT (' || quote_literal( NEW ) || '::monitor_data.'||l_partitioned_table_name || ').*' ;
-  --RETURN NEW;
   RETURN NULL;
 END;
 $$
 LANGUAGE plpgsql;
 
 
----monitor_data.table_io_data
 DROP TRIGGER IF EXISTS table_size_data_insert_trigger ON monitor_data.table_size_data;
 DROP FUNCTION IF EXISTS monitor_data.table_size_data_insert_trigger();
 
@@ -136,7 +128,6 @@ BEGIN
   l_partitioned_table_name := 'table_size_data_' || l_year || l_month;
   --RAISE WARNING 'l_partitioned_table_name: %', l_partitioned_table_name;
 
-  --if not exist table, insert
   IF NOT EXISTS (SELECT 1
                    FROM pg_tables
                   WHERE tablename = l_partitioned_table_name

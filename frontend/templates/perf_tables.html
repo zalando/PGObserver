@@ -12,7 +12,6 @@
                 {% for host_id, host in host_names: %}
                 <option value="{{ host['host_name'] }}" {% if interval['hostname'] == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
                 {% endfor %}
-                <!--<option value="customer1-master.db.zalando">customer1-master.db.zalando</option>-->
             </select>
             <br />
             <span class="text3">Timeframe:</span>

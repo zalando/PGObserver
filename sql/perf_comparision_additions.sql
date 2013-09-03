@@ -221,10 +221,6 @@ create or replace function get_table_threshold_sinners_for_period(
 returns setof record
 as $$
 
---set work_mem='128MB'
-
-
-
 select
       host_id
     , host_name
@@ -238,74 +234,66 @@ select
     , pg_size_pretty(size2) as size2
     , size_change_pct
     , allowed_seq_scan_pct
---    , allowed_size_growth_pct
---    , gloal_scans_on_day
---    , min_reported_scan_count
 from (
-
-select
-      host_name
-    , schema_name
-    , host_id
-    , table_name
-    , day
-    , scans1
-    , scans2
-    , case when scans1 = 0 then 0 else round((scans2-scans1)/scans1::numeric*100,2) end as scan_change_pct
-    , size1
-    , size2
-    , case when size1 = 0 then 0 else round((size2-size1)/size1::numeric*100,2) end as size_change_pct
-    , coalesce(pctt_allowed_seq_scan_pct,pcdtt_allowed_seq_scan_pct) as allowed_seq_scan_pct
-    , coalesce(pctt_allowed_size_growth_pct, pcdtt_allowed_size_growth_pct) as allowed_size_growth_pct
-    , coalesce(pctt_allowed_seq_scan_count,pcdtt_min_reported_scan_count) as min_reported_scan_count    
-    , pcdtt_min_reported_table_size_threshold as min_reported_table_size_threshold
-    , coalesce(pctt_allowed_size_growth,pcdtt_allowed_size_growth) as allowed_size_growth
-    , global_scans_on_day
-from
-(
-  select
-      day
-    , host_name
-    , host_id
-    , schema_name
-    , table_name
-    , lag(scans_on_day) over(partition by host_name, schema_name,table_name order by host_name, schema_name,table_name, day) as scans1
-    , scans_on_day as scans2
-    , lag(size_on_day) over(partition by host_name, schema_name,table_name order by host_name, schema_name,table_name, day) as size1
-    , size_on_day as size2
-    , sum(scans_on_day) over(partition by day) as global_scans_on_day
-from (
-
     select
-          tsd_timestamp::date as day
+          host_name
+        , schema_name
+        , host_id
+        , table_name
+        , day
+        , scans1
+        , scans2
+        , case when scans1 = 0 then 0 else round((scans2-scans1)/scans1::numeric*100,2) end as scan_change_pct
+        , size1
+        , size2
+        , case when size1 = 0 then 0 else round((size2-size1)/size1::numeric*100,2) end as size_change_pct
+        , coalesce(pctt_allowed_seq_scan_pct,pcdtt_allowed_seq_scan_pct) as allowed_seq_scan_pct
+        , coalesce(pctt_allowed_size_growth_pct, pcdtt_allowed_size_growth_pct) as allowed_size_growth_pct
+        , coalesce(pctt_allowed_seq_scan_count,pcdtt_min_reported_scan_count) as min_reported_scan_count    
+        , pcdtt_min_reported_table_size_threshold as min_reported_table_size_threshold
+        , coalesce(pctt_allowed_size_growth,pcdtt_allowed_size_growth) as allowed_size_growth
+        , global_scans_on_day
+    from
+    (
+      select
+          day
         , host_name
         , host_id
-        , t_schema as schema_name
-        , t_name as table_name
-        , max(tsd_seq_scans) - min(tsd_seq_scans) as scans_on_day
-        , max(tsd_table_size) as size_on_day
-       from
-            table_size_data
-          join tables on t_id = tsd_table_id
-          join hosts on host_id = t_host_id
-      where tsd_timestamp between $2 - '1d'::interval and $3
-      --where tsd_timestamp between '2013-08-26'::date and '2013-08-28'::date
-        and ( $1 = 'all' or host_name = $1) --like 'customer1-master.db.zalando'
-        --and ( 'catalog1.db.zalando' = 'all' or host_name = 'catalog1.db.zalando') --like 'customer1-master.db.zalando'
-        and t_name not similar to '(temp|_backup)%'
-        and t_schema like 'z%'
-        and t_schema not similar to '(public|pg_temp|_v|zz_commons|z_sync|temp)%'
-        and t_schema not similar to '%_api_r%'
-        and t_schema||t_name not in (select pcti_schema||pcti_table from perf_comparison_tables_ignored)
-        group by tsd_timestamp::date, host_name, host_id, t_schema, t_name
+        , schema_name
+        , table_name
+        , lag(scans_on_day) over(partition by host_name, schema_name,table_name order by host_name, schema_name,table_name, day) as scans1
+        , scans_on_day as scans2
+        , lag(size_on_day) over(partition by host_name, schema_name,table_name order by host_name, schema_name,table_name, day) as size1
+        , size_on_day as size2
+        , sum(scans_on_day) over(partition by day) as global_scans_on_day
+    from (
 
-    ) a
+        select
+              tsd_timestamp::date as day
+            , host_name
+            , host_id
+            , t_schema as schema_name
+            , t_name as table_name
+            , max(tsd_seq_scans) - min(tsd_seq_scans) as scans_on_day
+            , max(tsd_table_size) as size_on_day
+           from table_size_data
+              join tables on t_id = tsd_table_id
+              join hosts on host_id = t_host_id
+          where tsd_timestamp between $2 - '1d'::interval and $3
+            and ( $1 = 'all' or host_name = $1)
+            and t_name not similar to '(temp|_backup)%'
+            and t_schema like 'z%'
+            and t_schema not similar to '(public|pg_temp|_v|zz_commons|z_sync|temp)%'
+            and t_schema not similar to '%_api_r%'
+            and t_schema||t_name not in (select pcti_schema||pcti_table from perf_comparison_tables_ignored)
+            group by tsd_timestamp::date, host_name, host_id, t_schema, t_name
 
-) b
-join perf_comparison_default_tables_thresholds on true
-left join perf_comparison_table_thresholds
-  on (pctt_table_name, pctt_host_name, pctt_schema_name) = (table_name, host_name, schema_name)
-where scans1 is not null
+        ) a
+    ) b
+    join perf_comparison_default_tables_thresholds on true
+    left join perf_comparison_table_thresholds
+      on (pctt_table_name, pctt_host_name, pctt_schema_name) = (table_name, host_name, schema_name)
+    where scans1 is not null
 ) c
 where size2 >= min_reported_table_size_threshold
 and scans2 >= min_reported_scan_count
@@ -315,6 +303,5 @@ and (
   or (size2 - size1) > allowed_size_growth
 )
 order by scan_change_pct desc
-
 
 $$ language sql;

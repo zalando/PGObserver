@@ -29,7 +29,7 @@ class PerfTables(object):
             interval['hostname'] = 'all'
         table = tplE.env.get_template('perf_tables.html')
         host_names = sorted(hosts.hosts.items(), key = lambda h : h[1]['host_name'])
-        return table.render(hosts=hosts.hosts, data=data, interval=interval, host_names=host_names)
+        return table.render(data=data, interval=interval, host_names=host_names)
 
     index.exposed = True
 
@@ -54,6 +54,6 @@ class PerfApi(object):
             interval['hostname'] = 'all'
         table = tplE.env.get_template('perf_api.html')
         host_names = sorted(hosts.hosts.items(), key = lambda h : h[1]['host_name'])
-        return table.render(hosts=hosts.hosts, data=data, interval=interval, host_names=host_names)
+        return table.render(data=data, interval=interval, host_names=host_names)
 
     index.exposed = True

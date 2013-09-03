@@ -10,7 +10,6 @@
             <select name="hostname">
                 <option value="all">all</option>
                 {% for host_id, host in host_names: %}
-                <!--<option value="{{ hosts[host_id]['host_name'] }}" {% if interval['hostname'] == hosts[host_id]['host_name'] %} selected="selected" {% endif %}>{{ hosts[host_id]['host_name'] }}</option>-->
                 <option value="{{ host['host_name'] }}" {% if interval['hostname'] == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
                 {% endfor %}
                 <!--<option value="customer1-master.db.zalando">customer1-master.db.zalando</option>-->
