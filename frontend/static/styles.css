@@ -80,3 +80,7 @@ a { color: #F6AD62; text-decoration: none; }
 
 input { background-color: #404040; color: #FFFFFF; font-weight:400; border: 1px solid grey; }
 .datefield { width:75px; }
+
+.perftable {
+    width: 920px;
+}

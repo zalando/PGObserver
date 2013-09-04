@@ -8,6 +8,7 @@ import sprocsfrontend
 import logfrontend
 import logdata
 import report
+import performance
 import hosts
 
 import DataDB
@@ -67,6 +68,8 @@ def main():
         setattr(root , h['settings']['uiShortName'].lower().replace('-','') , mf)
 
     root.report = report.Report()
+    root.perftables = performance.PerfTables()
+    root.perfapi = performance.PerfApi()
     root.sprocs = sprocsfrontend.SprocFrontend()
     root.tables = tablesfrontend.TableFrontend()
 
