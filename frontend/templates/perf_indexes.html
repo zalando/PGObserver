@@ -33,7 +33,7 @@
     </div>
     {% endif %}
     <div class="clear"></div>
-    <h3>Invalid indexes</h3>
+    <h3>Invalid indexes {% if data['invalid']: %} (in total size of {{ data['invalid'][0]['total_marked_index_size'] }} ) {% endif %}</h3>
     <div class="grid_4">
         <table class="perftable" border="1">
             <tr>
@@ -41,6 +41,7 @@
                 <th>Table name</th>
                 <th>Index name</th>
                 <th>Index size</th>
+                <th>% of table's indexes</th>
                 <th>Table size</th>
             </tr>
             {% for d in data['invalid']: %}
@@ -48,14 +49,15 @@
                 <td><a href="/{{ hosts[d['host_id']]['settings']['uiShortName'].lower().replace('-','') }}">{{ d['host_name'] }}</a></td>
                 <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }}</a></td>
                 <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['table_full_name'] }}">{{ d['index_full_name'] }}</a></td>
-                <td>{{ d['index_size'] }} </td>
+                <td>{{ d['index_size'] }}</td>
+                <td>{{ d['pct_of_tables_index_space'] }}% of {{ d['indexes_size'] }}</td>
                 <td>{{ d['table_size'] }} </td>
             </tr>
             {% endfor %}
         </table>
     </div>
     <div class="clear"></div>
-    <h3>Unused indexes</h3>
+    <h3>Unused indexes {% if data['unused']: %} (in total size of {{ data['unused'][0]['total_marked_index_size'] }} ) {% endif %}</h3>
     <div class="grid_4">
         <table class="perftable" border="1">
             <tr>
@@ -64,6 +66,7 @@
                 <th>Index name</th>
                 <th>Scans</th>
                 <th>Index size</th>
+                <th>% of table's indexes</th>
                 <th>Table size</th>
             </tr>
             {% for d in data['unused']: %}
@@ -73,6 +76,7 @@
                 <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['table_full_name'] }}">{{ d['index_full_name'] }}</a></td>
                 <td>{{ d['scans'] }} </td>
                 <td>{{ d['index_size'] }} </td>
+                <td>{{ d['pct_of_tables_index_space'] }}% of {{ d['indexes_size'] }}</td>
                 <td>{{ d['table_size'] }} </td>
             </tr>
             {% endfor %}
