@@ -1,0 +1,83 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'perf' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+        <h3>Possible Index issues report</h3>
+        <form method="GET" action="/perfindexes">
+            <span class="text3">Hostname:</span>
+            <select name="hostname">
+                <option value="all">all</option>
+                {% for host_id, host in host_names: %}
+                <option value="{{ host['host_name'] }}" {% if interval['hostname'] == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
+                {% endfor %}
+            </select>
+            <br />
+            <input name="show" type="submit" value="show"></form>
+    </div>
+    {% if data['noconnect'] %}
+    <div class="clear"></div>
+    <h3>Could not connect</h3>
+    <div class="grid_4">
+        <table border="1">
+            <tr>
+                <th>Hostname</th>
+            </tr>
+            {% for d in data['noconnect']: %}
+            <tr>                             
+                <td><a href="/{{ hosts[d['host_id']]['settings']['uiShortName'].lower().replace('-','') }}">{{ d['host_name'] }}</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+    <div class="clear"></div>
+    <h3>Invalid indexes</h3>
+    <div class="grid_4">
+        <table class="perftable" border="1">
+            <tr>
+                <th>Hostname</th>
+                <th>Table name</th>
+                <th>Index name</th>
+                <th>Index size</th>
+                <th>Table size</th>
+            </tr>
+            {% for d in data['invalid']: %}
+            <tr>                             
+                <td><a href="/{{ hosts[d['host_id']]['settings']['uiShortName'].lower().replace('-','') }}">{{ d['host_name'] }}</a></td>
+                <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }}</a></td>
+                <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['table_full_name'] }}">{{ d['index_full_name'] }}</a></td>
+                <td>{{ d['index_size'] }} </td>
+                <td>{{ d['table_size'] }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="clear"></div>
+    <h3>Unused indexes</h3>
+    <div class="grid_4">
+        <table class="perftable" border="1">
+            <tr>
+                <th>Hostname</th>
+                <th>Table name</th>
+                <th>Index name</th>
+                <th>Scans</th>
+                <th>Index size</th>
+                <th>Table size</th>
+            </tr>
+            {% for d in data['unused']: %}
+            <tr>                             
+                <td><a href="/{{ hosts[d['host_id']]['settings']['uiShortName'].lower().replace('-','') }}">{{ d['host_name'] }}</a></td>
+                <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }}</a></td>
+                <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['table_full_name'] }}">{{ d['index_full_name'] }}</a></td>
+                <td>{{ d['scans'] }} </td>
+                <td>{{ d['index_size'] }} </td>
+                <td>{{ d['table_size'] }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+{% endblock %}

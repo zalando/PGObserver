@@ -182,8 +182,7 @@ order by 5 desc, 2
 
 $$ language sql set work_mem = '256MB';
 
-
-
+grant execute on function get_sproc_threshold_sinners_for_release(text,text,text) to public;
 
 
 
@@ -305,3 +304,5 @@ and (
 order by scan_change_pct desc
 
 $$ language sql;
+
+grant execute on function get_table_threshold_sinners_for_period(text,date,date) to public;

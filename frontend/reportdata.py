@@ -150,9 +150,82 @@ def getApiPerformanceIssues(hostname, api_from, api_to):
     conn.close()
     return data
 
+def getIndexIssues(hostname):
+    q_invalid = """
+        SELECT
+        %s as host_name,
+        %s as host_id,
+        schemaname||'.'||relname as table_full_name,
+        schemaname||'.'||indexrelname as index_full_name,
+        index_size_bytes,
+        pg_size_pretty(index_size_bytes) as index_size,
+        pg_size_pretty(table_size_bytes) as table_size
+        FROM
+        (
+          SELECT schemaname,
+                 relname,
+                 indexrelname,
+                 pg_relation_size(i.indexrelid) AS index_size_bytes,
+                 pg_relation_size(i.relid) AS table_size_bytes           
+          FROM pg_stat_user_indexes i
+          JOIN pg_index USING(indexrelid) 
+          WHERE NOT indisvalid
+        ) a
+        ORDER BY index_size_bytes desc, relname;
+    """
+    q_unused = """
+        SELECT
+        *,
+        pg_size_pretty(index_size_bytes) AS index_size,
+        pg_size_pretty(table_size_bytes) AS table_size
+        FROM (
+        SELECT  %s as host_name,
+                %s as host_id,
+                 schemaname||'.'||relname as table_full_name,
+                 schemaname||'.'||indexrelname as index_full_name,
+                 pg_relation_size(i.indexrelid) as index_size_bytes,
+                 pg_relation_size(i.relid) as table_size_bytes,
+                 idx_scan as scans
+            FROM pg_stat_user_indexes i 
+            JOIN pg_index USING(indexrelid) 
+            WHERE NOT indisunique
+            AND NOT schemaname LIKE ANY (ARRAY['tmp%%','temp%%'])
+        ) a
+        WHERE index_size_bytes > 10*10^6 --min 10mb 
+        AND scans < 5
+        ORDER BY scans, index_size_bytes desc;
+    """
+    data_invalid = []
+    data_unused = []
+    data_noconnect = []
+    hosts = DataDB.getActiveHosts(hostname)      
+    conn=None
+    for h in hosts:
+        try:
+            print ('processing: {}', h)
+            conn = psycopg2.connect(host=h['host_name'], dbname=h['host_db'], user=h['host_user'], password=h['host_password'],connect_timeout='3')
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cur.execute(q_invalid, (h['host_name'], h['host_id']))
+            data_invalid += cur.fetchall()
+            cur.execute(q_unused, (h['host_name'], h['host_id']))
+            #print (cur.fetchall())
+            data_unused += cur.fetchall()
+        except Exception, e:
+            print ('ERROR could not connect to {}:{}'.format(h['host_name'], e))
+            data_noconnect.append({'host_id':h['host_id'],'host_name': h['host_name']})
+        finally:
+            if conn and not conn.closed:
+                conn.close()
+    
+    data_invalid.sort(key=lambda x:x['index_size_bytes'],reverse=True)
+    data_unused.sort(key=lambda x:x['index_size_bytes'],reverse=True)
+
+    return {'invalid':data_invalid, 'unused':data_unused, 'noconnect':data_noconnect}
 
 if __name__ == '__main__':
     DataDB.setConnectionString("dbname=dbmonitor host=sqlwiki.db.zalando user=pgobserver_frontend_test password=ndowifwensa port=5433")
     #print (getTablePerformanceIssues('customer1.db.zalando',datetime.date(2013,8,23),datetime.date(2013,8,26)))
-    print (getApiPerformanceIssues('stock2.db.zalando','r13_00_33','r13_00_34'))
+    #print (getApiPerformanceIssues('stock2.db.zalando','r13_00_33','r13_00_34'))
+    #print (getIndexIssues('all'))
+    print (getIndexIssues('bm-master.db.zalando')['data_unused'])
 

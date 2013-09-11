@@ -292,7 +292,8 @@ def getTopTables(hostId=1, limit=10, order=None):
 
     cur.execute("""SELECT MAX(tsd_timestamp) AS max_date
                      FROM monitor_data.table_size_data
-                    WHERE tsd_table_id = ( SELECT t_id FROM monitor_data.tables WHERE t_host_id = """+str(adapt(hostId))+""" LIMIT 1)""")
+                    WHERE tsd_table_id IN ( SELECT t_id FROM monitor_data.tables WHERE t_host_id = """+str(adapt(hostId))+""")
+                      AND tsd_timestamp > current_date - 1""")
 
     maxTime = None
     for record in cur:
