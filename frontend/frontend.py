@@ -70,6 +70,7 @@ def main():
     root.report = report.Report()
     root.perftables = performance.PerfTables()
     root.perfapi = performance.PerfApi()
+    root.perfindexes = performance.PerfIndexes()
     root.sprocs = sprocsfrontend.SprocFrontend()
     root.tables = tablesfrontend.TableFrontend()
 
