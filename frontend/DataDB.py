@@ -32,5 +32,5 @@ def execute(sql, params=None):
         return cur.fetchall()
     finally:
         if conn and not conn.closed:
-            conn.close
+            conn.close()
         
