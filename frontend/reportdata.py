@@ -150,9 +150,115 @@ def getApiPerformanceIssues(hostname, api_from, api_to):
     conn.close()
     return data
 
+def getIndexIssues(hostname):
+    q_invalid = """
+        SELECT
+        *,
+        CASE WHEN indexes_size_bytes = 0 THEN 0 ELSE round((index_size_bytes::numeric / indexes_size_bytes::numeric)*100,1) END AS pct_of_tables_index_space,
+        pg_size_pretty(total_marked_index_size_bytes::bigint) AS total_marked_index_size
+        FROM (
+                SELECT
+                %s as host_name,
+                %s as host_id,
+                schemaname||'.'||relname AS table_full_name,
+                schemaname||'.'||indexrelname AS index_full_name,
+                index_size_bytes,
+                indexes_size_bytes,
+                pg_size_pretty(index_size_bytes) AS index_size,
+                pg_size_pretty(indexes_size_bytes) AS indexes_size,
+                pg_size_pretty(table_size_bytes) AS table_size,
+                sum(index_size_bytes) over () AS total_marked_index_size_bytes
+                FROM
+                (
+                  SELECT quote_ident(schemaname) as schemaname,
+                         quote_ident(relname) as relname,
+                         quote_ident(indexrelname) as indexrelname,
+                         pg_relation_size(i.indexrelid) AS index_size_bytes,
+                         pg_indexes_size(i.relid) AS indexes_size_bytes,                 
+                         pg_relation_size(i.relid) AS table_size_bytes
+                  FROM pg_stat_user_indexes i
+                  JOIN pg_index USING(indexrelid) 
+                  WHERE NOT indisvalid
+                ) a
+                ORDER BY index_size_bytes DESC, relname
+        ) b 
+    """
+    q_unused = """
+        SELECT
+        *,
+        pg_size_pretty(total_marked_index_size_bytes::bigint) AS total_marked_index_size
+        FROM (
+          SELECT
+          *,
+          pg_size_pretty(index_size_bytes) AS index_size,
+          pg_size_pretty(indexes_size_bytes) AS indexes_size,
+          pg_size_pretty(table_size_bytes) AS table_size,
+          CASE WHEN indexes_size_bytes = 0 THEN 0 ELSE round((index_size_bytes::numeric / indexes_size_bytes::numeric)*100,1) END AS pct_of_tables_index_space,
+          sum(index_size_bytes) over () AS total_marked_index_size_bytes
+          FROM (
+          SELECT   %s as host_name,
+                   %s as host_id,
+                   quote_ident(schemaname)||'.'||quote_ident(relname) AS table_full_name,
+                   quote_ident(schemaname)||'.'||quote_ident(indexrelname) AS index_full_name,
+                   pg_relation_size(i.indexrelid) as index_size_bytes,
+                   pg_indexes_size(i.relid) AS indexes_size_bytes,
+                   pg_relation_size(i.relid) AS table_size_bytes,
+                   idx_scan AS scans
+              FROM pg_stat_user_indexes i 
+              JOIN pg_index USING(indexrelid) 
+              WHERE NOT indisunique
+              AND NOT schemaname LIKE ANY (ARRAY['tmp%%','temp%%'])
+          ) a
+          WHERE index_size_bytes > %s
+          AND scans <= %s
+          ORDER BY scans, index_size_bytes DESC
+        ) b
+    """
+    q_active_hosts="""
+        select
+            host_id,
+            host_name,
+            host_user,
+            host_password,
+            host_db
+        from monitor_data.hosts
+        where host_enabled
+        and (%s = 'all' or host_name=%s)
+        """
+    q_indexing_thresholds="""select * from monitor_data.perf_indexes_thresholds"""
+    data_invalid = []
+    data_unused = []
+    data_noconnect = []
+    conn=None
+
+    hosts = DataDB.execute(q_active_hosts, (hostname, hostname))      
+    indexing_thresholds = DataDB.execute(q_indexing_thresholds)[0]
+
+    for h in hosts:
+        try:
+            #print ('processing: {}', h)
+            conn = psycopg2.connect(host=h['host_name'], dbname=h['host_db'], user=h['host_user'], password=h['host_password'],connect_timeout='3')
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cur.execute(q_invalid, (h['host_name'], h['host_id']))
+            data_invalid += cur.fetchall()
+            cur.execute(q_unused, (h['host_name'], h['host_id'], indexing_thresholds['pit_min_size_to_report'], indexing_thresholds['pit_max_scans_to_report']))
+            data_unused += cur.fetchall()
+        except Exception, e:
+            print ('ERROR could not connect to {}:{}'.format(h['host_name'], e))
+            data_noconnect.append({'host_id':h['host_id'],'host_name': h['host_name']})
+        finally:
+            if conn and not conn.closed:
+                conn.close()
+    
+    data_invalid.sort(key=lambda x:x['index_size_bytes'],reverse=True)
+    data_unused.sort(key=lambda x:x['index_size_bytes'],reverse=True)
+
+    return {'invalid':data_invalid, 'unused':data_unused, 'noconnect':data_noconnect}
 
 if __name__ == '__main__':
-    DataDB.setConnectionString("dbname=dbmonitor host=sqlwiki.db.zalando user=pgobserver_frontend_test password=ndowifwensa port=5433")
+    DataDB.setConnectionString("dbname=dbmonitor host=localost user=postgres password=postgres")
     #print (getTablePerformanceIssues('customer1.db.zalando',datetime.date(2013,8,23),datetime.date(2013,8,26)))
-    print (getApiPerformanceIssues('stock2.db.zalando','r13_00_33','r13_00_34'))
+    #print (getApiPerformanceIssues('stock2.db.zalando','r13_00_33','r13_00_34'))
+    #print (getIndexIssues('all'))
+    print (getIndexIssues('bm-master.db.zalando')['data_unused'])
 

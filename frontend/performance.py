@@ -57,3 +57,20 @@ class PerfApi(object):
         return table.render(data=data, interval=interval, host_names=host_names)
 
     index.exposed = True
+
+class PerfIndexes(object):
+    def index(self,**params):
+        data = {}
+        interval = {}
+        if 'show' in params:            
+            data = reportdata.getIndexIssues(params['hostname'])
+
+        if 'hostname' in params:
+            interval['hostname'] = params['hostname']
+        else:
+            interval['hostname'] = 'all'
+        table = tplE.env.get_template('perf_indexes.html')
+        host_names = sorted(hosts.hosts.items(), key = lambda h : h[1]['host_name'])
+        return table.render(data=data, interval=interval, host_names=host_names)
+
+    index.exposed = True

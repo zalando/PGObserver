@@ -71,6 +71,19 @@ primary key (pcti_schema, pcti_table)
 );
 
 
+/*
+indexes
+*/
+
+drop table if exists perf_indexes_thresholds;
+
+create table perf_indexes_thresholds (
+pit_min_size_to_report numeric,
+pit_max_scans_to_report numeric
+);
+insert into perf_indexes_thresholds
+select 100*1000*1000, 5;
+
 
 
 /*
@@ -182,8 +195,7 @@ order by 5 desc, 2
 
 $$ language sql set work_mem = '256MB';
 
-
-
+grant execute on function get_sproc_threshold_sinners_for_release(text,text,text) to public;
 
 
 
@@ -305,3 +317,5 @@ and (
 order by scan_change_pct desc
 
 $$ language sql;
+
+grant execute on function get_table_threshold_sinners_for_period(text,date,date) to public;
