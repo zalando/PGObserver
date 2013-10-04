@@ -40,9 +40,11 @@ public class SprocGatherer extends ADBGatherer {
 
     public String getQuery() {
         String sql = "select schemaname AS schema_name,"
-                + "funcname || '(' || regexp_replace(regexp_replace(regexp_replace ( pg_get_function_identity_arguments(funcid)::text , E'\\\\s*OUT\\\\s*','','g'),E'^[A-Za-z_0-9]+\\\\s*|(,)\\\\s*[A-Za-z_0-9]+', E'\\\\1','g'), E'[a-z_0-9]+\\\\.','','g') || ')' AS function_name "
-                + ", calls" + ", self_time" + ", total_time " + "from pg_stat_user_functions "
-                + "where not schemaname like any( array['pg%','information_schema'] ) "
+                + "funcname  AS function_name, "
+                + "(SELECT array_to_string(ARRAY(SELECT format_type(t,null) FROM unnest(proallargtypes) tt ( t ) ),',')) AS func_arguments,"
+                + "array_to_string(proargmodes,',') AS func_argmodes,"
+                + "calls, self_time, total_time from pg_stat_user_functions,pg_proc "
+                + "where pg_proc.oid = pg_stat_user_functions.funcid and not schemaname like any( array['pg%','information_schema'] ) "
                 + "and ( schemaname IN ( select name from ( select nspname, rank() OVER ( PARTITION BY substring(nspname from '(.*)_api') ORDER BY nspname DESC) from pg_namespace where nspname like '%_api%' ) apis ( name, rank ) where rank = 1 ) OR schemaname LIKE '%_data' );";
 
         return sql;
