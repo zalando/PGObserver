@@ -73,6 +73,8 @@ public class SprocGatherer extends ADBGatherer {
                 SprocPerfValue v = new SprocPerfValue();
                 v.name = rs.getString("function_name");
                 v.schema = rs.getString("schema_name");
+                v.parameters = rs.getString("func_arguments");
+                v.paramterModes = rs.getString("func_argmodes");
                 v.selfTime = rs.getLong("self_time");
                 v.totalCalls = rs.getLong("calls");
                 v.totalTime = rs.getLong("total_time");
@@ -96,12 +98,11 @@ public class SprocGatherer extends ADBGatherer {
             sprocValuesInserted = 0;
 
             for (Entry<Long, List<SprocPerfValue>> toStore : valueStore.entrySet()) {
-                for (SprocPerfValue v : toStore.getValue()) {
-                    // Logger.getLogger(SprocGatherer.class.getName()).log(Level.INFO, v.schema + "." + v.name);
+                for (SprocPerfValue v : toStore.getValue()) {                    
 
                     sprocsRead++;
 
-                    int id = idCache.getId(conn, v.schema, v.name);
+                    int id = idCache.getId(conn, v);
 
                     if (!(id > 0)) {
                         Logger.getLogger(SprocGatherer.class.getName()).log(Level.SEVERE,
