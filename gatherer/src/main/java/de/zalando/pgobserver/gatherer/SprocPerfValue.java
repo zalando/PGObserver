@@ -8,6 +8,7 @@ public class SprocPerfValue {
     String name;
     String parameters;
     String parameterModes;
+    int collisions;
     long totalCalls;
     long selfTime;
     long totalTime;

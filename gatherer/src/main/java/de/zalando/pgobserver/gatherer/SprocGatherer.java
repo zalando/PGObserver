@@ -43,8 +43,10 @@ public class SprocGatherer extends ADBGatherer {
                 + "funcname  AS function_name, "
                 + "(SELECT array_to_string(ARRAY(SELECT format_type(t,null) FROM unnest(proallargtypes) tt ( t ) ),',')) AS func_arguments,"
                 + "array_to_string(proargmodes,',') AS func_argmodes,"
-                + "calls, self_time, total_time from pg_stat_user_functions,pg_proc "
-                + "where pg_proc.oid = pg_stat_user_functions.funcid and not schemaname like any( array['pg%','information_schema'] ) "
+                + "calls, self_time, total_time, "
+                + "(SELECT count(1) FROM pg_stat_user_functions ff WHERE ff.funcname = f.funcname and ff.schemaname = f.schemaname) AS count_collisions "
+                + "from pg_stat_user_functions f, pg_proc "
+                + "where pg_proc.oid = f.funcid and not schemaname like any( array['pg%','information_schema'] ) "
                 + "and ( schemaname IN ( select name from ( select nspname, rank() OVER ( PARTITION BY substring(nspname from '(.*)_api') ORDER BY nspname DESC) from pg_namespace where nspname like '%_api%' ) apis ( name, rank ) where rank = 1 ) OR schemaname LIKE '%_data' );";
 
         return sql;
@@ -74,10 +76,11 @@ public class SprocGatherer extends ADBGatherer {
                 v.name = rs.getString("function_name");
                 v.schema = rs.getString("schema_name");
                 v.parameters = rs.getString("func_arguments");
-                v.paramterModes = rs.getString("func_argmodes");
+                v.parameterModes = rs.getString("func_argmodes");
                 v.selfTime = rs.getLong("self_time");
                 v.totalCalls = rs.getLong("calls");
                 v.totalTime = rs.getLong("total_time");
+                v.collisions = rs.getInt("count_collisions");
                 list.add(v);
             }
 
