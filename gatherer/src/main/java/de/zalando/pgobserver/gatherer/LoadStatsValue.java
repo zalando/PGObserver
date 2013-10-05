@@ -16,4 +16,14 @@ public class LoadStatsValue {
         load_5min = min5;
         load_15min = min15;
     }
+
+    @Override
+    public String toString() {
+        return "LoadStatsValue{" +
+                "load_1min=" + load_1min +
+                ", load_5min=" + load_5min +
+                ", load_15min=" + load_15min +
+                ", timestamp=" + timestamp +
+                '}';
+    }
 }

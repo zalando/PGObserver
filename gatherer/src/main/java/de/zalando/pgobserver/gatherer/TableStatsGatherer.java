@@ -1,5 +1,8 @@
 package de.zalando.pgobserver.gatherer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -15,15 +18,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author  jmussler
  */
 public class TableStatsGatherer extends ADBGatherer {
 
-    private static final Logger LOG = Logger.getLogger(TableStatsGatherer.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(TableStatsGatherer.class);
 
     private final TableIdCache idCache; // schema,name => pgobserver table id
     private Map<Long, List<TableStatsValue>> valueStore = null; // timestamp => list of table data
@@ -74,8 +75,7 @@ public class TableStatsGatherer extends ADBGatherer {
             conn.close(); // we close here, because we are done
             conn = null;
 
-            LOG.log(Level.INFO, "[{0}] finished getting table size data",
-                host.name);
+            LOG.info("[{0}] finished getting table size data",host.name);
 
             conn = DBPools.getDataConnection();
 
@@ -88,7 +88,7 @@ public class TableStatsGatherer extends ADBGatherer {
                     int id = idCache.getId(conn, v.schema, v.name);
 
                     if (!(id > 0)) {
-                        LOG.log(Level.SEVERE, "could not retrieve table key");
+                        LOG.error("could not retrieve table key " + v);
                         continue;
                     }
 
@@ -123,13 +123,13 @@ public class TableStatsGatherer extends ADBGatherer {
 
             return true;
         } catch (SQLException se) {
-            LOG.log(Level.SEVERE, "", se);
+            LOG.error("",se);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException se) {
-                    LOG.log(Level.SEVERE, "", se);
+                    LOG.error("",se);
                 }
 
             }

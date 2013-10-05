@@ -1,5 +1,8 @@
 package de.zalando.pgobserver.gatherer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -15,27 +18,24 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author  jmussler
  */
 public class SprocGatherer extends ADBGatherer {
 
-    public static final int QueryID = 1;
     private SprocIdCache idCache = null;
     private Map<Long, List<SprocPerfValue>> valueStore = null;
     private Map<Integer, Long> lastValueStore = new HashMap<Integer, Long>();
     private int sprocsRead = 0;
     private int sprocValuesInserted = 0;
     
-    public static final Logger LOG = Logger.getLogger(SprocGatherer.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(SprocGatherer.class);
 
     public SprocGatherer(final Host h, final long interval, final ScheduledThreadPoolExecutor ex) {
         super(h, ex, interval);
         idCache = new SprocIdCache(h);
-        valueStore = new TreeMap<Long, List<SprocPerfValue>>();
+        valueStore = new TreeMap<>();
     }
 
     public String getQuery() {
@@ -66,7 +66,7 @@ public class SprocGatherer extends ADBGatherer {
             long time = System.currentTimeMillis();
             List<SprocPerfValue> list = valueStore.get(time);
             if (list == null) {
-                list = new LinkedList<SprocPerfValue>();
+                list = new LinkedList<>();
                 valueStore.put(time, list);
             }
 
@@ -81,6 +81,9 @@ public class SprocGatherer extends ADBGatherer {
                 v.totalCalls = rs.getLong("calls");
                 v.totalTime = rs.getLong("total_time");
                 v.collisions = rs.getInt("count_collisions");
+
+                LOG.debug(v.toString());
+
                 list.add(v);
             }
 
@@ -89,8 +92,7 @@ public class SprocGatherer extends ADBGatherer {
             conn.close(); // we close here, because we are done
             conn = null;
 
-            Logger.getLogger(SprocGatherer.class.getName()).log(Level.INFO, "[{0}] finished getting sproc data",
-                host.name);
+            LOG.info("finished getting stored procedure data " + host.getName());
 
             conn = DBPools.getDataConnection();
 
@@ -108,8 +110,7 @@ public class SprocGatherer extends ADBGatherer {
                     int id = idCache.getId(conn, v);
 
                     if (!(id > 0)) {
-                        Logger.getLogger(SprocGatherer.class.getName()).log(Level.SEVERE,
-                            "could not retrieve sproc key");
+                        LOG.error("could not retrieve stored procedure key " + v);
                         continue;
                     }
 
@@ -140,18 +141,18 @@ public class SprocGatherer extends ADBGatherer {
 
             valueStore.clear();
 
-            LOG.log(Level.INFO, "[{0}] Sprocs read: {1} Sprocs written: {2}", new Object[]{this.getName(), this.sprocsRead, this.sprocValuesInserted});
+            LOG.info("[{0}] Sprocs read: {1} Sprocs written: {2}", new Object[]{this.getName(), this.sprocsRead, this.sprocValuesInserted});
 
             return true;
         } catch (SQLException se) {
-            LOG.log(Level.SEVERE, "", se);
+            LOG.error("",se);
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException ex) {
-                    LOG.log(Level.SEVERE, "", ex);
+                    LOG.error("",ex);
                 }
             }
         }

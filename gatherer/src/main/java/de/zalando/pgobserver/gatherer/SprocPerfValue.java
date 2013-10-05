@@ -12,4 +12,18 @@ public class SprocPerfValue {
     long totalCalls;
     long selfTime;
     long totalTime;
+
+    @Override
+    public String toString() {
+        return "SprocPerfValue{" +
+                "schema='" + schema + '\'' +
+                ", name='" + name + '\'' +
+                ", parameters='" + parameters + '\'' +
+                ", parameterModes='" + parameterModes + '\'' +
+                ", collisions=" + collisions +
+                ", totalCalls=" + totalCalls +
+                ", selfTime=" + selfTime +
+                ", totalTime=" + totalTime +
+                '}';
+    }
 }
