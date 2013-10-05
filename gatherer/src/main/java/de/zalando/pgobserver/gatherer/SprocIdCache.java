@@ -108,8 +108,10 @@ public class SprocIdCache {
     private int getIdForName(final Connection conn, final String schema, final String name) throws SQLException {
 
         Statement s = conn.createStatement();
-        ResultSet rs = s.executeQuery("SELECT sproc_id FROM monitor_data.sprocs WHERE sproc_schema = '" + schema
-                        + "' AND sproc_name = '" + name + "' AND sproc_host_id = " + host.id);
+        ResultSet rs = s.executeQuery("SELECT sproc_id FROM monitor_data.sprocs " +
+                                       "WHERE sproc_schema = '" + schema + "'" +
+                                         "AND sproc_name = '" + name + "'" +
+                                         "AND sproc_host_id = " + host.id);
         if(rs.next()) {
             int id = rs.getInt("sproc_id");
             rs.close();
@@ -121,8 +123,11 @@ public class SprocIdCache {
 
     private int getCountForName(final Connection conn, final String schema, final String name) throws SQLException {
         Statement s = conn.createStatement();
-        ResultSet rs = s.executeQuery("SELECT count(1) AS count FROM monitor_data.sprocs WHERE sproc_schema = '" + schema
-                        + "' AND sproc_name = '" + name + "' AND sproc_host_id = " + host.id);
+        ResultSet rs = s.executeQuery("SELECT count(1) AS count " +
+                                        "FROM monitor_data.sprocs " +
+                                       "WHERE sproc_schema = '" + schema + "'" +
+                                         "AND sproc_name = '" + name + "'" +
+                                         "AND sproc_host_id = " + host.id);
         
         int count = rs.getInt("count");
         rs.close();

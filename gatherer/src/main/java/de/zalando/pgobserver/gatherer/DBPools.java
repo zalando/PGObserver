@@ -3,12 +3,11 @@ package de.zalando.pgobserver.gatherer;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.jolbox.bonecp.BoneCP;
 import com.jolbox.bonecp.BoneCPConfig;
 import de.zalando.pgobserver.gatherer.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author  jmussler
@@ -16,7 +15,7 @@ import de.zalando.pgobserver.gatherer.config.Config;
 public class DBPools {
     private static BoneCP dataPool = null;
     
-    public static final Logger LOG = Logger.getLogger(DBPools.class.getName());
+    public static final Logger LOG = LoggerFactory.getLogger(DBPools.class);
     
     public static synchronized void initializePool(Config settings) {
         if (dataPool == null) {
@@ -33,7 +32,7 @@ public class DBPools {
             try {
                 dataPool = new BoneCP(config);
             } catch (SQLException ex) {
-                LOG.log(Level.SEVERE, null, ex);
+                LOG.error("",ex);
                 System.exit(1);
             }
         }

@@ -121,7 +121,6 @@ CREATE TABLE hosts (
     primary key ( host_id )
 );
 
-
 CREATE TABLE host_load (
     load_host_id integer not null references hosts(host_id),
     load_timestamp timestamp without time zone NOT NULL,

@@ -22,18 +22,17 @@ import java.util.logging.Logger;
  * @author  jmussler
  */
 public class TableStatsGatherer extends ADBGatherer {
-    private final TableIdCache idCache;
-    private Map<Long, List<TableStatsValue>> valueStore = null;
-
-    private Map<Integer, TableStatsValue> lastValueStore = new HashMap<Integer, TableStatsValue>();
 
     private static final Logger LOG = Logger.getLogger(TableStatsGatherer.class.getName());
+
+    private final TableIdCache idCache; // schema,name => pgobserver table id
+    private Map<Long, List<TableStatsValue>> valueStore = null; // timestamp => list of table data
+    private Map<Integer, TableStatsValue> lastValueStore = new HashMap<>(); // table id => table values ( cache not to write same value twice )
 
     public TableStatsGatherer(final Host h, final long interval, final ScheduledThreadPoolExecutor ex) {
         super(h, ex, interval);
         idCache = new TableIdCache(h);
-        valueStore = new TreeMap<Long, List<TableStatsValue>>();
-
+        valueStore = new TreeMap<>();
     }
 
     @Override
@@ -50,11 +49,11 @@ public class TableStatsGatherer extends ADBGatherer {
             long time = System.currentTimeMillis();
             List<TableStatsValue> list = valueStore.get(time);
             if (list == null) {
-                list = new LinkedList<TableStatsValue>();
+                list = new LinkedList<>();
                 valueStore.put(time, list);
             }
 
-            ResultSet rs = st.executeQuery(getQuery());
+            ResultSet rs = st.executeQuery(getTableStatsQuery());
             while (rs.next()) {
                 TableStatsValue v = new TableStatsValue();
                 v.schema = rs.getString("schemaname");
@@ -67,6 +66,7 @@ public class TableStatsGatherer extends ADBGatherer {
                 v.tup_updated = rs.getLong("n_tup_upd");
                 v.tup_deleted = rs.getLong("n_tup_del");
                 v.tup_hot_updated = rs.getLong("n_tup_hot_upd");
+
                 list.add(v);
             }
 
@@ -84,12 +84,11 @@ public class TableStatsGatherer extends ADBGatherer {
 
             for (Entry<Long, List<TableStatsValue>> toStore : valueStore.entrySet()) {
                 for (TableStatsValue v : toStore.getValue()) {
-                    // Logger.getLogger(SprocGatherer.class.getName()).log(Level.INFO, v.schema + "." + v.name);
 
                     int id = idCache.getId(conn, v.schema, v.name);
 
                     if (!(id > 0)) {
-                        LOG.log(Level.SEVERE, "could not retrieve sproc key");
+                        LOG.log(Level.SEVERE, "could not retrieve table key");
                         continue;
                     }
 
@@ -139,13 +138,13 @@ public class TableStatsGatherer extends ADBGatherer {
         return false;
     }
 
-    public static String getQuery() {
+    public static String getTableStatsQuery() {
 
-        String sql = "select schemaname, relname," + "pg_table_size(relid) as table_size,"
-                + "pg_indexes_size(relid) as index_size," + "seq_scan," + "seq_tup_read," + "idx_scan,"
-                + "idx_tup_fetch," + " n_tup_ins , n_tup_upd , n_tup_del , n_tup_hot_upd "
-                + " from pg_stat_user_tables;";
-        
+        String sql = "SELECT schemaname, relname, pg_table_size(relid) as table_size,"
+                          + "pg_indexes_size(relid) as index_size, seq_scan, seq_tup_read, idx_scan,"
+                          + "idx_tup_fetch, n_tup_ins , n_tup_upd , n_tup_del , n_tup_hot_upd "
+                     + "FROM pg_stat_user_tables;";
+
         return sql;
     }
 }
