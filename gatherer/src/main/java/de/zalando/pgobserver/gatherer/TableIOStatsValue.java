@@ -15,4 +15,16 @@ public class TableIOStatsValue {
         return heap_blk_hit == b.heap_blk_hit && heap_blk_read == b.heap_blk_read && index_blk_hit == b.index_blk_hit
                 && index_blk_read == b.index_blk_read && name.equals(b.name) && schema.equals(b.schema);
     }
+
+    @Override
+    public String toString() {
+        return "TableIOStatsValue{" +
+                "name='" + name + '\'' +
+                ", schema='" + schema + '\'' +
+                ", heap_blk_read=" + heap_blk_read +
+                ", heap_blk_hit=" + heap_blk_hit +
+                ", index_blk_read=" + index_blk_read +
+                ", index_blk_hit=" + index_blk_hit +
+                '}';
+    }
 }

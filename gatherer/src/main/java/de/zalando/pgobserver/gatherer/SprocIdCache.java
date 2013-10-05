@@ -31,7 +31,7 @@ public class SprocIdCache {
     public int getId(final Connection conn, SprocPerfValue v ) throws SQLException {
 
         Map<String, Integer> m = cache.get(v.schema);
-        if (m != null) {
+        if (m == null) {
             Map<String, Integer> newM = new HashMap<String, Integer>();
             cache.put(v.schema,newM);
             m = newM;
@@ -128,11 +128,15 @@ public class SprocIdCache {
                                        "WHERE sproc_schema = '" + schema + "'" +
                                          "AND sproc_name = '" + name + "'" +
                                          "AND sproc_host_id = " + host.id);
-        
-        int count = rs.getInt("count");
+
+        int count = 0;
+        if(rs.next()) {
+            count = rs.getInt("count");
+        }
         rs.close();
         s.close();
-        return count;        
+        return count;
+
     }
     
     /**

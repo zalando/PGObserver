@@ -22,4 +22,20 @@ public class TableStatsValue {
                 && b.tup_inserted == tup_inserted && b.tup_updated == tup_updated && b.schema.equals(schema)
                 && b.name.equals(name);
     }
+
+    @Override
+    public String toString() {
+        return "TableStatsValue{" +
+                "schema='" + schema + '\'' +
+                ", name='" + name + '\'' +
+                ", table_size=" + table_size +
+                ", index_size=" + index_size +
+                ", seq_scans=" + seq_scans +
+                ", index_scans=" + index_scans +
+                ", tup_inserted=" + tup_inserted +
+                ", tup_updated=" + tup_updated +
+                ", tup_deleted=" + tup_deleted +
+                ", tup_hot_updated=" + tup_hot_updated +
+                '}';
+    }
 }
