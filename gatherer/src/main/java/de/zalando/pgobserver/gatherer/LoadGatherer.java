@@ -1,5 +1,8 @@
 package de.zalando.pgobserver.gatherer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -11,8 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author  jmussler
@@ -21,9 +22,9 @@ public class LoadGatherer extends ADBGatherer {
 
     // used to store values until storage db is available again
     // could have used linked list for pop, but decided for arraylist due to space reasons in case of prolonged connection problems.
-    private final List<LoadStatsValue> valueStore = new ArrayList<LoadStatsValue>();
+    private final List<LoadStatsValue> valueStore = new ArrayList<>();
     
-    public static final Logger LOG = Logger.getLogger(LoadGatherer.class.getName());
+    public static final Logger LOG = LoggerFactory.getLogger(LoadGatherer.class);
 
     public LoadGatherer(final Host h, final long interval, final ScheduledThreadPoolExecutor ex) {
         super(h, ex, interval);
@@ -41,12 +42,12 @@ public class LoadGatherer extends ADBGatherer {
 
             long time = System.currentTimeMillis();
 
-            LoadStatsValue v = null;
-
             ResultSet rs = st.executeQuery("SELECT * FROM zz_utils.get_load_average() t( min1, min5, min15 );");
 
             if (rs.next()) {
-                v = new LoadStatsValue(time, Math.round( rs.getFloat("min1") * 100), Math.round(rs.getFloat("min5") * 100),
+                LoadStatsValue v = new LoadStatsValue(time,
+                        Math.round(rs.getFloat("min1") * 100),
+                        Math.round(rs.getFloat("min5") * 100),
                         Math.round(rs.getFloat("min15") * 100));
                 valueStore.add(v);
             }
@@ -58,8 +59,7 @@ public class LoadGatherer extends ADBGatherer {
 
             if (!valueStore.isEmpty()) {
 
-                Logger.getLogger(SprocGatherer.class.getName()).log(Level.INFO, "[{0}] finished getting sproc data",
-                    host.name);
+                LOG.debug("finished getting host load data " + host.name);
 
                 conn = DBPools.getDataConnection();                
 
@@ -68,7 +68,7 @@ public class LoadGatherer extends ADBGatherer {
 
                 while ( !valueStore.isEmpty()) {                    
                                         
-                    v = valueStore.remove(valueStore.size()-1);
+                    LoadStatsValue v = valueStore.remove(valueStore.size()-1);
                 
                     ps.setTimestamp(1, new Timestamp( v.timestamp ) );
                     ps.setInt(2, host.id);
@@ -83,24 +83,22 @@ public class LoadGatherer extends ADBGatherer {
                 conn.close();
                 conn = null;
 
-                LOG.log(Level.INFO, "[{0}] current load value stored",
-                    this.getName());
+                LOG.debug("Load values stored " + host.name);
                 
             } else {
-                LOG.log(Level.WARNING,
-                    "[{0}] could not retrieve load value!", this.getName());
+                LOG.error("Could not retrieve host load values " + host.name);
             }
 
             return true;
         } catch (SQLException se) {
-            LOG.log(Level.SEVERE, "", se);
+            LOG.error("",se);
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException ex) {
-                    LOG.log(Level.SEVERE, "", ex);
+                    LOG.error("",ex);
                 }
             }
         }

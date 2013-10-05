@@ -39,15 +39,15 @@ public class SprocGatherer extends ADBGatherer {
     }
 
     public String getQuery() {
-        String sql = "select schemaname AS schema_name,"
+        String sql = "SELECT schemaname AS schema_name,"
                 + "funcname  AS function_name, "
                 + "(SELECT array_to_string(ARRAY(SELECT format_type(t,null) FROM unnest(proallargtypes) tt ( t ) ),',')) AS func_arguments,"
                 + "array_to_string(proargmodes,',') AS func_argmodes,"
                 + "calls, self_time, total_time, "
-                + "(SELECT count(1) FROM pg_stat_user_functions ff WHERE ff.funcname = f.funcname and ff.schemaname = f.schemaname) AS count_collisions "
-                + "from pg_stat_user_functions f, pg_proc "
-                + "where pg_proc.oid = f.funcid and not schemaname like any( array['pg%','information_schema'] ) "
-                + "and ( schemaname IN ( select name from ( select nspname, rank() OVER ( PARTITION BY substring(nspname from '(.*)_api') ORDER BY nspname DESC) from pg_namespace where nspname like '%_api%' ) apis ( name, rank ) where rank = 1 ) OR schemaname LIKE '%_data' );";
+                + "(SELECT count(1) FROM pg_stat_user_functions ff WHERE ff.funcname = f.funcname AND ff.schemaname = f.schemaname) AS count_collisions "
+                + "FROM pg_stat_user_functions f, pg_proc "
+                + "WHERE pg_proc.oid = f.funcid and not schemaname like any( array['pg%','information_schema'] ) "
+                + "AND ( schemaname IN ( SELECT name FROM ( SELECT nspname, rank() OVER ( PARTITION BY substring(nspname from '(.*)_api') ORDER BY nspname DESC) FROM pg_namespace WHERE nspname LIKE '%_api%' ) apis ( name, rank ) where rank = 1 ) OR schemaname LIKE '%_data' );";
 
         return sql;
     }
@@ -95,7 +95,7 @@ public class SprocGatherer extends ADBGatherer {
             conn = DBPools.getDataConnection();
 
             PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO monitor_data.sproc_performance_data(sp_timestamp, sp_sproc_id, sp_calls, sp_total_time, sp_self_time)    VALUES (?, ?, ?, ?, ?);");
+                    "INSERT INTO monitor_data.sproc_performance_data(sp_timestamp, sp_sproc_id, sp_calls, sp_total_time, sp_self_time) VALUES (?, ?, ?, ?, ?);");
 
             sprocsRead = 0;
             sprocValuesInserted = 0;
@@ -109,7 +109,7 @@ public class SprocGatherer extends ADBGatherer {
 
                     if (!(id > 0)) {
                         Logger.getLogger(SprocGatherer.class.getName()).log(Level.SEVERE,
-                            "\t could not retrieve sproc key");
+                            "could not retrieve sproc key");
                         continue;
                     }
 
