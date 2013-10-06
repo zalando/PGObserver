@@ -18,7 +18,7 @@ def setup(settings = None):
         return
 
     if settings == None:
-        _settings = {"tags":False,"sizeOverview":False,"logfiles":False}
+        _settings = {"tags":False,"sizeoverview":False,"logfiles":False}
     else:
         _settings = settings['features']
 

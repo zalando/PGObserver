@@ -36,18 +36,19 @@
                         {% if settings.sizeoverview %}
                         <li><a href="/tables">Size-Overview</a></li>
                         {% endif %}
+
                         <li><a href="/report">Load-Overview</a></li>
                         <li><a href="/perftables">Perf-Issues-Tables</a></li>
                         <li><a href="/perfapi">Perf-Issues-Sprocs</a></li>
                         <li><a href="/perfindexes">Perf-Issues-Indexes</a></li>
-                        {% if settings.sizeOverview %}
+
+                        {% if settings.tags %}
                         <li><a href="/tags">Tags</a></li>
                         {% endif %}
 
                         {% if settings.logfiles %}
-                        <li><a href="/tags">Logfiles</a>
-                            {% endif %}
-                        </li>
+                        <li><a href="/logfiles">Logfiles</a></li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
