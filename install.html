@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>System App by Zalando</title>
+    <link type="image/x-icon" href="images/favico.png" rel="icon">
+    <link rel="canonical" href="http://systemapp.io">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="template/templatescripts.js"></script>
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-40533395-1', 'systemapp.io');
+        ga('send', 'pageview');
+    </script>
+</head>
+<body>
+    <div id="wrapper">
+        <div id="menu-wrapper"></div>
+
+        <div id="page">
+
+            <div class="bar"><h2 class="inner">Installing the System App</h2></div>
+            <div class="inner installation">
+                <h3>The NPM way</h3>
+
+                <p>
+                    No frills installation. If you have Node.js installed you can simply get the System App:
+                </p>
+                <code>
+                    $ sudo npm install systemapp -g
+                </code>
+
+                <h3>The automated way</h3>
+                <p>
+                    Simply download the
+                    <label><a href="https://raw.github.com/zalando/system/master/install.sh" title="Download the System App install script.">install.sh</a></label>
+                    script, make it executable and run!
+                </p>
+                <code>
+                    $ wget https://raw.github.com/zalando/system/master/install.sh<br />
+                    $ chmod +x install.sh<br />
+                    $ ./install.sh
+                </code>
+
+                <h3>Manual installation</h3>
+
+                <p>
+                    If you want to install it manually, make sure you have these on your system:
+                </p>
+                <ul>
+                    <li><a href="http://nodejs.org/" title="Node.js">Node.js</a> (0.8.x +)</li>
+                    <li><a href="http://www.mongodb.org/" title="MongoDB">MongoDB</a> (1.8.2 +)</li>
+                    <li><a href="http://www.imagemagick.org/" title="ImageMagick">ImageMagick</a> (optional to generate map thumbnails)</li>
+                </ul>
+                <p>
+                    1. Create a new folder "systemapp":
+                </p>
+                <code>
+                    $ mkdir systemapp<br />
+                    $ cd systemapp
+                </code>
+                <p>
+                    2. Download the latest source code from GitHub:
+                </p>
+                <code>$ git clone https://github.com/zalando/system.git ./</code>
+                <p>
+                    3. Install Node.js dependencies:
+                </p>
+                <code>$ npm install</code>
+                <p>
+                    And you're good to go!
+                </p>
+
+                <h3>Does it run?</h3>
+
+                <p>
+                    After installing you should do a test run. If you used NPM, execute the systemapp command:
+                </p>
+                <code>$ systemapp</code>
+
+                <p>
+                    If you installed using the script or manually, execute the index.js file under the installed folder:
+                </p>
+                <code>$ node index.js</code>
+
+                <p>
+                    By default it runs on port 3003, so pop your browser
+                    to <strong>http://localhost:3003</strong> and enjoy :-)
+                </p>
+            </div>
+        </div>
+
+        <div id="footer-wrapper"></div>
+    </div>
+</body>
+</html>

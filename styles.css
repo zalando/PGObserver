@@ -1,0 +1,236 @@
+/* BODY AND GENERAL TAGS
+// ------------------------------------------------------------------------- */
+
+body
+{
+    background: rgb(255, 255, 255);
+    color: rgb(50, 60, 70);
+}
+
+a
+{
+    color: rgb(90, 160, 30);
+    text-decoration: none;
+}
+
+a:hover
+{
+    color: rgb(140, 210, 50);
+}
+
+a small
+{
+    font-size: 11px;
+    color: #666;
+    margin-top: -0.6em;
+    display: block;
+}
+
+code
+{
+    background: rgb(30, 30, 30);
+    color: rgb(140, 210, 50);
+    display: block;
+    font-family: "Lucida Sans", Monaco, Bitstream Vera Sans Mono, Lucida Console, Terminal;
+    padding: 5px;
+}
+
+p, ul, ol, code
+{
+    margin: 0 0 20px 0;
+}
+
+h1
+{
+    color: rgb(99, 99, 99);
+    display: block;
+    font-family: "Myriad Pro", Calibri, Helvetica, Arial, sans-serif;
+    font-size: 66px;
+    height: 200px;
+    margin: 0;
+    text-align: center;
+}
+
+/* CONTAINERS
+// ------------------------------------------------------------------------- */
+
+.bar
+{
+    background: -webkit-linear-gradient(top, #FFFFFF 0%, #F0F0F0 100%);
+    background: linear-gradient(to bottom, #FFFFFF 0%, #F0F0F0 100%);
+    border-bottom: 3px solid rgb(90, 160, 30);
+    color: rgb(20, 30, 25);
+    margin-bottom: 40px;
+    padding: 20px 0 10px 0;
+}
+
+/* MENU
+// ------------------------------------------------------------------------- */
+
+#menu-wrapper
+{
+    background-color: rgb(0, 0, 0);
+    color: rgb(245, 250, 242);
+}
+
+#menu a
+{
+    color: rgb(250, 248, 245);
+}
+
+
+#menu .active
+{
+    color: rgb(140, 210, 50) !important;
+}
+
+
+/* HEADER AND TOP FACTS
+// ------------------------------------------------------------------------- */
+
+#topfacts
+{
+    color: rgb(131, 149, 162);
+    margin: auto;
+    margin-top: 20px;
+    text-align: center !important;
+}
+
+#topfacts > div
+{
+    display: inline-block;
+    padding: 134px 0 0 0;
+    vertical-align: top;
+    width: 32%;
+}
+
+#topfacts > div > h3
+{
+    margin: 10px;
+    text-align: center;
+}
+
+#topfacts > div > p
+{
+    margin: 10px;
+    text-align: left;
+}
+
+#topfacts .visualize
+{
+    background: url(images/ico_visualize.png) no-repeat top;
+}
+
+#topfacts .integrate
+{
+    background: url(images/ico_integrate.png) no-repeat top;
+}
+
+#topfacts .monitor
+{
+    background: url(images/ico_monitor.png) no-repeat top;
+}
+
+#demoframe
+{
+    border: 1px solid rgb(205, 205, 205);
+    height: 350px;
+    left: 0;
+    padding: 5px;
+    position: absolute;
+    top: 40px;
+    width: 100%;
+}
+
+#demoframe-overlay
+{
+    background-color: rgba(0, 0, 0, 0.5);
+    color: rgb(240, 240, 240);
+    font-size: 40px;
+    height: 350px;
+    left: 0;
+    opacity: 0;
+    padding-top: 80px;
+    position: absolute;
+    text-align: center;
+    top: 40px;
+    width: 100%;
+}
+
+#demoframe-overlay:hover
+{
+    opacity: 0.9;
+}
+
+#demoinfo
+{
+    margin-bottom: 50px;
+    margin-top: 410px;
+}
+
+#demoinfo h5
+{
+    margin: auto;
+    text-align: center;
+    font-size: 20px;
+}
+
+#demoinfo div
+{
+    display: block;
+    margin-top: 10px;
+}
+
+#demoinfo a
+{
+    font-weight: bold;
+}
+
+#demoinfo small
+{
+    display: block;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+/* CONTENTS
+// ------------------------------------------------------------------------- */
+
+#page div.inner
+{
+    text-align: left;
+}
+
+#page div label
+{
+    font-weight: bold;
+}
+
+h2
+{
+    font-size: 35px;
+    margin: 0;
+    padding: 0;
+    text-align: left;
+}
+
+ul.paas small
+{
+    color: rgb(131, 149, 162);
+    display: block;
+    font-size: 14px;
+}
+
+.screenshot
+{
+    clear: both;
+    text-align: left;
+}
+
+.screenshot img
+{
+    border: 1px solid rgb(205, 205, 205);
+    float: right;
+    margin: 17px 0 37px 37px;
+    padding: 5px;
+}
