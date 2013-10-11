@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>PGObserver by Zalando</title>
+    <link type="image/x-icon" href="images/favico.png" rel="icon">
+    <link rel="canonical" href="http://zalando.github.io/PGObserver">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script src="template/templatescripts.js"></script>
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-40533395-4', 'zalando.github.io');
+        ga('send', 'pageview');
+    </script>
+</head>
+<body>
+    <div id="wrapper">
+        <div id="menu-wrapper"></div>
+
+        <div id="page">
+
+            <div class="bar"><h2 class="inner">PGObserver Setup</h2></div>
+            <div class="inner installation">
+                <ul>
+                    <li>First make sure you have downloaded the project from GIT:<br />
+                    $ git clone git@github.com:zalando/PGObserver.git
+                    </li>
+                    <li>Create schema from sql/schema.sql where you want to store your data.</li>
+                    <li>Copy pgobserver.conf to the home folder: ~/.pgobserver.conf</li>
+                    <li>Configure .pgobserver.conf to match your setup:<br />
+                    1. set database where to store data.<br />
+                    2. set hostgroup for gatherer.</li>
+                    3. configure usernames and passwords.<br />
+                    <li>Create an unprivileged PostgreSQL user on the database you want to monitor.</li>
+                    <li>Add entry to monitor_data.hosts table to include the databases you want to monitor.<br />
+                    Use host_group to decide which gatherer monitors which cluster.</li>
+                    <li>Build a single jar including dependencies using mvn clean verify assembly:single.</li>
+                    <li>Start monitoring with: java -jar target/PGObserver-Gatherer-1.0-SNAPSHOT-jar-with-dependencies.jar.</li>
+                    <li>For CPU load created the stored procedure from sql/cpuload.sql, this is a plpythonu function.</li>
+                </ul>
+                <p>
+                    If you need help or find problems please post on the Project Issues page:
+                    <strong><a href="https://github.com/zalando/PGObserver/issues" title="PGObserver Issues">https://github.com/zalando/PGObserver/issues</a></strong>
+                </p>
+            </div>
+        </div>
+
+        <div id="footer-wrapper"></div>
+    </div>
+</body>
+</html>
