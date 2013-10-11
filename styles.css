@@ -56,8 +56,8 @@ h1
 
 .bar
 {
-    background: -webkit-linear-gradient(top, #FFFFFF 0%, #F0F0F0 100%);
-    background: linear-gradient(to bottom, #FFFFFF 0%, #F0F0F0 100%);
+    background: -webkit-linear-gradient(top, #FFFFFF 0%, #F0F0F5 100%);
+    background: linear-gradient(to bottom, #FFFFFF 0%, #F0F0F5 100%);
     border-bottom: 3px solid rgb(90, 120, 160);
     color: rgb(20, 30, 25);
     margin-bottom: 40px;
