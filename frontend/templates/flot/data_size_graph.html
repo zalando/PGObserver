@@ -55,9 +55,9 @@ $(function () {
                  legend : { position: "nw" },
                 selection : { mode : "x" },
                 grid : { clickable: true },
-                   yaxes: [ { position: "right", color: "#9A6C3D" , tickFormatter: suffixFormatter, tickDecimals: 2, reserveSpace: false, labelWidth: {{labelWidth}} },
-                          { position: "left", color: "#9A6C3D", reserveSpace: false, labelWidth: {{labelWidth}} } ] ,
-                   xaxes: [ { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  } ]
+                   yaxes: [ { autoscale: true, position: "right", color: "#9A6C3D" , tickFormatter: suffixFormatter, tickDecimals: 2, reserveSpace: true, labelWidth: defaultLabelWidth },
+                          { autoscale: true, position: "left", color: "#9A6C3D", reserveSpace: true, labelWidth: defaultLabelWidth } ] ,
+                   xaxes: [ { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  } ]
           });
 
           if(typeof rec == 'undefined') {
@@ -84,10 +84,10 @@ $(function () {
                  legend : { position: "nw" },
              selection : { mode : "x" },
              grid : { clickable: true },
-                yaxes: [ { position: "right", color: "#9A6C3D" , tickFormatter: suffixFormatter, tickDecimals: 2, reserveSpace: false, labelWidth: {{labelWidth}} },
-                       { position: "left", color: "#9A6C3D", reserveSpace: false, labelWidth: {{labelWidth}} }
+                yaxes: [ { autoscale: true, position: "right", color: "#9A6C3D" , tickFormatter: suffixFormatter, tickDecimals: 2, reserveSpace: true, labelWidth: defaultLabelWidth },
+                       { autoscale: true, position: "left", color: "#9A6C3D", reserveSpace: true, labelWidth: defaultLabelWidth }
                       ] ,
-                xaxes: [ { mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  } ]
+                xaxes: [ { mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  } ]
     });
 });
 </script>

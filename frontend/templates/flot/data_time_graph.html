@@ -44,8 +44,8 @@ $(function () {
                  legend : { position: "nw" },
                 selection : { mode : "x" },
                 grid : { clickable: true },
-                yaxis: { min: 0, color: "#9A6C3D" , tickFormatter: suffixFormatter },
-                xaxis: { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
+                yaxis: { autoscale: true, min: 0, color: "#9A6C3D" , tickFormatter: suffixFormatter, reserveSpace: true, labelWidth: defaultLabelWidth },
+                xaxis: { min: xmin, max: xmax, mode: "time", timezone: "browser",  timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
           });
        });
 
@@ -63,8 +63,8 @@ $(function () {
                  legend : { position: "nw" },
                 selection : { mode : "x" },
                 grid : { clickable: true },
-                yaxis: { min: 0, color: "#9A6C3D" , tickFormatter: suffixFormatter },
-                xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
+                yaxis: { autoscale: true, min: 0, color: "#9A6C3D" , tickFormatter: suffixFormatter, reserveSpace: true, labelWidth: defaultLabelWidth },
+                xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  }
     });
 });
 </script>

@@ -47,8 +47,8 @@ $(function () {
                    bars : { show: true },
                    stack : false
                 },
-                   yaxis: { min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: {{ labelWidth }} , position: "{{ legendPosition }}" } ,
-                   xaxis: { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
+                   yaxis: { autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth, position: "{{ legendPosition }}" } ,
+                   xaxis: { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  }
           });
 
                     if(typeof rec == 'undefined') {
@@ -79,8 +79,8 @@ $(function () {
                    bars : { show: true },
                    stack : false
                 },
-                   yaxis: { min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: {{ labelWidth }} , position: "{{ legendPosition }}" },
-                   xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
+                   yaxis: { autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth, position: "{{ legendPosition }}" },
+                   xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  }
     });
 });
 </script>
