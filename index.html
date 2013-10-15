@@ -30,9 +30,9 @@
             <div class="inner">
                 <p>
                     The PGObserver tool was developed at Zalando during the past years to monitor performance metrics
-                    of our different PostgreSQL clusters. Due to our use of a stored procedure API layer our strong
+                    of our different PostgreSQL clusters. Due to our use of a stored procedure (SProc) API layer our strong
                     focus was on monitoring that API layer. However the number of metrics was increased to
-                    include other relevant values:
+                    include other relevant database metrics:
                 </p>
             </div>
 
@@ -48,16 +48,17 @@
                 <div>
                     <h3>Table IO Stats</h3>
                     <p>
-                        Number of sequential and index scans.<br />
-                        Number of inserts, (hot) updates, deletes.<br />
-                        Table and index size.<br />
-                        Heap hits vs disk hits.
+                        Sequential and index scans.<br />
+                        Inserts, (hot) updates, deletes.<br />
+                        Table and index sizes.<br />
+                        Cache hits vs disk hits.
                     </p>
                 </div>
                 <div>
-                    <h3>CPU Metrics</h3>
+                    <h3>Others</h3>
                     <p>
-                        CPU load is displayed on the graphs.
+                        CPU load is tracked<br />
+                        WAL written is tracked<br />
                     </p>
                 </div>
             </div>
@@ -75,8 +76,8 @@
                     Open Source
                 </h3>
                 <div>
-                    The PGObserver is one of our python/postgres tools developed and used by Zalando's database team,
-                    and we want to share it with you. Go grab it, it's free: to use, to share, to hack.
+                    The PGObserver is just one of our Python/PostgreSQL tools developed and used by Zalando's database team,
+                    and we want to share it with you. Go grab it, it's free: to use, to share, and to hack.
                 </div>
             </div>
         </div>
