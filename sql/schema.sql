@@ -121,14 +121,15 @@ CREATE TABLE hosts (
     primary key ( host_id )
 );
 
+
 CREATE TABLE host_load (
     load_host_id integer not null references hosts(host_id),
     load_timestamp timestamp without time zone NOT NULL,
     load_1min_value integer,
     load_5min_value integer,
     load_15min_value integer,
-    load_iowait_value bigint,
-    load_system_value bigint
+    xlog_location text,
+    xlog_location_mb bigint
 );
 
 CREATE TABLE host_cpu_stats (

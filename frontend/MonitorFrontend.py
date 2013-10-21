@@ -26,8 +26,10 @@ class MonitorFrontend(object):
 
             load = topsprocs.getLoad(hostId)
             cpuload = topsprocs.getCpuLoad(hostId)
+            walvolumes = topsprocs.getWalVolumes(hostId)
 
             graph1 = flotgraph.Graph("graph1","left",30)
+            graph_wal = flotgraph.Graph("graph_wal","left",30)
 
             graph1.addSeries('CPU Load 15min avg','acpu_15min_avg','#FF0000')
             for p in cpuload['load_15min_avg']:
@@ -36,6 +38,10 @@ class MonitorFrontend(object):
             graph1.addSeries('Sproc Load 15 min', 'load_15min')
             for p in load['load_15min']:
                 graph1.addPoint('load_15min', int(time.mktime(p[0].timetuple()) * 1000) , p[1])
+
+            graph_wal.addSeries('WAL vol. 15 min (in MB)', 'wal_15min')
+            for p in walvolumes['wal_15min_growth']:
+                graph_wal.addPoint('wal_15min', int(time.mktime(p[0].timetuple()) * 1000) , p[1])
 
             sizes = tabledata.getDatabaseSizes(hostId)
             for s in sizes.keys():
@@ -68,6 +74,7 @@ class MonitorFrontend(object):
             tmpl = tplE.env.get_template('index.html')
             return tmpl.render(hostid=hostId,
                                graph1=graph1.render(),
+                               graph_wal=graph_wal.render(),
                                graph_size=graph_size.render(),
                                graphtag = graphT.render(),
                                limit=limit,

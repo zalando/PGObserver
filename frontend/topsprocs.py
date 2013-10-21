@@ -164,6 +164,27 @@ def getCpuLoad(hostId=1):
 
     return load
 
+def getWalVolumes(hostId=1):
+    load = { "wal_15min_growth" : []}
+
+    sql = """
+            SELECT 
+                date_trunc('hour'::text, load_timestamp) + floor(date_part('minute'::text, load_timestamp) / 15::double precision) * '00:15:00'::interval AS load_timestamp,
+                coalesce(max(xlog_location_mb)-min(xlog_location_mb),0)  AS wal_15min_growth
+            FROM monitor_data.host_load WHERE load_host_id = """ + str(adapt(hostId)) + """ AND load_timestamp > ('now'::timestamp - '9 days'::interval)
+            GROUP BY date_trunc('hour'::text, load_timestamp) + floor(date_part('minute'::text, load_timestamp) / 15::double precision) * '00:15:00'::interval
+            ORDER BY 1 ASC
+            """
+
+    conn = DataDB.getDataConnection()
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
+
+    cur.execute(sql)
+    for record in cur:
+        load['wal_15min_growth'].append( (record['load_timestamp'] , record['wal_15min_growth'] ) )
+
+    return load
+
 def getSprocLoad(hours,averageInterval):
     return []
 
