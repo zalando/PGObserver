@@ -47,7 +47,8 @@ $(function () {
                    bars : { show: true },
                    stack : false
                 },
-                   yaxis: { autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth, position: "{{ legendPosition }}" } ,
+                   yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth, position: "{{ legendPosition }}" },
+                       { position: "right", reserveSpace: true, labelWidth: defaultLabelWidth }],
                    xaxis: { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  }
           });
 
@@ -79,7 +80,8 @@ $(function () {
                    bars : { show: true },
                    stack : false
                 },
-                   yaxis: { autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth, position: "{{ legendPosition }}" },
+                   yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth, position: "{{ legendPosition }}" },
+                       { position: "right", reserveSpace: true, labelWidth: defaultLabelWidth }],
                    xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  }
     });
 });
