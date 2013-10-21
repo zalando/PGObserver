@@ -39,4 +39,11 @@ public class LoadGathererTest extends TestCase {
     public void testXLogLocationToMb2() {
         assertEquals(6L, LoadGatherer.xLogLocationToMb("0/1644148"));
     }
+    
+    /**
+     * Test of xLogLocationToMb method, of class LoadGatherer.
+     */
+    public void testXLogLocationToMb3() {
+        assertEquals(0L, LoadGatherer.xLogLocationToMb("0/4240"));
+    }
 }

@@ -45,8 +45,13 @@ public class LoadGatherer extends ADBGatherer {
         while (splits[1].length() != 8)     // pg_current_xlog_location can return 0/1644148 or 1/4240
             splits[1] = "0" + splits[1];    // brrr, why doesn't Java have String.pad()?
         
-        return Long.parseLong(splits[0] + splits[1].substring(0, 2), 16) * MB_PER_WAL
+        long ret = Long.parseLong(splits[0] + splits[1].substring(0, 2), 16) * MB_PER_WAL
                 + Long.parseLong(splits[1].substring(2), 16) / (1000*1000) - MB_PER_WAL;
+        if (ret < 0) {
+            ret = 0;
+        }
+        
+        return ret;
     }
     
     @Override
