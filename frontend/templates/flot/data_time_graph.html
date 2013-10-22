@@ -20,14 +20,14 @@ $(function () {
        {% endfor %}
     ];
 
-      function suffixFormatter( val, axis) {
-         if ( val > 300000 ) {
-            return (val / (60 * 1000) ).toFixed(2) + "m";
-         }
-         else {
-            return (val/1000).toFixed(2) + "s";
-         }
+    function suffixFormatter( val, axis) {
+     if ( val > 300000 ) {
+        return (val / (60 * 1000) ).toFixed(2) + "m";
      }
+     else {
+        return (val/1000).toFixed(2) + "s";
+     }
+    }
 
           $("#{{ graphContainer }}").bind("plotselected", function (event, ranges) {
            from = new Date(Math.floor(ranges.xaxis.from.toFixed(1)));

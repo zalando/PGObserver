@@ -19,7 +19,8 @@
             <br />
             <span class="text3">Api 2:</span>
             <input type="text" name="to" value="{{ interval['to'] }}">
-            <input name="show" type="submit" value="show"></form>
+            <input name="show" type="submit" value="show">
+        </form>
     </div>
     <script>
         $(function() {
@@ -42,7 +43,7 @@
                 <th>Calls2</th>
             </tr>
             {% for d in data: %}
-            <tr>                             
+            <tr>
                 <td><a href="/{{ hosts[d['host_id']]['settings']['uiShortName'].lower().replace('-','') }}">{{ d['host_name'] }}</a></td>
                 <td><a href="/sprocs/show/{{ d['host_id'] }}/{{ d['sproc_name'] }}">{{ d['sproc_schema'] }}</a></td>
                 <td><a href="/sprocs/show/{{ d['host_id'] }}/{{ d['sproc_name'] }}">{{ d['sproc_name'] }}</a></td>
