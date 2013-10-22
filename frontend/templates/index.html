@@ -10,41 +10,42 @@
       <div id="choices1"></div>
       {{ graph1 }}
    </div>
+    
+   <div class="clear"></div>
+    
+   <div class="grid_12">
+      <h4>WAL volume 15min</h4>
+      <div id="graph_wal" class="graphc" style="width:100%;height:200px;"></div>
+      <div id="choices1"></div>
+      {{ graph_wal }}
+   </div>
 
    <div class="clear"></div>
 
-   <div class="fluid_grid grid_4">
+   <div class="grid_4">
       <h3>Top {{ limit }} Sprocs last 1 hour by total run time</h3>
       {{ top10hours1total }}
    </div>
-
-   <div class="fluid_grid grid_4">
+   <div class="grid_4">
       <h3>Top {{ limit }} Sprocs last 1 hour by total calls</h3>
       {{ top10hours1calls }}
    </div>
-
-   <div class="gridclear_6 clear"></div>
-
-   <div class="fluid_grid grid_4">
+   <div class="grid_4">
       <h3>Top {{ limit }} Sprocs last 1 hour by avg. run time</h3>
       {{ top10hours1avg }}
    </div>
 
-   <div class="gridclear_4 clear"></div>
+   <div class="clear"></div>
 
-   <div class="fluid_grid grid_4">
+   <div class="grid_4">
       <h3>Top {{ limit }} Sprocs last 3 hours by total run time</h3>
       {{ top10hours3total }}
    </div>
-
-   <div class="gridclear_6 clear"></div>
-
-   <div class="fluid_grid grid_4">
+   <div class="grid_4">
       <h3>Top {{ limit }} Sprocs last 3 hours by total calls</h3>
       {{ top10hours3calls }}
    </div>
-
-   <div class="fluid_grid grid_4">
+   <div class="grid_4">
       <h3>Top {{ limit }} Sprocs last 3 hours by avg. run time</h3>
       {{ top10hours3avg }}
    </div>
