@@ -57,6 +57,30 @@
         </table>
     </div>
     <div class="clear"></div>
+    <h3>Duplicate indexes</h3>
+    <div class="grid_4">
+        <table class="perftable" border="1">
+            <tr>
+                <th>Hostname</th>
+                <th>Table name</th>
+                <th>Table size</th>
+                <th>Index definition</th>
+                <!--<th>Example Index name</th>-->
+                <th>Count</th>
+            </tr>
+            {% for d in data['duplicate']: %}
+            <tr>                             
+                <td><a href="/{{ hosts[d['host_id']]['settings']['uiShortName'].lower().replace('-','') }}">{{ d['host_name'] }}</a></td>
+                <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }} </a></td>
+                <td>{{ d['table_size'] }}</td>
+                <td>{{ d['def'] }}</a></td>
+                <!--<td>{{ d['index_full_name'] }}</td>-->
+                <td>{{ d['count'] }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    <div class="clear"></div>
     <h3>Unused indexes {% if data['unused']: %} (in total size of {{ data['unused'][0]['total_marked_index_size'] }} ) {% endif %}</h3>
     <div class="grid_4">
         <table class="perftable" border="1">

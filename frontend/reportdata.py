@@ -186,9 +186,9 @@ def getIndexIssues(hostname):
                   FROM pg_stat_user_indexes i
                   JOIN pg_index USING(indexrelid) 
                   WHERE NOT indisvalid
-                ) a
-                ORDER BY index_size_bytes DESC, relname
+                ) a                
         ) b 
+        ORDER BY index_size_bytes DESC, index_full_name
     """
     q_unused = """
         SELECT
@@ -217,9 +217,9 @@ def getIndexIssues(hostname):
               AND NOT schemaname LIKE ANY (ARRAY['tmp%%','temp%%'])
           ) a
           WHERE index_size_bytes > %s
-          AND scans <= %s
-          ORDER BY scans, index_size_bytes DESC
+          AND scans <= %s          
         ) b
+        ORDER BY scans, index_size_bytes DESC
     """
     q_duplicate = """
         SELECT %s AS host_name,
@@ -241,6 +241,7 @@ def getIndexIssues(hostname):
             from pg_index i
             join pg_class c
               on c.oid = i.indexrelid
+           where indisvalid
            group 
               by regexp_replace(replace(pg_get_indexdef(i.indexrelid),c.relname,'X'), '^CREATE UNIQUE','CREATE')
           having count(1) > 1
@@ -252,7 +253,7 @@ def getIndexIssues(hostname):
           JOIN pg_namespace n
             ON n.oid=ct.relnamespace
          ORDER
-            BY count DESC, schema_name, table_full_name
+            BY count DESC, table_size_bytes DESC, schema_name, table_full_name
     """
     q_active_hosts="""
         select
