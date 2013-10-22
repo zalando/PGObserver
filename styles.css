@@ -106,14 +106,14 @@ h1
 #topfacts > div > h3
 {
     margin: 10px;
-    text-align: left;
+    text-align: center;
 }
 
 #topfacts > div > p
 {
     font-size: 90%;
     margin: 10px;
-    text-align: left;
+    text-align: center;
 }
 
 /* CONTENTS
