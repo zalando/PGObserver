@@ -49,35 +49,36 @@ public class SprocIdCache {
         List<String> types;
         List<String> modes;
 
-        if (v.parameters == null || "".equals(v.parameters)
-                || v.parameterModes == null || "".equals(v.parameterModes)) {
+        if (v.parameters == null || "".equals(v.parameters)) {
             types = new ArrayList<>(0);
-            modes = new ArrayList<>(0);
         } else {
             types = Splitter.on(',').splitToList(v.parameters);
-            modes = Splitter.on(',').splitToList(v.parameterModes);
         }
-
-        if (types.size() != modes.size()) {
-            LOG.error("List of Types and List of Modes is not equal in size");
-            return v.name;
+        
+        if(v.parameterModes == null || "".equals(v.parameterModes)) {
+            modes = new ArrayList<>(0);
+        }
+        else {
+            modes = Splitter.on(',').splitToList(v.parameterModes);
         }
 
         StringBuilder b = new StringBuilder();
         b.append(v.name).append("(");
+        
         int i = 0;
         for (String t : types) {
             if (i > 0) {
                 b.append(", ");
             }
 
-            if (modes.get(i).equals("o")) {
+            if (modes.size() > i && modes.get(i).equals("o")) {
                 b.append(t);
             } else {
                 b.append("i ").append(t);
             }
-            i++;
+            ++i;
         }
+        
         b.append(")");
         return b.toString();
     }
@@ -90,25 +91,11 @@ public class SprocIdCache {
      */
     public static String getOldFunctionName(SprocPerfValue v) {
         List<String> types;
-        List<String> modes;
 
-        if (v.parameters == null || "".equals(v.parameters)
-                || v.parameterModes == null || "".equals(v.parameterModes)) {
+        if (v.parameters == null || "".equals(v.parameters)) {
             types = new ArrayList<>(0);
-            modes = new ArrayList<>(0);
         } else {
             types = Splitter.on(',').splitToList(v.parameters);
-            modes = Splitter.on(',').splitToList(v.parameterModes);
-        }
-
-        if (types.size() != modes.size()) {
-            LOG.error("List of Types and List of Modes is not equal in size");
-            return v.name;
-        }
-
-        if (types.size() != modes.size()) {
-            LOG.error("List of Types and List of Modes is not equal in size");
-            return v.name;
         }
 
         StringBuilder b = new StringBuilder();

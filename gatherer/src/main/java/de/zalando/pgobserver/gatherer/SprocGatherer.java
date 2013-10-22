@@ -26,7 +26,7 @@ public class SprocGatherer extends ADBGatherer {
 
     private SprocIdCache idCache = null;
     private Map<Long, List<SprocPerfValue>> valueStore = null;
-    private Map<Integer, Long> lastValueStore = new HashMap<Integer, Long>();
+    private Map<Integer, Long> lastValueStore = new HashMap<>();
     private int sprocsRead = 0;
     private int sprocValuesInserted = 0;
     
@@ -41,7 +41,7 @@ public class SprocGatherer extends ADBGatherer {
     public String getQuery() {
         String sql = "SELECT schemaname AS schema_name,"
                 + "funcname  AS function_name, "
-                + "(SELECT array_to_string(ARRAY(SELECT format_type(t,null) FROM unnest(proallargtypes) tt ( t ) ),',')) AS func_arguments,"
+                + "(SELECT array_to_string(ARRAY(SELECT format_type(t,null) FROM unnest(COALESCE(proallargtypes,proargtypes::oid[])) tt ( t ) ),',')) AS func_arguments,"
                 + "array_to_string(proargmodes,',') AS func_argmodes,"
                 + "calls, self_time, total_time, "
                 + "(SELECT count(1) FROM pg_stat_user_functions ff WHERE ff.funcname = f.funcname AND ff.schemaname = f.schemaname) AS count_collisions "
