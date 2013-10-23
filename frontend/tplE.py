@@ -5,6 +5,7 @@ Created on Feb 8, 2012
 '''
 
 import hosts
+import json
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -25,6 +26,7 @@ def setup(settings = None):
     env = Environment(loader=FileSystemLoader('templates'))
 
     env.globals['hosts'] = hosts.getHostData()
+    env.globals['hosts_json'] = json.dumps(env.globals['hosts'])
     env.globals['settings'] = _settings;
     hl = sorted( env.globals['hosts'].values() , key = lambda h : h['settings']['uiShortName'] )
 
@@ -56,3 +58,4 @@ def setup(settings = None):
 
     env.globals['hostgroups'] = groups
     env.globals['groups'] = hosts.getGroups()
+    env.globals['groups_json'] = json.dumps(hosts.getGroups())
