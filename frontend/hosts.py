@@ -29,9 +29,11 @@ def getGroups():
     groups = getGroupsData()
     return groups
 
-
-#def getHosts():
-#    return { 1 : 'bm-master', 2: 'customerindex' , 3: 'customer1', 4: 'shop-master' , 5: 'addr-master', 6: 'zalos' , 7 : 'otrs', 8 : 'partner' , 9 : 'export' }
+def uiShortnameToHostId(shortname):
+    for host_id, settings in getHosts().iteritems():
+        if settings['settings']['uiShortName'].lower().replace('-','') == shortname:    # TODO replacing thing is stupid
+            return str(host_id)
+    return None
 
 def getHostData():
     conn = DataDB.getDataConnection()

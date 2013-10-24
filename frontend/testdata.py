@@ -3,6 +3,7 @@ import psycopg2
 import psycopg2.extras
 import json
 import os.path
+import random
 
 from argparse import ArgumentParser
 
@@ -27,6 +28,7 @@ def clear_test_data(conn):
     cur.execute("DELETE FROM table_size_data WHERE tsd_table_id IN ( SELECT t_id FROM tables WHERE t_host_id = 1111 )")
     cur.execute("DELETE FROM table_io_data WHERE tio_table_id IN ( SELECT t_id FROM tables WHERE t_host_id = 1111 ) ")
     cur.execute("DELETE FROM tables WHERE t_host_id = 1111 ")
+    cur.execute("DELETE FROM host_load WHERE load_host_id = 1111")
 
     cur.execute("DELETE FROM hosts WHERE host_id = 1111")
 
@@ -47,7 +49,7 @@ def create_n_tables(conn,n):
     cur = conn.cursor()
     i = 0
     while i < n:
-        cur.execute("INSERT INTO tables ( t_host_id , t_schema , t_name ) VALUES ( 1111 , %s, %s ) ", ("table_"+str(i),"dataschema",))
+        cur.execute("INSERT INTO tables ( t_host_id , t_name, t_schema ) VALUES ( 1111 , %s, %s ) ", ("table_"+str(i),"dataschema",))
         i += 1
 
     cur.close()
@@ -89,9 +91,75 @@ def create_sproc_data(conn,days,interval):
 
     cur.close();
 
+def create_load_data(conn,days,interval):
+    print "Creating load data points..."
+    cur = conn.cursor()
+    cur.execute("SELECT 'now'::timestamp - ('1 day'::interval * %s)",(days,))
+    n = cur.fetchone()
+
+    rows = (days*24*60)/(interval)
+    print "\tInserting " + str(rows) + " data points for Load"
+
+    i = 0
+    xlog = 0
+    while i < rows:
+        l1 = random.randint(300, 2000)
+        l5 = random.randint(200, 1500)
+        l15 = random.randint(100, 1000)
+        xlog += random.randint(100, 1000)
+        cur.execute("""INSERT INTO host_load(load_host_id, load_timestamp, load_1min_value, load_5min_value, load_15min_value, xlog_location, xlog_location_mb)
+                                     VALUES (%s,%s + (%s * '%s minute'::interval),%s,%s,%s,%s,%s) """,
+                                            (1111,n,i,interval,l1,l5,l15,'X/X',xlog))
+        i += 1
+
+    cur.close();
+
 def create_table_data(conn,days,interval):
     print "Creating table data points..."
-    pass
+    cur = conn.cursor()
+
+    cur.execute("SELECT 'now'::timestamp - ('1 day'::interval * %s)",(days,))
+    n = cur.fetchone()
+    cur.execute("select t_id from tables where t_host_id = 1111")
+    tables = [ x[0] for x in cur.fetchall() ]
+
+    rows = (days*24*60)/(interval)
+    i = 0
+    tbl_size = 10**6 * 5
+    ind_size = 10**6
+    scans = 100
+    iscans = 1000
+    tupi = 300
+    tupu = 200
+    tupd = 100
+    tupuh = 100
+    hread = hhit = iread = ihit = 1000
+    while i < rows:
+        tbl_size += random.randint(-100000, 200000)
+        ind_size += random.randint(-50000, 100000)
+        scans = (scans + 2) if random.random() < 0.2 else scans
+        iscans = (iscans + 10) if random.random() < 0.2 else iscans
+        if random.random() < 0.1:
+            tupi += 1000
+            tupu += 900
+            hread += 100
+            iread += 100
+        if random.random() < 0.1:
+            tupd += random.randint(500,800)
+            tupuh += random.randint(400,700)
+            hhit += 100
+            ihit += 100
+        for table in tables:
+            cur.execute("""INSERT INTO table_size_data(tsd_table_id, tsd_timestamp, tsd_table_size, tsd_index_size, tsd_seq_scans, tsd_index_scans,
+                                                        tsd_tup_ins, tsd_tup_upd, tsd_tup_del, tsd_tup_hot_upd)
+                                         VALUES (%s,%s + (%s * '%s minute'::interval),%s,%s,%s,%s,%s,%s,%s,%s) """,
+                                                (table,n,i,interval,   tbl_size, ind_size, scans, iscans, tupi, tupu, tupd, tupuh))
+            cur.execute("""INSERT INTO table_io_data(tio_table_id, tio_timestamp, tio_heap_read, tio_heap_hit, tio_idx_read, tio_idx_hit)
+                                         VALUES (%s,%s + (%s * '%s minute'::interval), %s,%s,%s,%s) """,
+                                                (table,n,i,interval,   hread, hhit, iread, ihit))
+        i += 1
+
+    cur.close();
 
 def generate_test_data(connection_url, tables, sprocs, days, interval):
     conn = psycopg2.connect(connection_url)
@@ -111,6 +179,7 @@ def generate_test_data(connection_url, tables, sprocs, days, interval):
 
         create_sproc_data(conn,days,interval)
         create_table_data(conn,days,interval)
+        create_load_data(conn,days,interval)
     finally:
         if conn != None:
             conn.close()
