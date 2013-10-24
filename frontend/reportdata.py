@@ -44,7 +44,8 @@ def getLoadReportData():
                   to_char(min(load_timestamp::date),'dd.mm.YYYY') AS min_date,
                   to_char(max(load_timestamp::date),'dd.mm.YYYY') AS max_date,
                   min(load_timestamp::date) AS sort_date,
-                  max(q.db_size) as db_size
+                  max(q.db_size) as db_size,
+                  round((max(xlog_location_mb) - min(xlog_location_mb)) / 1000.0, 1)  as wal_written
              from monitor_data.host_load
                 , monitor_data.hosts
                 , q
@@ -71,6 +72,7 @@ def getLoadReportData():
               'min_date' : r['min_date'],
               'max_date' : r['max_date'],
               'db_size' : r['db_size'],
+              'wal_written' : r['wal_written'],
               'trendAvg': 0,
               'trendMax': 0,
               'kw' : r['kw']
@@ -91,6 +93,11 @@ def getLoadReportData():
                 lastRR['trendSize'] = -1
             elif lastRR['db_size'] > r['db_size']:
                 lastRR['trendSize'] = 1
+
+            if lastRR['wal_written'] < r['wal_written']:
+                lastRR['trendWal'] = -1
+            elif lastRR['wal_written'] > r['wal_written']:
+                lastRR['trendWal'] = 1
 
         data[int(r['id'])].append(rr);
         lastRR = rr
@@ -179,9 +186,9 @@ def getIndexIssues(hostname):
                   FROM pg_stat_user_indexes i
                   JOIN pg_index USING(indexrelid) 
                   WHERE NOT indisvalid
-                ) a
-                ORDER BY index_size_bytes DESC, relname
+                ) a                
         ) b 
+        ORDER BY index_size_bytes DESC, index_full_name
     """
     q_unused = """
         SELECT
@@ -210,9 +217,43 @@ def getIndexIssues(hostname):
               AND NOT schemaname LIKE ANY (ARRAY['tmp%%','temp%%'])
           ) a
           WHERE index_size_bytes > %s
-          AND scans <= %s
-          ORDER BY scans, index_size_bytes DESC
+          AND scans <= %s          
         ) b
+        ORDER BY scans, index_size_bytes DESC
+    """
+    q_duplicate = """
+        SELECT %s AS host_name,
+               %s as host_id,
+               n.nspname||'.'||ci.relname AS index_full_name,
+               n.nspname||'.'||ct.relname AS table_full_name,
+               pg_size_pretty(pg_total_relation_size(ct.oid)) AS table_size,
+               pg_total_relation_size(ct.oid) AS table_size_bytes,
+               n.nspname AS schema_name,
+               index_names,
+               def,
+               count
+        FROM (
+          select regexp_replace(replace(pg_get_indexdef(i.indexrelid),c.relname,'X'), '^CREATE UNIQUE','CREATE') as def,
+                 max(indexrelid) as indexrelid,
+                 max(indrelid) as indrelid,
+                 count(1),
+                 array_agg(relname::text) as index_names
+            from pg_index i
+            join pg_class c
+              on c.oid = i.indexrelid
+           where indisvalid
+           group 
+              by regexp_replace(replace(pg_get_indexdef(i.indexrelid),c.relname,'X'), '^CREATE UNIQUE','CREATE')
+          having count(1) > 1
+        ) a
+          JOIN pg_class ci
+            ON ci.oid=a.indexrelid        
+          JOIN pg_class ct
+            ON ct.oid=a.indrelid
+          JOIN pg_namespace n
+            ON n.oid=ct.relnamespace
+         ORDER
+            BY count DESC, table_size_bytes DESC, schema_name, table_full_name
     """
     q_active_hosts="""
         select
@@ -228,6 +269,7 @@ def getIndexIssues(hostname):
     q_indexing_thresholds="""select * from monitor_data.perf_indexes_thresholds"""
     data_invalid = []
     data_unused = []
+    data_duplicate = []
     data_noconnect = []
     conn=None
 
@@ -243,6 +285,8 @@ def getIndexIssues(hostname):
             data_invalid += cur.fetchall()
             cur.execute(q_unused, (h['host_name'], h['host_id'], indexing_thresholds['pit_min_size_to_report'], indexing_thresholds['pit_max_scans_to_report']))
             data_unused += cur.fetchall()
+            cur.execute(q_duplicate, (h['host_name'], h['host_id']))
+            data_duplicate += cur.fetchall()
         except Exception, e:
             print ('ERROR could not connect to {}:{}'.format(h['host_name'], e))
             data_noconnect.append({'host_id':h['host_id'],'host_name': h['host_name']})
@@ -252,8 +296,9 @@ def getIndexIssues(hostname):
     
     data_invalid.sort(key=lambda x:x['index_size_bytes'],reverse=True)
     data_unused.sort(key=lambda x:x['index_size_bytes'],reverse=True)
+    data_duplicate.sort(key=lambda x:x['table_size_bytes'],reverse=True)
 
-    return {'invalid':data_invalid, 'unused':data_unused, 'noconnect':data_noconnect}
+    return {'invalid':data_invalid, 'duplicate':data_duplicate, 'unused':data_unused, 'noconnect':data_noconnect}
 
 if __name__ == '__main__':
     DataDB.setConnectionString("dbname=dbmonitor host=localost user=postgres password=postgres")

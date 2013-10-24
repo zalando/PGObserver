@@ -42,7 +42,7 @@ public class SprocIdCacheTest {
         assertEquals(expResult, result);
     }
     
-        @Test
+    @Test
     public void testGetOldFunctionNameNoParams() {
         SprocPerfValue v = new SprocPerfValue();
         v.name = "some_function";

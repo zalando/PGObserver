@@ -18,7 +18,7 @@ public abstract class AGatherer implements Runnable {
     private ScheduledThreadPoolExecutor executor = null;
     private String name = "";
     
-    public static final Logger LOG = Logger.getLogger(AGatherer.class.getName());
+    private static final Logger LOG = Logger.getLogger(AGatherer.class.getName());
 
     protected abstract boolean gatherData();
 
