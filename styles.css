@@ -26,14 +26,6 @@ a small
     display: block;
 }
 
-code
-{
-    background: rgb(30, 30, 30);
-    color: rgb(140, 210, 50);
-    display: block;
-    padding: 5px;
-}
-
 p, ul, ol, code
 {
     margin: 0 0 20px 0;
