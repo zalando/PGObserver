@@ -59,7 +59,7 @@ h1
 
 .navrow
 {
-    padding: 20px 0 10px 0;
+    padding: 16px 0 8px 0;
     border-bottom: 1px solid rgb(250, 220, 240);
 }
 
@@ -67,7 +67,7 @@ h1
 {
     display: block;
     font-size: 130%;
-    padding-bottom: 6px;
+    padding-bottom: 5px;
 }
 
 #pagetitle

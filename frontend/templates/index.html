@@ -13,6 +13,15 @@
 
     <div class="clear"></div>
 
+    <div class="grid_12">
+        <h4>WAL volume 15min</h4>
+        <div id="graph_wal" class="graphc" style="width:100%;height:200px;"></div>
+        <div id="choices1"></div>
+        {{ graph_wal }}
+    </div>
+
+    <div class="clear"></div>
+
     <div class="fluid_grid grid_4">
         <h3>Top {{ limit }} Sprocs last 1 hour by total run time</h3>
         {{ top10hours1total }}
