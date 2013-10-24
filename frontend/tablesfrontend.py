@@ -18,7 +18,7 @@ class ShowTable(object):
         if len(p) < 2:
             return ""
 
-        host = p[0]
+        host = p[0] if p[0].isdigit() else hosts.uiShortnameToHostId(p[0])
         name = p[1]
 
         if 'interval' in params:
@@ -145,7 +145,8 @@ class TableFrontend(object):
     def alltables(self, hostId , order=None):
         table = tplE.env.get_template('tables_size_table_all.html')
         tpl = tplE.env.get_template('all_tables.html')
-
+        if not hostId.isdigit():
+            hostId = hosts.uiShortnameToHostId(hostId)
         if order==None:
             order=2
 

@@ -22,6 +22,12 @@ ALTER DEFAULT PRIVILEGES FOR ROLE pgobserver_owner IN SCHEMA log_file_data GRANT
 CREATE SCHEMA monitor_data;
 ALTER SCHEMA monitor_data OWNER TO pgobserver_owner;
 
+DO $$
+BEGIN
+  EXECUTE 'ALTER DATABASE ' || current_database() || ' SET search_path = monitor_data, public';
+END;
+$$;
+
 ALTER DEFAULT PRIVILEGES FOR ROLE pgobserver_owner IN SCHEMA monitor_data GRANT SELECT ON TABLES to pgobserver_frontend;
 ALTER DEFAULT PRIVILEGES FOR ROLE pgobserver_owner IN SCHEMA monitor_data GRANT SELECT,INSERT,DELETE,UPDATE ON TABLES to pgobserver_gatherer;
 ALTER DEFAULT PRIVILEGES FOR ROLE pgobserver_owner IN SCHEMA monitor_data GRANT USAGE ON SEQUENCES to pgobserver_gatherer;
