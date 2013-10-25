@@ -98,16 +98,12 @@ class ShowTable(object):
         for p in data['heap_hit']:
             graph_heap_iob.addPoint("hhit", int(time.mktime(p[0].timetuple()) * 1000) , p[1])
 
-        print ("hosts.getHosts()[hostId]['uilongname']")
-        print (hostId)
-        print (hosts.getHosts())
-        print (hosts.getHosts()[int(hostId)]['uilongname'])
-        #print ((hosts.getHosts()[hostId])['settings']
         tpl = tplE.env.get_template('table_detail.html')
-        return tpl.render(name=name,host=hostId,
+        return tpl.render(name=name,
+                          host=hostId,
                           interval=interval,
                           hostuiname = hostUiName,
-                          hostname = 'a', #hosts.getHosts()[hostId]['settings']['uiLongName'],
+                          hostname = hosts.getHosts()[hostId]['uilongname'],
                           graphtablesize=graph_table_size.render(),
                           graphindexsize=graph_index_size.render(),
                           graphseqscans=graph_seq_scans.render(),

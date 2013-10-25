@@ -33,7 +33,7 @@ def getGroups():
 def uiShortnameToHostId(shortname):
     for host_id, settings in getHosts().iteritems():
         if settings['uishortname'].lower().replace('-','') == shortname:    # TODO replacing thing is stupid
-            return str(host_id)
+            return host_id
     return None
 
 
@@ -51,7 +51,7 @@ def getHostData():
     for r in cur:
         rr = dict(r)
         rr['settings'] = json.loads(rr['host_settings'])
-        rr['uishortname'] = rr['settings']['uiShortName']
+        rr['uishortname'] = rr['settings']['uiShortName'].lower().replace('-','')
         rr['uilongname'] = rr['settings']['uiLongName']
         hosts[rr['host_id']] = rr
 

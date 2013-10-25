@@ -10,7 +10,7 @@
     {% for d in data: %}
     <div class="grid_4">
         <table>
-            <tr><td colspan=4><h2>{{ hosts[d[0]['id']]['settings']['uiLongName'] }}</h2></td></tr>
+            <tr><td colspan=4><h2><a href="/{{hosts[d[0]['id']]['uishortname']}}">{{ hosts[d[0]['id']]['settings']['uiLongName'] }}</h2></td></tr>
             <tr>
                 <th>KW</th>
                 <th align=left>Date:</th>
