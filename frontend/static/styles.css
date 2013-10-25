@@ -9,7 +9,7 @@ html, body
 body
 {
     background-color: rgb(45, 45, 45);
-    font-family: Verdana;
+    font-family: Verdana, "Bitstream Vera Sans", "DejaVu Sans", Tahoma, Geneva, Arial, Sans-serif;
     font-size: 13px;
 }
 

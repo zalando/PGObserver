@@ -23,9 +23,12 @@ function HideDatabasesMenu()
 
 function CheckGridSize()
 {
-    var w = $($grids.get(0)).outerWidth();
+    if (delayedResize) {
+        window.clearTimeout(delayedResize);
+        delayedResize = false;
+    }
 
-    if (w < 550) {
+    if ($(window).width() < 1280) {
         $grids.addClass("grid_6").removeClass("grid_4");
         $gridclear4.hide();
         $gridclear6.show();
@@ -33,11 +36,6 @@ function CheckGridSize()
         $grids.addClass("grid_4").removeClass("grid_6");
         $gridclear6.hide();
         $gridclear4.show();
-    }
-
-    if (delayedResize) {
-        window.clearTimeout(delayedResize);
-        delayedResize = false;
     }
 
     delayedResize = setTimeout(function() {
@@ -98,7 +96,7 @@ $(document).ready(function() {
     $("#pagetitle").html(currentPath);
 
     HideDatabasesMenu();
-    CheckGridSize();
+    setTimeout(CheckGridSize, 200);
 });
 
 if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
