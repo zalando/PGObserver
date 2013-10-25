@@ -44,7 +44,8 @@ $(function () {
 
         if ( true )
             $.plot($("#{{ graphContainer }}"), data, {
-                yaxis: { min: 0, color: "#9A6C3D" },
+                yaxes: [{ min: 0, color: "#9A6C3D" },
+                    { position: "right", reserveSpace: true, labelWidth: defaultLabelWidth }],
                 xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D" }
             });
     }

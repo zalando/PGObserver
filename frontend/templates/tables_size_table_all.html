@@ -2,12 +2,12 @@
     <!-- {{ order }} -->
     <thead>
         <th><a {% if order==1 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/1">Name</a></th>
-        <th><a {% if order==2 or order == None %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}">Size</a></th>
-        <th><a {% if order==3 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/3">+ 7d</a></th>
-        <th><a {% if order==4 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/4">+% 7d</a></th>
-        <th><a {% if order==5 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/5">Index Size</a></th>
-        <th><a {% if order==6 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/6">+ 7d</a></th>
-        <th><a {% if order==7 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/7">+% 7d</a></th>
+        <th align="right"><a {% if order==2 or order == None %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}">Size</a></th>
+        <th align="right"><a {% if order==3 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/3">+ 7d</a></th>
+        <th align="right"><a {% if order==4 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/4">+% 7d</a></th>
+        <th align="right"><a {% if order==5 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/5">Index Size</a></th>
+        <th align="right"><a {% if order==6 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/6">+ 7d</a></th>
+        <th align="right"><a {% if order==7 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/7">+% 7d</a></th>
     </thead>
     {% for row in list: %}
         <tr>
