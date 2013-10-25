@@ -18,7 +18,8 @@ class ShowTable(object):
         if len(p) < 2:
             return ""
 
-        host = p[0] if p[0].isdigit() else hosts.uiShortnameToHostId(p[0])
+        hostId = int(p[0]) if p[0].isdigit() else hosts.uiShortnameToHostId(p[0])
+        hostUiName = p[0] if not p[0].isdigit() else hosts.hostIdToUiShortname(p[0])
         name = p[1]
 
         if 'interval' in params:
@@ -33,7 +34,7 @@ class ShowTable(object):
             interval['from'] = (datetime.datetime.now() - datetime.timedelta(days=14)).strftime('%Y-%m-%d')
             interval['to'] = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
 
-        data = tabledata.getTableData(host, name, interval)
+        data = tabledata.getTableData(hostId, name, interval)
 
         graph_table_size = flotgraph.SizeGraph ("graphtablesize","right")
         graph_table_size.addSeries("Table Size","size")
@@ -75,7 +76,7 @@ class ShowTable(object):
             graph_t_del.addPoint("count", int(time.mktime(p[0].timetuple()) * 1000) , p[1])
 
 
-        data = tabledata.getTableIOData(host, name)
+        data = tabledata.getTableIOData(hostId, name)
 
         graph_index_iob = flotgraph.Graph ("graphindexiob","right")
         graph_index_iob.addSeries("Index_hit","ihit")
@@ -97,10 +98,16 @@ class ShowTable(object):
         for p in data['heap_hit']:
             graph_heap_iob.addPoint("hhit", int(time.mktime(p[0].timetuple()) * 1000) , p[1])
 
-
+        print ("hosts.getHosts()[hostId]['uilongname']")
+        print (hostId)
+        print (hosts.getHosts())
+        print (hosts.getHosts()[int(hostId)]['uilongname'])
+        #print ((hosts.getHosts()[hostId])['settings']
         tpl = tplE.env.get_template('table_detail.html')
-        return tpl.render(name=name,host=host,interval=interval,
-                          hostname = hosts.getHostData()[int(host)]['settings']['uiLongName'],
+        return tpl.render(name=name,host=hostId,
+                          interval=interval,
+                          hostuiname = hostUiName,
+                          hostname = 'a', #hosts.getHosts()[hostId]['settings']['uiLongName'],
                           graphtablesize=graph_table_size.render(),
                           graphindexsize=graph_index_size.render(),
                           graphseqscans=graph_seq_scans.render(),
@@ -145,12 +152,16 @@ class TableFrontend(object):
     def alltables(self, hostId , order=None):
         table = tplE.env.get_template('tables_size_table_all.html')
         tpl = tplE.env.get_template('all_tables.html')
-        if not hostId.isdigit():
-            hostId = hosts.uiShortnameToHostId(hostId)
+
+        hostUiName = hostId if not hostId.isdigit() else hosts.hostIdToUiShortname(hostId)
+        hostId = hostId if hostId.isdigit() else hosts.uiShortnameToHostId(hostId)
+
+        if hostId is None:
+            return 'valid hostId/hostUiShortname expected'
         if order==None:
             order=2
 
-        return tpl.render(hostname = hosts.getHostData()[int(hostId)]['settings']['uiLongName'], table=table.render(hostid = hostId,order=int(order), list=tabledata.getTopTables(hostId, None, order)))
+        return tpl.render(hostname = hosts.getHostData()[int(hostId)]['settings']['uiLongName'], table=table.render(hostid = hostId, hostuiname=hostUiName, order=int(order), list=tabledata.getTopTables(hostId, None, order)))
 
     def default(self):
         return ""

@@ -24,16 +24,22 @@ def getHosts():
 def getGroups():
     global groups
     if groups != None:
-        return groups;
+        return groups
 
     groups = getGroupsData()
     return groups
 
+
 def uiShortnameToHostId(shortname):
     for host_id, settings in getHosts().iteritems():
-        if settings['settings']['uiShortName'].lower().replace('-','') == shortname:    # TODO replacing thing is stupid
+        if settings['uishortname'].lower().replace('-','') == shortname:    # TODO replacing thing is stupid
             return str(host_id)
     return None
+
+
+def hostIdToUiShortname(hostId):
+    return getHosts()[int(hostId)]['uishortname'].lower().replace('-','')
+
 
 def getHostData():
     conn = DataDB.getDataConnection()
@@ -43,24 +49,26 @@ def getHostData():
 
     cur.execute("SELECT * FROM monitor_data.hosts WHERE host_enabled = true ORDER BY host_id ASC;")
     for r in cur:
-        rr = dict(r);
+        rr = dict(r)
         rr['settings'] = json.loads(rr['host_settings'])
-        hosts[rr['host_id']] = rr;
+        rr['uishortname'] = rr['settings']['uiShortName']
+        rr['uilongname'] = rr['settings']['uiLongName']
+        hosts[rr['host_id']] = rr
 
-    cur.close();
-    conn.close();
-    return hosts;
+    cur.close()
+    conn.close()
+    return hosts
 
 def getGroupsData():
     conn = DataDB.getDataConnection()
     groups = {}
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor);
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     cur.execute("SELECT * FROM monitor_data.host_groups;")
     for g in cur:
         groups [ g['group_id'] ] = g['group_name']
 
-    cur.close();
-    conn.close();
-    return groups;
+    cur.close()
+    conn.close()
+    return groups
 

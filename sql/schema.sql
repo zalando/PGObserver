@@ -180,6 +180,7 @@ CREATE TABLE sprocs (
     sproc_host_id integer not null references hosts(host_id),
     sproc_schema text,
     sproc_name text,
+    sproc_created timestamp without time zone default now(),
     primary key ( sproc_id )
 );
 

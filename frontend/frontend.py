@@ -65,7 +65,7 @@ def main():
         if root == None:
             root = mf
 
-        setattr(root , h['settings']['uiShortName'].lower().replace('-','') , mf)
+        setattr(root , h['uishortname'], mf)
 
     root.report = report.Report()
     root.perftables = performance.PerfTables()

@@ -8,8 +8,7 @@ import topsprocs
 import flotgraph
 import time
 import tabledata
-import json
-
+import hosts
 import tplE
 import sprocdata
 
@@ -19,10 +18,16 @@ class MonitorFrontend(object):
             self.hostId = hostId
 
         def default(self, hostId = None, limit=10):
+            hostUiName = None
             if hostId == None:
                 hostId = self.hostId
-            else:
+
+            if str(hostId).isdigit():
                 hostId = int(hostId)
+                hostUiName = hosts.hostIdToUiShortname(hostId)
+            else:
+                hostUiName = hostId
+                hostId = int(hosts.uiShortnameToHostId(hostId))
 
             load = topsprocs.getLoad(hostId)
             cpuload = topsprocs.getCpuLoad(hostId)
@@ -44,8 +49,6 @@ class MonitorFrontend(object):
                 graph_wal.addPoint('wal_15min', int(time.mktime(p[0].timetuple()) * 1000) , p[1])
 
             sizes = tabledata.getDatabaseSizes(hostId)
-            for s in sizes.keys():
-                print ( s )
 
             graph_size = flotgraph.SizeGraph("graph_size")
             if hostId in sizes:
@@ -73,6 +76,7 @@ class MonitorFrontend(object):
 
             tmpl = tplE.env.get_template('index.html')
             return tmpl.render(hostid=hostId,
+                               hostuiname=hostUiName,
                                graph1=graph1.render(),
                                graph_wal=graph_wal.render(),
                                graph_size=graph_size.render(),
@@ -103,7 +107,7 @@ class MonitorFrontend(object):
 
         def renderTop10LastHours(self, order, hours=1, hostId = 1, limit = 10):
             table = tplE.env.get_template('table.html')
-            return table.render(hostid = hostId, list=topsprocs.getTop10LastXHours(order, hours, hostId,limit))
+            return table.render(hostid = hostId, hostuiname=hosts.hostIdToUiShortname(hostId), list=topsprocs.getTop10LastXHours(order, hours, hostId,limit))
 
         index.exposed = False
         default.exposed = True

@@ -6,7 +6,7 @@
    <div class="grid_12">
    <h4>Sproc details for: {{ name[0:name.find('(')] }} on {{ hostname }} | show in <a href="https://opengrok.zalando.net/search?q={{ name[0:name.find('(')]  }}&project=reboot&defs=&refs=&path=&hist=">opengrok</a></h4>
    <h2>Paramters: {{ name[name.find('('):] }}</h2>
-   <form method="GET" action="/sprocs/show/{{hostid}}/{{name}}">
+   <form method="GET" action="/sprocs/show/{{hostuiname}}/{{name}}">
       <span class="text3">Timeframe:</span><input class="datefield" type="text" name="from" value="{{ interval['from'] }}"><input class="datefield" type="text" name="to" value="{{ interval['to'] }}">
       <input type="submit" value="show"></form>
    </div>

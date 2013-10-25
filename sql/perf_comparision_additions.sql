@@ -1,4 +1,5 @@
 SET search_path = monitor_data, public;
+SET role TO pgobserver_owner;
 
 /*
 sproc report tuning tables
@@ -179,7 +180,7 @@ from
             and sp_sproc_id = sproc_id
             and ($1 = 'all' or host_name = $1)
             and sproc_host_id = host_id
-            and sp_timestamp >= (select min(created) from sprocs where sproc_schema like '%'|| $2)
+            and sp_timestamp >= (select min(sproc_created) from sprocs where sproc_schema like '%'|| $2)
          group by host_name, host_id, sproc_schema, sproc_name
        ) a
      ) b

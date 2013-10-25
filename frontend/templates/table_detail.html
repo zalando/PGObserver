@@ -5,7 +5,7 @@
 <div class="container_12">
    <div class="grid_12">
    <h4>Table details for: {{ name }} on {{ hostname }}</h4>
-      <form method="GET" action="/tables/show/{{host}}/{{name}}">
+      <form method="GET" action="/tables/show/{{hostuiname}}/{{name}}">
       <span class="text3">Timeframe:&nbsp;</span><input class="datefield" type="text" name="from" value="{{ interval['from'] }}"><input class="datefield" type="text" name="to" value="{{ interval['to'] }}">
       <input type="submit" value="show"></form>   
    </div>
