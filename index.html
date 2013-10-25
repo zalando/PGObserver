@@ -32,7 +32,7 @@
                     The PGObserver tool was developed at Zalando during the past years to monitor performance metrics
                     of our different PostgreSQL clusters. Due to our use of a stored procedure (SProc) API layer our strong
                     focus was on monitoring that API layer. However the number of metrics was increased to
-                    include other relevant database metrics:
+                    include other metrics relevant to PostgreSQL performance:
                 </p>
             </div>
 
@@ -58,7 +58,7 @@
                     <h3>Others</h3>
                     <p>
                         CPU load is tracked<br />
-                        WAL written is tracked<br />
+                        WAL amount written is tracked<br />
                     </p>
                 </div>
             </div>
@@ -71,7 +71,7 @@
 
         <div class="screenshot inner">
             <img src="images/ss_load3.jpg" />
-            <p>Dashboard with top stored procedures and calls for the last 1 and 3 hours.
+            <p>Dashboard with top stored procedures for the last 1 and 3 hours. Displaying top 10 by number of calls, total time spend, and average runtime.
             These values can be customized on the configuration file.</p>
         </div>
 
@@ -82,8 +82,18 @@
         </div>
         <div class="screenshot inner">
             <img src="images/ss_load1.jpg" />
-            <p>Graph showing CPU and stored procedure load times.</p>
+            <p>Graphs showing CPU load and time spend in stored procedures, quickly showing displaying if something is of, e.g., lock contention.</p>
         </div>
+
+        <div class="inner">
+            <h3>Setup and Configuration</h3>
+        </div>
+
+       <div class="inner">
+            <p>
+                Basically PGObserver consists of two components, a Python web frontend plus a Java data gatherer. One gatherer takes care of monitoring a defined set of PostgreSQL databases and snapshotting the performacen views in defined intervals. The amount of snapshots can be configured on a per database per metric way, giving you more flexibility what you want to monitor and how much data will be created. You can setup more than one gatherer, if required, each with its own set of clusters to monitor.
+            </p>
+       </div>
 
         <div class="clear"></div>
 
