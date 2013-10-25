@@ -6,6 +6,8 @@ var $gridclear4;
 var $gridclear6;
 var $topsearch;
 var $navlinks;
+var $flots = [];
+var delayedResize;
 
 function ShowDatabasesMenu()
 {
@@ -32,6 +34,21 @@ function CheckGridSize()
         $gridclear6.hide();
         $gridclear4.show();
     }
+
+    if (delayedResize) {
+        window.clearTimeout(delayedResize);
+        delayedResize = false;
+    }
+
+    delayedResize = setTimeout(function() {
+        $.each($flots, function(i, r) {
+            r.resize();
+            r.setupGrid();
+            r.draw();
+        });
+
+        delayedResize = false;
+    }, 100);
 }
 
 $(document).ready(function() {

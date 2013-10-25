@@ -42,12 +42,11 @@ $(function () {
                 data.push(datasets[key]);
         });
 
-        if ( true )
-            $.plot($("#{{ graphContainer }}"), data, {
-                yaxes: [{ min: 0, color: "#9A6C3D" },
-                    { position: "right", reserveSpace: true, labelWidth: defaultLabelWidth }],
-                xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D" }
-            });
+        $flots.push($.plot($("#{{ graphContainer }}"), data, {
+            yaxes: [{ min: 0, color: "#9A6C3D" },
+                { position: "right", reserveSpace: true, labelWidth: defaultLabelWidth }],
+            xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D" }
+        }));
     }
 
     plotAccordingToChoices();
