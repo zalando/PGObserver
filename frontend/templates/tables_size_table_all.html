@@ -1,7 +1,7 @@
 <table class="frontTable" style="width:100%">
     <!-- {{ order }} -->
     <thead>
-        <th><a {% if order==1 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/1">Name</a></th>
+        <th align="left"><a {% if order==1 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/1">Name</a></th>
         <th align="right"><a {% if order==2 or order == None %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}">Size</a></th>
         <th align="right"><a {% if order==3 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/3">+ 7d</a></th>
         <th align="right"><a {% if order==4 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/4">+% 7d</a></th>
