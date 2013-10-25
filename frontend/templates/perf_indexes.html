@@ -1,5 +1,5 @@
 {% extends "baselayout.html" %}
-{% set active_page = 'perf' %}
+{% set active_page = 'perfindexes' %}
 {% block body %}
 
 <div id="reports" class="container_12">
@@ -14,7 +14,8 @@
                 {% endfor %}
             </select>
             <br />
-            <input name="show" type="submit" value="show"></form>
+            <input name="show" type="submit" value="show">
+        </form>
     </div>
     {% if data['noconnect'] %}
     <div class="clear"></div>
