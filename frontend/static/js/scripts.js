@@ -1,6 +1,7 @@
 var defaultLabelWidth = 70;
-var $navcontainer;
 var $topbar;
+var $navcontainer;
+var $navclose;
 var $grids;
 var $gridclear4;
 var $gridclear6;
@@ -50,8 +51,9 @@ function CheckGridSize()
 }
 
 $(document).ready(function() {
-    $navcontainer = $("#navcontainer");
     $topbar = $("#topbar");
+    $navcontainer = $("#navcontainer");
+    $navclose = $("#navclose");
     $grids = $(".fluid_grid");
     $gridclear4 = $(".gridclear_4");
     $gridclear6 = $(".gridclear_6");
@@ -72,7 +74,7 @@ $(document).ready(function() {
         if (val != "") {
             $navlinks.each(function(i){
                 var el = $(this);
-                if (el.text().toLowerCase().indexOf(val) >= 0) {
+                if (el.text().toLowerCase().indexOf(val.toLowerCase()) >= 0) {
                     el.removeClass("fadeout");
                 } else {
                     el.addClass("fadeout");
@@ -89,6 +91,10 @@ $(document).ready(function() {
 
     $topbar.click(function(e) {
         ShowDatabasesMenu();
+    });
+
+    $navclose.click(function(e) {
+        HideDatabasesMenu();
     });
 
     var currentPath = document.location.pathname.substr(1);

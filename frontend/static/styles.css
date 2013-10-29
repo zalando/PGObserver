@@ -21,6 +21,7 @@ h1
 
 #navcontainer
 {
+    display: none;
     background: rgba(0, 0, 0, 0.9);
     color: rgb(250, 250, 250);
     height: 100%;
@@ -43,7 +44,7 @@ h1
     font-weight: bold;
     color: #E67F17;
     padding-bottom: 2px;
-    margin-right: 8px;
+    margin-right: 6px;
 }
 
 #navlist a:link#current, #navlist a:visited#current
@@ -57,17 +58,29 @@ h1
     border-bottom: 1px solid #E67F17;
 }
 
+#navclose
+{
+    cursor: pointer;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.8) url(images/slideup.png) no-repeat center;
+    z-index: 9999;
+}
+
 .navrow
 {
-    padding: 16px 0 8px 0;
-    border-bottom: 1px solid rgb(250, 220, 240);
+    padding: 22px 0 8px 0;
+    border-bottom: 1px solid rgb(234, 234, 234);
 }
 
 .navrow label
 {
-    display: block;
+    display: inline-block;
     font-size: 130%;
-    padding-bottom: 5px;
+    padding-right: 16px;
 }
 
 #pagetitle
@@ -75,8 +88,6 @@ h1
     color: rgb(250, 250, 250);
     margin-left: 60px;
 }
-
-
 
 #logrows td
 {
