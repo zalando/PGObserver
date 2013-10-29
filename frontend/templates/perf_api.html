@@ -44,9 +44,9 @@
             </tr>
             {% for d in data: %}
             <tr>                             
-                <td><a href="/{{ hostuiname }}">{{ d['host_name'] }}</a></td>
-                <td><a href="/sprocs/show/{{ hosts[d['host_id']]['hostuiname'] }}/{{ d['sproc_name'] }}">{{ d['sproc_schema'] }}</a></td>
-                <td><a href="/sprocs/show/{{ hosts[d['host_id']]['hostuiname'] }}/{{ d['sproc_name'] }}">{{ d['sproc_name'] }}</a></td>
+                <td><a href="/{{ d['hostuiname'] }}">{{ d['host_name'] }}</a></td>
+                <td><a href="/sprocs/show/{{ d['hostuiname'] }}/{{ d['sproc_name'] }}">{{ d['sproc_schema'] }}</a></td>
+                <td><a href="/sprocs/show/{{ d['hostuiname'] }}/{{ d['sproc_name'] }}">{{ d['sproc_name'] }}</a></td>
                 <td>{{ d['calltime_change_pct'] }} ({{ d['allowed_runtime_growth_pct'] }})</td>
                 <td>{{ d['share_on_total_runtime'] }} ({{ d['allowed_share_on_total_runtime_pct'] }})</td>
                 <td>{{ d['execution_avg1'] }} </td>

@@ -251,3 +251,9 @@ input
 {
     opacity: 0.2;
 }
+
+.perftable
+{
+    width: 1200px;
+    margin-top: 15px;
+}
