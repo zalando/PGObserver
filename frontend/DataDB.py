@@ -16,7 +16,7 @@ def getDataConnection():
     conn = psycopg2.connect(connection_string)
     conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
     cur = conn.cursor()
-    cur.execute("SET work_mem TO '64MB';")
+    cur.execute("SET work_mem TO '128MB';")
     cur.close()
     return conn
 

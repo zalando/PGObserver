@@ -62,7 +62,8 @@ class Show(object):
             table = tplE.env.get_template('sproc_detail.html')
 
             return table.render(hostid = int(hostId),                
-                                hostname = hosts.getHostData()[int(hostId)]['settings']['uiLongName'],
+                                hostname = hosts.getHostData()[int(hostId)]['uilongname'],
+                                hostuiname = hosts.getHostData()[int(hostId)]['uishortname'],
                                 name = data['name'],
                                 interval = interval,
                                 graphavg = graphavg.render(),
