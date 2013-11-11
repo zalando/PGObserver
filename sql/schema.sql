@@ -33,6 +33,8 @@ SET ROLE TO pgobserver_owner;
 
 SET search_path = public, pg_catalog;
 
+create extension pg_trgm;
+
 --
 -- Name: get_noversion_name(text); Type: FUNCTION; Schema: public;
 --
@@ -270,3 +272,5 @@ CREATE INDEX tables_t_host_id_idx ON tables USING btree (t_host_id);
 CREATE INDEX tag_members_tm_tag_id_idx ON tag_members USING btree (tm_tag_id);
 
 CREATE INDEX ON host_cpu_stats ( cpu_host_id, cpu_timestamp );
+
+CREATE INDEX ON monitor_data.sprocs USING gin (sproc_name gin_trgm_ops);
