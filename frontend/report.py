@@ -10,10 +10,14 @@ import reportdata
 import tplE
 
 class Report(object):
-    def index(self):
-        data = reportdata.getLoadReportData()
+    def index(self, hostId=None):
+        if hostId is not None and not hostId.isdigit():
+            hostId = hosts.uiShortnameToHostId(hostId)
+
+        data = reportdata.getLoadReportData(hostId)
 
         table = tplE.env.get_template('report_basic.html')
         return table.render(hosts=hosts.hosts, data=data)
 
     index.exposed = True
+

@@ -34,7 +34,7 @@ def uiShortnameToHostId(shortname):
     for host_id, settings in getHosts().iteritems():
         if settings['uishortname'].lower().replace('-','') == shortname:    # TODO replacing thing is stupid
             return host_id
-    return None
+    raise Exception('specified uiShortName not found! check the monitor_data.hosts table...')
 
 
 def hostIdToUiShortname(hostId):

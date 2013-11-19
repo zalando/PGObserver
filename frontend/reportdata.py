@@ -13,7 +13,7 @@ import hosts
 import datetime
 
 #@funccache.lru_cache(60,25)
-def getLoadReportData():
+def getLoadReportData(hostId=None):
     conn = DataDB.getDataConnection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     query = """
@@ -33,6 +33,7 @@ def getLoadReportData():
                         , monitor_data.tables
                     where tsd_timestamp > ('now'::timestamp - '9 weeks'::interval)
                     and tsd_table_id = t_id
+                    and (%s is null or t_host_id = %s)
                     group by t_host_id, extract(week from tsd_timestamp)
                 ) a
             )
@@ -55,10 +56,11 @@ def getLoadReportData():
               and extract(dow from load_timestamp) IN(1,2,3,4,5)                      
               and q.t_host_id = load_host_id
               and q.week = extract(week from load_timestamp)
+              and (%s is null or host_id = %s)
             group by load_host_id, extract(week from load_timestamp)
             order by 1 ASC,7 DESC
             """
-    cur.execute(query)
+    cur.execute(query, (hostId,hostId,hostId,hostId))
 
     data = defaultdict(list)
 
