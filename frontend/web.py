@@ -21,6 +21,7 @@ DEFAULT_CONF_FILE = '~/.pgobserver.conf'
 def main():
     parser = ArgumentParser(description = 'PGObserver Frontend')
     parser.add_argument('-c', '--config', help = 'Path to config file. (default: %s)' % DEFAULT_CONF_FILE, dest="config" , default = DEFAULT_CONF_FILE)
+    parser.add_argument('-p', '--port', help = 'server port' , dest="port" , default = 8080, type=int)
 
     args = parser.parse_args()
 
@@ -50,7 +51,7 @@ def main():
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
     conf = ( { 'global': { 'server.socket_host': '0.0.0.0',
-                           'server.socket_port': int(settings['frontend']['port']) } ,
+                           'server.socket_port': args.port } ,
                '/' :     {'tools.staticdir.root' : current_dir },
                '/static' : {'tools.staticdir.dir' : 'static' ,
                             'tools.staticdir.on' : True } } )
