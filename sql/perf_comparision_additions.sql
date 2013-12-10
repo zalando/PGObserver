@@ -179,6 +179,7 @@ from
             and (sproc_schema like '%'|| $2 or sproc_schema like '%' || $3)
             and sp_sproc_id = sproc_id
             and ($1 = 'all' or host_name = $1)
+            and host_enabled
             and sproc_host_id = host_id
             and sp_timestamp >= (select min(sproc_created) from sprocs where sproc_schema like '%'|| $2)
          group by host_name, host_id, sproc_schema, sproc_name
@@ -294,6 +295,7 @@ from (
               join hosts on host_id = t_host_id
           where tsd_timestamp between $2 - '1d'::interval and $3
             and ( $1 = 'all' or host_name = $1)
+            and host_enabled
             and t_name not similar to '(temp|_backup)%'
             and t_schema like 'z%'
             and t_schema not similar to '(public|pg_temp|_v|zz_commons|z_sync|temp)%'

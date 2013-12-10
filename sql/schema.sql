@@ -124,6 +124,7 @@ CREATE TABLE hosts (
     host_group_id integer,
     host_enabled boolean DEFAULT false NOT NULL,
     host_gather_group text default 'host1' not null,
+    host_db_export_name text,
     primary key ( host_id )
 );
 

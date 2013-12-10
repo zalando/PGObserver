@@ -10,6 +10,7 @@ import logdata
 import report
 import performance
 import hosts
+import export
 
 import DataDB
 import tplE
@@ -69,6 +70,7 @@ def main():
         setattr(root , h['uishortname'], mf)
 
     root.report = report.Report()
+    root.export = export.Export()
     root.perftables = performance.PerfTables()
     root.perfapi = performance.PerfApi()
     root.perfindexes = performance.PerfIndexes()
