@@ -71,8 +71,8 @@
             </tr>
             {% for d in data['duplicate']: %}
             <tr>                             
-                <td><a href="/{{ hosts[d['host_id']]['hostuiname'] }}">{{ d['host_name'] }}</a></td>
-                <td><a href="/tables/show/{{ hosts[d['host_id']]['hostuiname'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }} </a></td>
+                <td><a href="/{{ d['hostuiname'] }}">{{ d['host_name'] }}</a></td>
+                <td><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }} </a></td>
                 <td>{{ d['table_size'] }}</td>
                 <td>{{ d['def'] }}</a></td>
                 <!--<td>{{ d['index_full_name'] }}</td>-->
@@ -97,8 +97,8 @@
             {% for d in data['unused']: %}
             <tr>                             
                 <td><a href="/{{ hosts[d['host_id']]['hostuiname'] }}">{{ d['host_name'] }}</a></td>
-                <td><a href="/tables/show/{{ hosts[d['host_id']]['hostuiname'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }}</a></td>
-                <td><a href="/tables/show/{{ hosts[d['host_id']]['hostuiname'] }}/{{ d['table_full_name'] }}">{{ d['index_full_name'] }}</a></td>
+                <td><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }}</a></td>
+                <td><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['table_full_name'] }}">{{ d['index_full_name'] }}</a></td>
                 <td>{{ d['scans'] }} </td>
                 <td>{{ d['index_size'] }} </td>
                 <td>{{ d['pct_of_tables_index_space'] }}% of {{ d['indexes_size'] }}</td>
