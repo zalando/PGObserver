@@ -54,7 +54,7 @@ public class TableStatsGatherer extends ADBGatherer {
                 valueStore.put(time, list);
             }
 
-            ResultSet rs = st.executeQuery(getTableStatsQuery());
+            ResultSet rs = st.executeQuery( host.getSettings().getUseTableSizeApproximation() == 1 ? getTableStatsApproxQuery() : getTableStatsQuery() );
             while (rs.next()) {
                 TableStatsValue v = new TableStatsValue();
                 v.schema = rs.getString("schemaname");
@@ -144,6 +144,21 @@ public class TableStatsGatherer extends ADBGatherer {
                           + "pg_indexes_size(relid) as index_size, seq_scan, seq_tup_read, idx_scan,"
                           + "idx_tup_fetch, n_tup_ins , n_tup_upd , n_tup_del , n_tup_hot_upd "
                      + "FROM pg_stat_user_tables;";
+
+        return sql;
+    }
+
+    public static String getTableStatsApproxQuery() {
+
+        String sql = "SELECT ut.schemaname, ut.relname, "
+                          + "(c.relpages + coalesce(ctd.relpages,0) + coalesce(cti.relpages, 0))::int8 * 8192 as table_size,"
+                          + "(select coalesce(sum(relpages),0) from pg_class ci join pg_index on indexrelid =  ci.oid where indrelid = c.oid)::int8 * 8192 as index_size,"
+                          + "seq_scan, seq_tup_read, idx_scan,"
+                          + "idx_tup_fetch, n_tup_ins , n_tup_upd , n_tup_del , n_tup_hot_upd"
+                     + " FROM pg_stat_user_tables ut"
+                     + " JOIN pg_class c ON c.oid = ut.relid"
+                     + " LEFT JOIN pg_class ctd ON ctd.oid = c.reltoastrelid"
+                     + " LEFT JOIN pg_class cti ON cti.oid = ctd.reltoastidxid;";
 
         return sql;
     }

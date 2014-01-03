@@ -7,6 +7,7 @@ public class HostSettings {
     private int loadGatherInterval = 0;
     private int tableIoGatherInterval = 0;
     private int sprocGatherInterval = 0;
+    private int useTableSizeApproximation = 0;
 
     public void setUiLongName(final String uiLongName) {
         this.uiLongName = uiLongName;
@@ -34,6 +35,10 @@ public class HostSettings {
         this.tableStatsGatherInterval = tableStatsGatherInterval;
     }
 
+    public void setUseTableSizeApproximation(final int useTableSizeApproximation) {
+        this.useTableSizeApproximation = useTableSizeApproximation;
+    }
+
     private String uiLongName = "";
     private String uiShortName = "";
     
@@ -59,6 +64,10 @@ public class HostSettings {
 
     public int getTableStatsGatherInterval() {
         return tableStatsGatherInterval * 60;
+    }
+
+    public int getUseTableSizeApproximation() {
+        return useTableSizeApproximation;
     }
 
     public boolean isLoadGatherEnabled() {
