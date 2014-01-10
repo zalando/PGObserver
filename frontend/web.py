@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import cherrypy
 import os.path
 import json
@@ -5,7 +8,6 @@ import json
 import MonitorFrontend
 import tablesfrontend
 import sprocsfrontend
-import logfrontend
 import logdata
 import report
 import performance
@@ -19,10 +21,12 @@ from argparse import ArgumentParser
 
 DEFAULT_CONF_FILE = '~/.pgobserver.conf'
 
+
 def main():
-    parser = ArgumentParser(description = 'PGObserver Frontend')
-    parser.add_argument('-c', '--config', help = 'Path to config file. (default: %s)' % DEFAULT_CONF_FILE, dest="config" , default = DEFAULT_CONF_FILE)
-    parser.add_argument('-p', '--port', help = 'server port' , dest="port" , type=int)
+    parser = ArgumentParser(description='PGObserver Frontend')
+    parser.add_argument('-c', '--config', help='Path to config file. (default: %s)' % DEFAULT_CONF_FILE, dest='config',
+                        default=DEFAULT_CONF_FILE)
+    parser.add_argument('-p', '--port', help='server port', dest='port', type=int)
 
     args = parser.parse_args()
 
@@ -36,28 +40,28 @@ def main():
     with open(args.config, 'rb') as fd:
         settings = json.load(fd)
 
-    conn_string = ' '.join( ( "dbname=" + settings['database']['name'],
-                              "host="+settings['database']['host'],
-                              "user="+ settings['database']['frontend_user'],
-                              "password="+ settings['database']['frontend_password'],
-                              "port="+ str(settings['database']['port']) ) )
+    conn_string = ' '.join((
+        'dbname=' + settings['database']['name'],
+        'host=' + settings['database']['host'],
+        'user=' + settings['database']['frontend_user'],
+        'password=' + settings['database']['frontend_password'],
+        'port=' + str(settings['database']['port']),
+    ))
 
-    print "Setting connection string to ... " + conn_string
+    print 'Setting connection string to ... ' + conn_string
 
-    DataDB.setConnectionString ( conn_string )
+    DataDB.setConnectionString(conn_string)
 
     if 'logfiles' in settings:
-        logdata.setFilter( settings['logfiles']['liveuserfilter'] )
+        logdata.setFilter(settings['logfiles']['liveuserfilter'])
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    conf = ( { 'global': { 'server.socket_host': '0.0.0.0',
-                           'server.socket_port': args.port or settings.get('frontend', {}).get('port') or 8080 } ,
-               '/' :     {'tools.staticdir.root' : current_dir },
-               '/static' : {'tools.staticdir.dir' : 'static' ,
-                            'tools.staticdir.on' : True } } )
+    conf = {'global': {'server.socket_host': '0.0.0.0', 'server.socket_port': args.port or settings.get('frontend',
+            {}).get('port') or 8080}, '/': {'tools.staticdir.root': current_dir},
+            '/static': {'tools.staticdir.dir': 'static', 'tools.staticdir.on': True}}
 
-    tplE.setup( settings )
+    tplE.setup(settings)
 
     root = None
 
@@ -67,7 +71,7 @@ def main():
         if root == None:
             root = mf
 
-        setattr(root , h['uishortname'], mf)
+        setattr(root, h['uishortname'], mf)
 
     root.report = report.Report()
     root.export = export.Export()
@@ -77,7 +81,8 @@ def main():
     root.sprocs = sprocsfrontend.SprocFrontend()
     root.tables = tablesfrontend.TableFrontend()
 
-    cherrypy.quickstart(root,config=conf)
+    cherrypy.quickstart(root, config=conf)
+
 
 if __name__ == '__main__':
     main()
