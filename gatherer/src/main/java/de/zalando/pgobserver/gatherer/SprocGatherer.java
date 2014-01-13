@@ -47,7 +47,7 @@ public class SprocGatherer extends ADBGatherer {
                 + "(SELECT count(1) FROM pg_stat_user_functions ff WHERE ff.funcname = f.funcname AND ff.schemaname = f.schemaname) AS count_collisions "
                 + "FROM pg_stat_user_functions f, pg_proc "
                 + "WHERE pg_proc.oid = f.funcid and not schemaname like any( array['pg%','information_schema'] ) "
-                + "AND ( schemaname IN ( SELECT name FROM ( SELECT nspname, rank() OVER ( PARTITION BY substring(nspname from '(.*)_api') ORDER BY nspname DESC) FROM pg_namespace WHERE nspname LIKE '%_api%' ) apis ( name, rank ) where rank = 1 ) OR schemaname LIKE '%_data' );";
+                + "AND ( schemaname IN ( SELECT name FROM ( SELECT nspname, rank() OVER ( PARTITION BY substring(nspname from '(.*)_api') ORDER BY nspname DESC) FROM pg_namespace WHERE nspname LIKE '%_api%' ) apis ( name, rank ) where rank <= 2 ) OR schemaname LIKE '%_data' );";
 
         return sql;
     }
