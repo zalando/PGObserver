@@ -47,7 +47,7 @@ function CheckGridSize()
         });
 
         delayedResize = false;
-    }, 100);
+    }, 80);
 }
 
 $(document).ready(function() {
@@ -98,7 +98,7 @@ $(document).ready(function() {
     });
 
     var currentPath = document.location.pathname.substr(1);
-    if (currentPath == "") currentPath = "Default view";
+    if (currentPath == "") currentPath = $(".navrow #current").html();
     $("#pagetitle").html(currentPath);
 
     HideDatabasesMenu();
