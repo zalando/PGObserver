@@ -24,14 +24,22 @@ def getHosts():
 def getGroups():
     global groups
     if groups != None:
-        return groups;
+        return groups
 
     groups = getGroupsData()
     return groups
 
 
-#def getHosts():
-#    return { 1 : 'bm-master', 2: 'customerindex' , 3: 'customer1', 4: 'shop-master' , 5: 'addr-master', 6: 'zalos' , 7 : 'otrs', 8 : 'partner' , 9 : 'export' }
+def uiShortnameToHostId(shortname):
+    for host_id, settings in getHosts().iteritems():
+        if settings['uishortname'].lower().replace('-','') == shortname:    # TODO replacing thing is stupid
+            return host_id
+    raise Exception('specified uiShortName not found! check the monitor_data.hosts table...')
+
+
+def hostIdToUiShortname(hostId):
+    return getHosts()[int(hostId)]['uishortname'].lower().replace('-','')
+
 
 def getHostData():
     conn = DataDB.getDataConnection()
@@ -41,24 +49,26 @@ def getHostData():
 
     cur.execute("SELECT * FROM monitor_data.hosts WHERE host_enabled = true ORDER BY host_id ASC;")
     for r in cur:
-        rr = dict(r);
+        rr = dict(r)
         rr['settings'] = json.loads(rr['host_settings'])
-        hosts[rr['host_id']] = rr;
+        rr['uishortname'] = rr['settings']['uiShortName'].lower().replace('-','')
+        rr['uilongname'] = rr['settings']['uiLongName']
+        hosts[rr['host_id']] = rr
 
-    cur.close();
-    conn.close();
-    return hosts;
+    cur.close()
+    conn.close()
+    return hosts
 
 def getGroupsData():
     conn = DataDB.getDataConnection()
     groups = {}
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor);
+    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 
     cur.execute("SELECT * FROM monitor_data.host_groups;")
     for g in cur:
         groups [ g['group_id'] ] = g['group_name']
 
-    cur.close();
-    conn.close();
-    return groups;
+    cur.close()
+    conn.close()
+    return groups
 

@@ -1,11 +1,14 @@
 var defaultLabelWidth = 70;
-var $navcontainer;
 var $topbar;
+var $navcontainer;
+var $navclose;
 var $grids;
 var $gridclear4;
 var $gridclear6;
 var $topsearch;
 var $navlinks;
+var $flots = [];
+var delayedResize;
 
 function ShowDatabasesMenu()
 {
@@ -21,9 +24,12 @@ function HideDatabasesMenu()
 
 function CheckGridSize()
 {
-    var w = $($grids.get(0)).outerWidth();
+    if (delayedResize) {
+        window.clearTimeout(delayedResize);
+        delayedResize = false;
+    }
 
-    if (w < 550) {
+    if ($(window).width() < 1280) {
         $grids.addClass("grid_6").removeClass("grid_4");
         $gridclear4.hide();
         $gridclear6.show();
@@ -32,11 +38,22 @@ function CheckGridSize()
         $gridclear6.hide();
         $gridclear4.show();
     }
+
+    delayedResize = setTimeout(function() {
+        $.each($flots, function(i, r) {
+            r.resize();
+            r.setupGrid();
+            r.draw();
+        });
+
+        delayedResize = false;
+    }, 100);
 }
 
 $(document).ready(function() {
-    $navcontainer = $("#navcontainer");
     $topbar = $("#topbar");
+    $navcontainer = $("#navcontainer");
+    $navclose = $("#navclose");
     $grids = $(".fluid_grid");
     $gridclear4 = $(".gridclear_4");
     $gridclear6 = $(".gridclear_6");
@@ -57,7 +74,7 @@ $(document).ready(function() {
         if (val != "") {
             $navlinks.each(function(i){
                 var el = $(this);
-                if (el.text().toLowerCase().indexOf(val) >= 0) {
+                if (el.text().toLowerCase().indexOf(val.toLowerCase()) >= 0) {
                     el.removeClass("fadeout");
                 } else {
                     el.addClass("fadeout");
@@ -76,12 +93,16 @@ $(document).ready(function() {
         ShowDatabasesMenu();
     });
 
+    $navclose.click(function(e) {
+        HideDatabasesMenu();
+    });
+
     var currentPath = document.location.pathname.substr(1);
     if (currentPath == "") currentPath = "Default view";
     $("#pagetitle").html(currentPath);
 
     HideDatabasesMenu();
-    CheckGridSize();
+    setTimeout(CheckGridSize, 200);
 });
 
 if(/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {

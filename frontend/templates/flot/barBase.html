@@ -39,7 +39,7 @@ $(function () {
               }
            }
 
-           $.plot($("#{{ graphContainer }}"), datasets, {
+           $flots.push($.plot($("#{{ graphContainer }}"), datasets, {
                  legend : { position: "nw" },
                 selection : { mode : "x" },
                 grid : { clickable: true },
@@ -50,7 +50,7 @@ $(function () {
                    yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth, position: "{{ legendPosition }}" },
                        { position: "right", reserveSpace: true, labelWidth: defaultLabelWidth }],
                    xaxis: { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  }
-          });
+          }));
 
                     if(typeof rec == 'undefined') {
              containers = $(".graphc");
@@ -72,7 +72,7 @@ $(function () {
             direction = _upX > _downX;
        });
 
-    $.plot($("#{{ graphContainer }}"), datasets, {
+$flots.push($.plot($("#{{ graphContainer }}"), datasets, {
                  legend : { position: "nw" },
                 selection : { mode : "x" },
                 grid : { clickable: true },
@@ -83,6 +83,6 @@ $(function () {
                    yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth, position: "{{ legendPosition }}" },
                        { position: "right", reserveSpace: true, labelWidth: defaultLabelWidth }],
                    xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  }
-    });
+    }));
 });
 </script>

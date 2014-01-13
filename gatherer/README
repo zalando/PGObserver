@@ -13,3 +13,4 @@ Running
 	copy .pgobserver.conf to home folder
 	configure .pgobserver.conf to access the database where you store gathered metrics
 	execute ./run.sh script to start
+

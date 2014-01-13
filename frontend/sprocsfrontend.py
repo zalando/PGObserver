@@ -9,7 +9,6 @@ import flotgraph
 import sprocdata
 import hosts
 import datetime
-
 import tplE
 
 class Show(object):
@@ -29,8 +28,7 @@ class Show(object):
 
             if(len(p)<=1):
                 return """Error: Not enough URL paramter"""
-
-            hostId = p[0]
+            hostId = p[0] if p[0].isdigit() else hosts.uiShortnameToHostId(p[0])
             name = p[1]
 
             if len(p) > 2:
@@ -64,7 +62,8 @@ class Show(object):
             table = tplE.env.get_template('sproc_detail.html')
 
             return table.render(hostid = int(hostId),                
-                                hostname = hosts.getHostData()[int(hostId)]['settings']['uiLongName'],
+                                hostname = hosts.getHostData()[int(hostId)]['uilongname'],
+                                hostuiname = hosts.getHostData()[int(hostId)]['uishortname'],
                                 name = data['name'],
                                 interval = interval,
                                 graphavg = graphavg.render(),
@@ -77,8 +76,10 @@ class Show(object):
 class SprocFrontend(object):
     def all(self,hostId=None):
 
+        if not hostId.isdigit():    # ui shortname
+            hostId = hosts.uiShortnameToHostId(hostId)
         if hostId==None:
-            return 'Needs hostId';
+            return 'Needs valid hostId/uiShortName'
 
         sprocs = sprocdata.getSprocsOrderedBy(hostId)
         list = []

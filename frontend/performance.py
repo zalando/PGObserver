@@ -17,6 +17,8 @@ class PerfTables(object):
         #print(tplE.env.globals['hosts'])
         if 'show' in params:            
             data = reportdata.getTablePerformanceIssues(params['hostname'], params['from'], params['to'])
+            for d in data:
+                d['hostuiname'] = hosts.hostIdToUiShortname(d['host_id'])
 
         interval = {}
         if 'from' in params and 'to' in params:
@@ -41,7 +43,8 @@ class PerfApi(object):
         #print(tplE.env.globals['hosts'])
         if 'show' in params:            
             data = reportdata.getApiPerformanceIssues(params['hostname'], params['from'], params['to'])
-
+            for d in data:
+                d['hostuiname'] = hosts.hostIdToUiShortname(d['host_id'])
 
         if 'from' in params and 'to' in params:
             interval['from'] = params['from']
@@ -64,6 +67,9 @@ class PerfIndexes(object):
         interval = {}
         if 'show' in params:            
             data = reportdata.getIndexIssues(params['hostname'])
+            for s in data:
+                for d in data[s]:
+                    d['hostuiname'] = hosts.hostIdToUiShortname(d['host_id'])
 
         if 'hostname' in params:
             interval['hostname'] = params['hostname']

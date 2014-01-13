@@ -20,14 +20,14 @@ $(function () {
        {% endfor %}
     ];
 
-      function suffixFormatter( val, axis) {
-         if ( val > 300000 ) {
-            return (val / (60 * 1000) ).toFixed(2) + "m";
-         }
-         else {
-            return (val/1000).toFixed(2) + "s";
-         }
+    function suffixFormatter( val, axis) {
+     if ( val > 300000 ) {
+        return (val / (60 * 1000) ).toFixed(2) + "m";
      }
+     else {
+        return (val/1000).toFixed(2) + "s";
+     }
+    }
 
           $("#{{ graphContainer }}").bind("plotselected", function (event, ranges) {
            from = new Date(Math.floor(ranges.xaxis.from.toFixed(1)));
@@ -40,14 +40,14 @@ $(function () {
               xmax = null;
            }
 
-           $.plot($("#{{ graphContainer }}"), datasets, {
+              $flots.push($.plot($("#{{ graphContainer }}"), datasets, {
                  legend : { position: "nw" },
                 selection : { mode : "x" },
                 grid : { clickable: true },
                 yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , tickFormatter: suffixFormatter, reserveSpace: true, labelWidth: defaultLabelWidth },
                     { position: "right", reserveSpace: true, labelWidth: defaultLabelWidth }],
                 xaxis: { min: xmin, max: xmax, mode: "time", timezone: "browser",  timeformat: "%d.%m. %H:%M" , tickDecimals: 0, color: "#9A6C3D"  }
-          });
+          }));
        });
 
          $("#{{ graphContainer }}").bind("mousedown", function (event, ranges) {
@@ -60,13 +60,13 @@ $(function () {
             direction = _upX > _downX;
        });
 
-    $.plot($("#{{ graphContainer }}"), datasets, {
+$flots.push($.plot($("#{{ graphContainer }}"), datasets, {
                  legend : { position: "nw" },
                 selection : { mode : "x" },
                 grid : { clickable: true },
                 yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , tickFormatter: suffixFormatter, reserveSpace: true, labelWidth: defaultLabelWidth },
                     { position: "right", reserveSpace: true, labelWidth: defaultLabelWidth }],
                 xaxis: { mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  }
-    });
+    }));
 });
 </script>

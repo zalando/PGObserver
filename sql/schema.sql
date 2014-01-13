@@ -22,6 +22,12 @@ ALTER DEFAULT PRIVILEGES FOR ROLE pgobserver_owner IN SCHEMA log_file_data GRANT
 CREATE SCHEMA monitor_data;
 ALTER SCHEMA monitor_data OWNER TO pgobserver_owner;
 
+DO $$
+BEGIN
+  EXECUTE 'ALTER DATABASE ' || current_database() || ' SET search_path = monitor_data, public';
+END;
+$$;
+
 ALTER DEFAULT PRIVILEGES FOR ROLE pgobserver_owner IN SCHEMA monitor_data GRANT SELECT ON TABLES to pgobserver_frontend;
 ALTER DEFAULT PRIVILEGES FOR ROLE pgobserver_owner IN SCHEMA monitor_data GRANT SELECT,INSERT,DELETE,UPDATE ON TABLES to pgobserver_gatherer;
 ALTER DEFAULT PRIVILEGES FOR ROLE pgobserver_owner IN SCHEMA monitor_data GRANT USAGE ON SEQUENCES to pgobserver_gatherer;
@@ -120,8 +126,10 @@ CREATE TABLE hosts (
     host_group_id integer,
     host_enabled boolean DEFAULT false NOT NULL,
     host_gather_group text default 'host1' not null,
+    host_db_export_name text,
     primary key ( host_id )
 );
+
 
 CREATE TABLE host_load (
     load_host_id integer not null references hosts(host_id),
@@ -129,8 +137,8 @@ CREATE TABLE host_load (
     load_1min_value integer,
     load_5min_value integer,
     load_15min_value integer,
-    load_iowait_value bigint,
-    load_system_value bigint
+    xlog_location text,
+    xlog_location_mb bigint
 );
 
 CREATE TABLE host_cpu_stats (
@@ -175,6 +183,7 @@ CREATE TABLE sprocs (
     sproc_host_id integer not null references hosts(host_id),
     sproc_schema text,
     sproc_name text,
+    sproc_created timestamp without time zone default now(),
     primary key ( sproc_id )
 );
 

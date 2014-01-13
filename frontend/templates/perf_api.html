@@ -1,5 +1,5 @@
 {% extends "baselayout.html" %}
-{% set active_page = 'perf' %}
+{% set active_page = 'perfapi' %}
 {% block body %}
 
 <div id="reports" class="container_12">
@@ -19,7 +19,8 @@
             <br />
             <span class="text3">Api 2:</span>
             <input type="text" name="to" value="{{ interval['to'] }}">
-            <input name="show" type="submit" value="show"></form>
+            <input name="show" type="submit" value="show">
+        </form>
     </div>
     <script>
         $(function() {
@@ -43,9 +44,9 @@
             </tr>
             {% for d in data: %}
             <tr>                             
-                <td><a href="/{{ hosts[d['host_id']]['settings']['uiShortName'].lower().replace('-','') }}">{{ d['host_name'] }}</a></td>
-                <td><a href="/sprocs/show/{{ d['host_id'] }}/{{ d['sproc_name'] }}">{{ d['sproc_schema'] }}</a></td>
-                <td><a href="/sprocs/show/{{ d['host_id'] }}/{{ d['sproc_name'] }}">{{ d['sproc_name'] }}</a></td>
+                <td><a href="/{{ d['hostuiname'] }}">{{ d['host_name'] }}</a></td>
+                <td><a href="/sprocs/show/{{ d['hostuiname'] }}/{{ d['sproc_name'] }}">{{ d['sproc_schema'] }}</a></td>
+                <td><a href="/sprocs/show/{{ d['hostuiname'] }}/{{ d['sproc_name'] }}">{{ d['sproc_name'] }}</a></td>
                 <td>{{ d['calltime_change_pct'] }} ({{ d['allowed_runtime_growth_pct'] }})</td>
                 <td>{{ d['share_on_total_runtime'] }} ({{ d['allowed_share_on_total_runtime_pct'] }})</td>
                 <td>{{ d['execution_avg1'] }} </td>

@@ -1,5 +1,5 @@
 {% extends "baselayout.html" %}
-{% set active_page = 'perf' %}
+{% set active_page = 'perftables' %}
 {% block body %}
 
 <div id="reports" class="container_12">
@@ -17,7 +17,8 @@
             <span class="text3">Timeframe:</span>
             <input class="datefield" type="text" name="from" value="{{ interval['from'] }}">
             <input class="datefield" type="text" name="to" value="{{ interval['to'] }}">
-            <input name="show" type="submit" value="show"></form>
+            <input name="show" type="submit" value="show">
+        </form>
     </div>
     <script>
         $(function() {
@@ -40,9 +41,9 @@
             </tr>
             {% for d in data: %}
             <tr>                
-                <td><a href="/tables/alltables/{{ d['host_id'] }}">{{ d['host_name'] }} </a></td>
-                <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['schema_name'] }} </a></td>
-                <td><a href="/tables/show/{{ d['host_id'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['table_name'] }} </a></td>
+                <td><a href="/tables/alltables/{{ d['hostuiname'] }}">{{ d['host_name'] }} </a></td>
+                <td><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['schema_name'] }} </a></td>
+                <td><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['table_name'] }} </a></td>
                 <td>{{ d['day'] }} </td>
                 <td>{{ d['scan_change_pct'] }} ({{ d['allowed_seq_scan_pct'] }})</td>
                 <td>{{ d['scans1'] }} </td>

@@ -1,11 +1,17 @@
 <table class="frontTable" style="width:100%">
-   <thead><th>Name</th><th>Size</th><th>Index Size</th><th colspan="2">+% 7d</th></thead>
-   {% for row in list: %}
-      <tr><td><a target="_new" href="/tables/show/{{hostId}}/{{row.schema}}.{{row.name}}">{{ (row.schema + "." + row.name)[0:47] }}</a></td>
-         <td align="right">{{ row.table_size_pretty }}</td>
-         <td align="right">{{ row.index_size_pretty }}</td>
-         <td align="right">{{ row.growth }} %</td>
-         <td align="right">{{ row.growth_index }} %</td>
-      </tr>
-   {% endfor %}
+    <thead>
+        <th>Name</th>
+        <th align="right">Size</th>
+        <th align="right">Index Size</th>
+        <th colspan="2" align="right">+% 7d</th>
+    </thead>
+    {% for row in list: %}
+    <tr>
+        <td><a target="_new" href="/tables/show/{{hostuiname}}/{{row.schema}}.{{row.name}}">{{ (row.schema + "." + row.name)[0:47] }}</a></td>
+        <td align="right">{{ row.table_size_pretty }}</td>
+        <td align="right">{{ row.index_size_pretty }}</td>
+        <td align="right">{{ row.growth }} %</td>
+        <td align="right">{{ row.growth_index }} %</td>
+    </tr>
+    {% endfor %}
 </table>
