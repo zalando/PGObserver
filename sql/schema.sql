@@ -8,9 +8,24 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
-CREATE ROLE pgobserver_frontend WITH LOGIN PASSWORD 'pgobserver_frontend';
-CREATE ROLE pgobserver_gatherer WITH LOGIN PASSWORD 'pgobserver_gatherer';
-CREATE ROLE pgobserver_owner;
+SET search_path TO public;
+create extension pg_trgm;
+
+DO $$
+BEGIN
+    IF NOT EXISTS( SELECT 1 FROM pg_roles WHERE rolname = 'pgobserver_frontend' ) THEN
+        CREATE ROLE pgobserver_frontend WITH LOGIN PASSWORD 'pgobserver_frontend';
+    END IF;
+
+    IF NOT EXISTS( SELECT 1 FROM pg_roles WHERE rolname = 'pgobserver_gatherer' ) THEN
+        CREATE ROLE pgobserver_gatherer WITH LOGIN PASSWORD 'pgobserver_gatherer';
+    END IF;
+
+    IF NOT EXISTS( SELECT 1 FROM pg_roles WHERE rolname = 'pgobserver_owner' ) THEN
+        CREATE ROLE pgobserver_owner;
+    END IF;
+END;
+$$;
 
 CREATE SCHEMA log_file_data;
 ALTER SCHEMA log_file_data OWNER TO pgobserver_owner;
@@ -38,8 +53,6 @@ GRANT USAGE ON SCHEMA monitor_data TO pgobserver_frontend;
 SET ROLE TO pgobserver_owner;
 
 SET search_path = public, pg_catalog;
-
-create extension pg_trgm;
 
 --
 -- Name: get_noversion_name(text); Type: FUNCTION; Schema: public;
