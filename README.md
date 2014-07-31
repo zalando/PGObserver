@@ -30,8 +30,17 @@ Setup
 ```
 pip install -r frontend/requirements.txt
 ```
+
  * Create schema from sql/schema.sql where you want to store your data
- * Copy pgobserver.conf.template to home folder ~/.pgobserver.conf
+```
+psql -f sql/schema.sql [...]
+```
+
+ * Put the PGObserver into the users home folder, that will run PGObserver
+```
+cp pgobserver.conf ~/.pgobserver.conf
+```
+
  * Configure .pgobserver.conf to match your setup
  	- set database where to store data
  	- configure usernames and passwords
