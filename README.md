@@ -25,8 +25,13 @@ Visit us at http://tech.zalando.com
 Setup
 -----
 
+ * PGObserver frontend is developed/run using Python 2.7
+ * Prepare Python dependecies using pip
+```
+pip install -r frontend/requirements.txt
+```
  * Create schema from sql/schema.sql where you want to store your data
- * Copy pgobserver.conf to home folder ~/.pgobserver.conf
+ * Copy pgobserver.conf.template to home folder ~/.pgobserver.conf
  * Configure .pgobserver.conf to match your setup
  	- set database where to store data
  	- configure usernames and passwords
@@ -34,8 +39,14 @@ Setup
  * Create an unprivileged PostgreSQL user on the database you want to monitor
  * Add entry to monitor_data.hosts table to include the databases you want to monitor
  	- use host_group to decide which gatherer monitors which cluster
- * Build a single jar including dependencies using mvn clean verify assembly:single
- * Start monitoring with: java -jar target/PGObserver-Gatherer-1.0-SNAPSHOT-jar-with-dependencies.jar
+ * Build a single jar including dependencies using
+```
+mvn clean verify assembly:single
+```
+ * Start monitoring with:
+```
+java -jar target/PGObserver-Gatherer-1.0-SNAPSHOT-jar-with-dependencies.jar
+```
  * For CPU load created the stored procedure from sql/cpuload.sql , this is a plpythonu function
 
 License
