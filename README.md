@@ -26,7 +26,7 @@ Setup
 -----
 
  * PGObserver frontend is developed/run using Python 2.7
- * Prepare Python dependecies using pip
+ * Prepare Python dependencies using pip
 ```
 pip install -r frontend/requirements.txt
 ```
