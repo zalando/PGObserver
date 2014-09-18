@@ -62,7 +62,7 @@ java -jar target/PGObserver-Gatherer-1.0-SNAPSHOT-jar-with-dependencies.jar
 Hint
 ----
 
-To enable the gathering of certain statistics the PostgreSQL server configuration may need changes, refer to: http://www.postgresql.org/docs/9.3/static/monitoring-stats.html
+To enable the gathering of certain statistics the PostgreSQL server configuration may need changes, refer to: http://www.postgresql.org/docs/9.3/static/monitoring-stats.html and http://www.postgresql.org/docs/9.3/static/pgstatstatements.html
 
 License
 -------
