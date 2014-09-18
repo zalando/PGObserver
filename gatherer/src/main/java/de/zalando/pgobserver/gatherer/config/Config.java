@@ -20,6 +20,7 @@ public class Config {
     public Database database;
     public Logfiles logfiles;
     public Frontend frontend;
+    public String default_schema_filter;
 
     @Override
     public String toString() {

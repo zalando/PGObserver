@@ -29,27 +29,28 @@ public class SprocGatherer extends ADBGatherer {
     private Map<Integer, Long> lastValueStore = new HashMap<>();
     private int sprocsRead = 0;
     private int sprocValuesInserted = 0;
+    private final String query;
     
     private static final Logger LOG = LoggerFactory.getLogger(SprocGatherer.class);
 
-    public SprocGatherer(final Host h, final long interval, final ScheduledThreadPoolExecutor ex) {
+    public SprocGatherer(final Host h, final long interval, final ScheduledThreadPoolExecutor ex, String defaultSchemaFilter) {
         super(h, ex, interval);
         idCache = new SprocIdCache(h);
         valueStore = new TreeMap<>();
+        query = getQuery(defaultSchemaFilter);
     }
 
-    public String getQuery() {
-        String sql = "SELECT schemaname AS schema_name,"
-                + "funcname  AS function_name, "
-                + "(SELECT array_to_string(ARRAY(SELECT format_type(t,null) FROM unnest(COALESCE(proallargtypes,proargtypes::oid[])) tt ( t ) ),',')) AS func_arguments,"
-                + "array_to_string(proargmodes,',') AS func_argmodes,"
-                + "calls, self_time, total_time, "
-                + "(SELECT count(1) FROM pg_stat_user_functions ff WHERE ff.funcname = f.funcname AND ff.schemaname = f.schemaname) AS count_collisions "
-                + "FROM pg_stat_user_functions f, pg_proc "
-                + "WHERE pg_proc.oid = f.funcid and not schemaname like any( array['pg%','information_schema'] ) "
-                + "AND ( schemaname IN ( SELECT name FROM ( SELECT nspname, rank() OVER ( PARTITION BY substring(nspname from '(.*)_api') ORDER BY nspname DESC) FROM pg_namespace WHERE nspname LIKE '%_api%' ) apis ( name, rank ) where rank <= 2 ) OR schemaname LIKE '%_data' );";
-
-        return sql;
+    private static String getQuery(String defaultSchemaFilter) {
+        return "SELECT schemaname AS schema_name,"
+               + "funcname  AS function_name, "
+               + "(SELECT array_to_string(ARRAY(SELECT format_type(t,null) FROM unnest(COALESCE(proallargtypes,proargtypes::oid[])) tt ( t ) ),',')) AS func_arguments,"
+               + "array_to_string(proargmodes,',') AS func_argmodes,"
+               + "calls, self_time, total_time, "
+               + "(SELECT count(1) FROM pg_stat_user_functions ff WHERE ff.funcname = f.funcname AND ff.schemaname = f.schemaname) AS count_collisions "
+               + "FROM pg_stat_user_functions f, pg_proc "
+               + "WHERE pg_proc.oid = f.funcid and not schemaname like any( array['pg%','information_schema'] ) "
+               // specify additional filter options in the config file, we provide our default filter scanning only the latest _api schemas and any _data schema
+               + defaultSchemaFilter;
     }
 
     @Override
@@ -70,7 +71,7 @@ public class SprocGatherer extends ADBGatherer {
                 valueStore.put(time, list);
             }
 
-            ResultSet rs = st.executeQuery(getQuery());
+            ResultSet rs = st.executeQuery(query);
             while (rs.next()) {
                 SprocPerfValue v = new SprocPerfValue();
                 v.name = rs.getString("function_name");

@@ -115,7 +115,7 @@ public class Host {
         return map;
     }
 
-    public void scheduleGatheres() {
+    public void scheduleGatheres(Config config) {
 
         LOG.info("Settings for Host " + getName() + "\n" + "Load: " + settings.getLoadGatherInterval() + " Seconds\n"
                 + "Sprocs: " + settings.getSprocGatherInterval() + " Seconds\n" + "Table IO: "
@@ -128,7 +128,7 @@ public class Host {
         }
 
         if (gatherers.sprocGatherer == null) {
-            gatherers.sprocGatherer = new SprocGatherer(this, settings.getSprocGatherInterval(), gatherers.executor);
+            gatherers.sprocGatherer = new SprocGatherer(this, settings.getSprocGatherInterval(), gatherers.executor, config.default_schema_filter);
         } else {
             gatherers.sprocGatherer.setIntervalInSeconds(settings.getSprocGatherInterval());
         }
