@@ -59,6 +59,11 @@ java -jar target/PGObserver-Gatherer-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
  * For CPU load created the stored procedure from sql/cpuload.sql , this is a plpythonu function
 
+Hint
+----
+
+To enable the gathering of certain statistics the PostgreSQL server configuration may need changes, refer to: http://www.postgresql.org/docs/9.3/static/monitoring-stats.html
+
 License
 -------
 
