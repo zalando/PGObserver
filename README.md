@@ -45,6 +45,7 @@ cp pgobserver.conf ~/.pgobserver.conf
  	- set database where to store data
  	- configure usernames and passwords
  	- set hostgroup ( for gatherer )
+    - possible remove/change the additional filter "default_schema_filter" for schemas where you want your sprocs to be found. our default is scan only schemas with _api or _data
  * Create an unprivileged PostgreSQL user on the database you want to monitor
  * Add entry to monitor_data.hosts table to include the databases you want to monitor
  	- use host_group to decide which gatherer monitors which cluster
