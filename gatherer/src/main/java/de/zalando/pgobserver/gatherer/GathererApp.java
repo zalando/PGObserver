@@ -48,7 +48,7 @@ public class GathererApp extends ServerResource {
         Map<Integer, Host> hosts = Host.LoadAllHosts(config);
 
         for (Host h : hosts.values()) {
-            h.scheduleGatheres(config);
+            h.scheduleGatheres();
         }
 
         try {

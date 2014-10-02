@@ -7,7 +7,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
-
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,19 +17,18 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * @author  jmussler
- */
+
 public class TableIOStatsGatherer extends ADBGatherer {
     private final TableIdCache idCache;
     private Map<Long, List<TableIOStatsValue>> valueStore = null;
 
     private Map<Integer, TableIOStatsValue> lastValueStore = new HashMap<Integer, TableIOStatsValue>();
-
+    private static final String gathererName = "TableIOStatsGatherer";
+    
     private static final Logger LOG = Logger.getLogger(TableIOStatsGatherer.class.getName());
 
     public TableIOStatsGatherer(final Host h, final long interval, final ScheduledThreadPoolExecutor ex) {
-        super(h, ex, interval);
+        super(gathererName, h, ex, interval);
         idCache = new TableIdCache(h);
         valueStore = new TreeMap<Long, List<TableIOStatsValue>>();
 
@@ -76,7 +74,7 @@ public class TableIOStatsGatherer extends ADBGatherer {
             conn = DBPools.getDataConnection();
 
             PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO monitor_data.table_io_data(tio_table_id, tio_timestamp, tio_heap_read, tio_heap_hit, tio_idx_read, tio_idx_hit)    VALUES (?, ?, ?, ?, ?, ?);");
+                    "INSERT INTO monitor_data.table_io_data(tio_table_id, tio_timestamp, tio_heap_read, tio_heap_hit, tio_idx_read, tio_idx_hit, tio_host_id)    VALUES (?, ?, ?, ?, ?, ?, ?);");
 
             for (Entry<Long, List<TableIOStatsValue>> toStore : valueStore.entrySet()) {
                 for (TableIOStatsValue v : toStore.getValue()) {
@@ -103,6 +101,7 @@ public class TableIOStatsGatherer extends ADBGatherer {
                     ps.setLong(4, v.heap_blk_hit);
                     ps.setLong(5, v.index_blk_read);
                     ps.setLong(6, v.index_blk_hit);
+                    ps.setLong(7, host.id);
 
                     ps.execute();
                 }

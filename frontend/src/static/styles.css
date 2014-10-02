@@ -1,0 +1,319 @@
+html, body
+{
+    height: 100%;
+    width: 100%;
+    margin: auto;
+    padding: 0;
+}
+
+body
+{
+    background-color: rgb(45, 45, 45);
+    font-family: Verdana, "Bitstream Vera Sans", "DejaVu Sans", Tahoma, Geneva, Arial, Sans-serif;
+    font-size: 13px;
+}
+
+h1
+{
+    color: rgb(250, 250, 250);
+    margin-bottom: 6px;
+}
+
+#navcontainer
+{
+    display: none;
+    background: rgba(0, 0, 0, 0.9);
+    color: rgb(250, 250, 250);
+    height: 100%;
+    left: 0;
+    padding: 0;
+    margin: 0;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 99999;
+}
+
+#navlist
+{
+    margin: 20px;
+}
+
+#navlist a:link, #navlist a:visited
+{
+    font-weight: bold;
+    color: #E67F17;
+    padding-bottom: 2px;
+    margin-right: 6px;
+}
+
+#navlist a:link#current, #navlist a:visited#current
+{
+    color: #FFAF5F;
+    border-bottom: 1px solid #FFAF5F;
+}
+
+#navlist a:hover
+{
+    border-bottom: 1px solid #E67F17;
+}
+
+#navclose
+{
+    cursor: pointer;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.8) url(images/slideup.png) no-repeat center;
+    z-index: 9999;
+}
+
+.navrow
+{
+    padding: 24px 0 8px 0;
+    border-bottom: 1px solid rgb(234, 234, 234);
+}
+
+.navrow label
+{
+    display: inline-block;
+    font-size: 130%;
+    padding-right: 16px;
+}
+
+#pagetitle
+{
+    color: rgb(250, 250, 250);
+    margin-left: 60px;
+    text-transform: lowercase;
+}
+
+#logrows td
+{
+    font-size: 12px;
+}
+
+#logrows a
+{
+    font-size: 13px;
+}
+
+#logrows .more
+{
+    font-size: 14px;
+    border: 1px solid black;
+    color: #444444;
+}
+
+/* http://colorschemedesigner.com/#0.51KsOsOFfFf */
+
+h2
+{
+    font-size: 13px;
+    color: #E65217;
+    font-weight: 800;
+}
+
+h3
+{
+    font-size: 14px;
+    color: #E65217;
+    font-weight: 800;
+}
+
+h3 a
+{
+    font-size: 13px;
+}
+
+.text3
+{
+    font-size: 14px;
+    color: #E65217;
+    font-weight: 800;
+}
+
+h4
+{
+    font-size: 15px;
+    color: #E65217;
+    font-weight: 800;
+}
+
+h5
+{
+    font-size: 13px;
+    color: #E65217;
+    font-weight: 800;
+}
+
+table, td, th {
+    border: 1px solid grey;
+    border-collapse: collapse;
+}
+.frontTable {
+    width: 100%;
+    text-align: left;
+}
+
+.noBorder {
+    border: 0;
+}
+.noBorder th {
+    border: 0;
+}
+.noBorder td {
+    border: 0;
+}
+
+
+.frontTable th
+{
+    font-size: 12px;
+    color: #F6C262;
+}
+
+.frontTable td
+{
+    font-size: 11px;
+    color: #F6AD62;
+}
+
+a
+{
+    color: #F6AD62;
+    text-decoration: none;
+}
+
+.frontTable a
+{
+    font-size: 11px;
+    color: #F6AD62;
+    text-decoration: none;
+}
+
+.frontTable .active
+{
+    font-size: 11px;
+    color: #E65217;
+    text-decoration: none;
+}
+
+#reports .higher
+{
+    color: #FF0000;
+    font-weight: bold;
+}
+
+#reports .lower
+{
+    color: #00FF00;
+}
+
+#reports th
+{
+    font-size: 14px;
+    color: #E65217;
+}
+
+#reports h2
+{
+    font-size: 15px;
+    color: #E65217;
+    font-weight: 800;
+}
+
+#reports td
+{
+    font-size: 13px;
+    color: #F6AD62;
+}
+
+input
+{
+    background-color: #404040;
+    color: #FFFFFF;
+    font-weight: 400;
+    border: 1px solid grey;
+}
+
+.datefield
+{
+    width: 75px;
+}
+
+#topbar
+{
+    cursor: pointer;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.8) url(images/slidedown.png) no-repeat center;
+    z-index: 9999;
+}
+
+#topbar:hover
+{
+    background-color: rgba(0, 0, 0, 1);
+}
+
+#topbar h4
+{
+    padding-top: 0;
+    margin-top: 5px;
+}
+
+#topsearch
+{
+    float: right;
+    font-size: 20px;
+}
+
+.fadeout
+{
+    opacity: 0.2;
+}
+
+.perftable
+{
+    width: 1200px;
+    margin-top: 15px;
+}
+
+textarea {
+    width: 300px;
+    background-color: lightgrey;
+}
+
+#welcome_listing {
+    //width: 700px;
+    text-align: left;
+}
+
+.wl_db {
+    width: 250px;
+}
+.wl_load {
+    width: 200px;
+}
+.wl_size {
+    width: 100px;
+}
+.hiddenrow textarea {
+    width: 99%;
+    height: 60px;
+}
+
+#sproc_searchbox {
+    width: 280px;
+}
+
+.sqlreadonly {
+    background-color: lightgrey;
+    width: 95%;
+    height: 60px;
+}

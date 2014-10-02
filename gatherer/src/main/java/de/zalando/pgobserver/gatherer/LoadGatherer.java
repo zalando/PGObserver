@@ -15,19 +15,18 @@ import java.util.List;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-/**
- * @author  jmussler
- */
+
 public class LoadGatherer extends ADBGatherer {
 
     // used to store values until storage db is available again
     // could have used linked list for pop, but decided for arraylist due to space reasons in case of prolonged connection problems.
     private final List<LoadStatsValue> valueStore = new ArrayList<LoadStatsValue>();
+    private static final String gathererName = "LoadGatherer";
     
     public static final Logger LOG = LoggerFactory.getLogger(LoadGatherer.class);
 
     public LoadGatherer(final Host h, final long interval, final ScheduledThreadPoolExecutor ex) {
-        super(h, ex, interval);
+        super(gathererName, h, ex, interval);
     }
 
     /*

@@ -1,0 +1,56 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'perflocks' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+        <h3>Blocking locks report [> 5sec]</h3>
+        <form method="GET" action="/perflocks">
+            <span class="text3">Hostname:</span>
+            <select name="hostname">
+                <option value="all">all</option>
+                {% for host_id, host in host_names: %}
+                <option value="{{ host['host_name'] }}" {% if hostname == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
+                {% endfor %}
+            </select>
+            <br />
+            <span class="text3">Timeframe:</span>
+            <input class="datefield" type="text" name="from_date" value="{{ from_date }}">
+            <input class="datefield" type="text" name="to_date" value="{{ to_date }}">
+            <input name="show" type="submit" value="show">
+        </form>
+    </div>
+    <script>
+        $(function() {
+            $(".datefield").datepicker({"dateFormat": "yy-mm-dd"});
+        });
+    </script>
+
+    <div class="clear"></div>
+
+    <div class="grid_4">
+        <table class="perftable" border="1">
+            <tr>
+                <th>Hostname</th>
+                <th>#Incidents</th>
+                <th>Cumulative locks duration (s.)</th>
+                <th>Processes blocked</th>
+                <th>Blocking query</th>
+                <th>Blocked query sample</th>
+            </tr>
+            {% for d in data: %}
+            <tr>
+                <td>{{ d['host_name'] }}</a></td>
+                <td>{{ d['incidents_count'] }}</a></td>
+                <td>{{ d['total_time_ss'] }}</td>
+                <td>{{ d['threads_count'] }}</td>
+                <td>{{ d['blocking_query'] }} </td>
+                <td>{{ d['one_blocked_query'] }} </td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

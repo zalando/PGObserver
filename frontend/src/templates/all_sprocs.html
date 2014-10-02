@@ -1,0 +1,40 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'index' %}
+{% block body %}
+
+<div class="container_12">
+    <br />
+    {% if all_sprocs: %}
+
+    <h4>Sprocs for: <a href="/{{hostuiname}}">{{ hostname }}</a>
+    | <a href="/sprocs/all/{{hostuiname}}/graph">show as 4day graphs</a>
+    </h4>
+    <ol>
+    {% for sproc in all_sprocs %}
+        <li><a href="/sprocs/show/{{hostuiname}}/{{sproc}}">{{sproc}}</a></li>
+    {% endfor %}
+    </ol>
+
+    {% else %}
+
+    <h4>Sprocs for: <a href="/{{hostuiname}}">{{ hostname }}</a> (4 days, ordered by top runtime) | <a href="/sprocs/all/{{hostuiname}}">show as listing</a> </h4>
+
+    {% for g in graphs %}
+   <div class="grid_3">
+      <h2><a href="/sprocs/show/{{hostuiname}}/{{ g.name }}">{{ g.name }}</a></h2>
+      <div id="graph{{ g.i }}" style="width:100%;height:200px;"></div>
+      <div id="choices{{g.i }}"></div>
+      {{ g.graph }}
+   </div>
+   {% endfor %}
+
+    {% endif %}
+</div>
+
+{% endblock %}
+
+
+
+
+
+

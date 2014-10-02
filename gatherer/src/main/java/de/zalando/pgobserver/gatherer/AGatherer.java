@@ -1,4 +1,3 @@
-
 package de.zalando.pgobserver.gatherer;
 
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -6,9 +5,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * @author  jmussler
- */
+
 public abstract class AGatherer implements Runnable {
     private long lastRunInSeconds = 0;
     private long nextRunInSeconds = 0;
@@ -16,14 +13,16 @@ public abstract class AGatherer implements Runnable {
     private long intervalInSeconds = 0;
     private long lastSuccessfullPersistInSeconds = 0;
     private ScheduledThreadPoolExecutor executor = null;
-    private String name = "";
+    private String hostName = "";
+    private String gathererName = "";
     
     private static final Logger LOG = Logger.getLogger(AGatherer.class.getName());
 
     protected abstract boolean gatherData();
 
-    protected AGatherer(final String name, final ScheduledThreadPoolExecutor executor, final long intervalInSeconds) {
-        this.name = name;
+    protected AGatherer(final String gathererName,  final String hostName, final ScheduledThreadPoolExecutor executor, final long intervalInSeconds) {
+        this.gathererName = gathererName;
+        this.hostName = hostName;
         this.intervalInSeconds = intervalInSeconds;
         this.executor = executor;
     }
@@ -33,7 +32,7 @@ public abstract class AGatherer implements Runnable {
         nextRunInSeconds = (System.currentTimeMillis() / 1000) + intervalInSeconds;
         lastRunInSeconds = System.currentTimeMillis() / 1000;
 
-        LOG.log(Level.INFO, "[{0}] started after interval {1} s", new Object[]{name, intervalInSeconds});
+        LOG.log(Level.INFO, "[{0}] started {1} after interval {2} s", new Object[]{hostName, gathererName, intervalInSeconds});
 
         try {
             if ( gatherData() ) {
@@ -45,7 +44,7 @@ public abstract class AGatherer implements Runnable {
 
         lastRunFinishedInSeconds = System.currentTimeMillis() / 1000;
 
-        LOG.log(Level.INFO, "[{0}] finished after {1} s", new Object[]{name, lastRunFinishedInSeconds - lastRunInSeconds});
+        LOG.log(Level.INFO, "[{0}] finished {1} after {2} s", new Object[]{hostName, gathererName, lastRunFinishedInSeconds - lastRunInSeconds});
     }
     
     public void markSuccessfullPersistance() {
@@ -53,7 +52,7 @@ public abstract class AGatherer implements Runnable {
     }
 
     public String getName() {
-        return name;
+        return hostName;
     }
 
     public boolean isOk() {
@@ -86,10 +85,10 @@ public abstract class AGatherer implements Runnable {
 
     public void schedule() {
         if (intervalInSeconds > 0) {
-            LOG.log(Level.SEVERE, "Schedule: Interval {0} for Host: {1}", new Object[]{intervalInSeconds, name});
+            LOG.log(Level.SEVERE, "Schedule: Interval {0} for Host: {1}", new Object[]{intervalInSeconds, hostName});
             executor.scheduleAtFixedRate(this, 1, intervalInSeconds, TimeUnit.SECONDS);
         } else {
-            LOG.log(Level.SEVERE, "Interval 0 for Host: {0}", name);
+            LOG.log(Level.SEVERE, "Interval 0 for Host: {0}", hostName);
         }
     }
 

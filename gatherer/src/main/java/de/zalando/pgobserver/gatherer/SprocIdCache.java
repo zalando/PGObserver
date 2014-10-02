@@ -13,9 +13,7 @@ import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author jmussler
- */
+
 public class SprocIdCache {
 
     private static final Logger LOG = LoggerFactory.getLogger(SprocIdCache.class);
@@ -117,8 +115,8 @@ public class SprocIdCache {
 
         Statement s = conn.createStatement();
         ResultSet rs = s.executeQuery("SELECT sproc_id FROM monitor_data.sprocs "
-                + "WHERE sproc_schema = '" + schema + "'"
-                + "AND sproc_name = '" + name + "'"
+                + "WHERE sproc_schema = '" + schema + "' "
+                + "AND sproc_name = '" + name + "' "
                 + "AND sproc_host_id = " + host.id);
         if (rs.next()) {
             int id = rs.getInt("sproc_id");
@@ -133,8 +131,8 @@ public class SprocIdCache {
         Statement s = conn.createStatement();
         ResultSet rs = s.executeQuery("SELECT count(1) AS count "
                 + "FROM monitor_data.sprocs "
-                + "WHERE sproc_schema = '" + schema + "'"
-                + "AND sproc_name = '" + name + "'"
+                + "WHERE sproc_schema = '" + schema + "' "
+                + "AND sproc_name = '" + name + "' "
                 + "AND sproc_host_id = " + host.id);
 
         int count = 0;

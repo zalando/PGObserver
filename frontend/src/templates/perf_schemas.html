@@ -1,0 +1,57 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'perfschemas' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+        <h3>Unused schemas report (no IUD or sproc calls within selected timerange). Warning - some pure-SQL functions (inlined) might have no statistics!</h3>
+        <form method="GET" action="/perfschemas">
+            <span class="text3">Hostname:</span>
+            <select name="selected_hostname" id="selected_hostname">
+                <option value=""></option>
+                <option value="all">all</option>
+                {% for host_id, host in host_names: %}
+                <option value="{{ host['host_name'] }}" {% if selected_hostname == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
+                {% endfor %}
+            </select>
+            <br />
+            <span class="text3">Timeframe:</span>
+            <input class="datefield" type="text" name="from_date" id="from_date" value="{{ from_date }}">
+            <input class="datefield" type="text" name="to_date" id="to_date" value="{{ to_date }}">
+            <br />
+            <span class="text3">Schema name filter:</span>
+            <input name="filter" id="filter" type="text" value="{{ filter }}">
+            <br />
+            <input name="show" type="submit" value="show for selected host">
+            <input name="download" type="submit" value="download sql for selected host"></a>
+        </form>
+    </div>
+    <script>
+        $(function() {
+            $(".datefield").datepicker({"dateFormat": "yy-mm-dd"});
+        });
+    </script>
+    <div class="clear"></div>
+    <div class="grid_4">
+        <table class="perftable" border="1">
+            <tr>
+                <th>Host</th>
+                <th>Schema</th>
+                <th>Min Timestamp</th>
+                <th>Max Timestamp</th>
+                <th>SQL for drop schema</th>
+            </tr>
+            {% for d in data: %}
+            <tr>                
+                <td><a href="/{{ hosts[d['host_id']]['uishortname'] }}">{{ d['host_name'] }} </a></td>
+                <td title="Click to see schemas usage graph"><a href="/perfschemas/detailed/{{ d['host_name'] }}?from_date={{ from_date }}&to_date={{ to_date }}">{{ d['schema_name'] }} </a></td>
+                <td title="Click to see schemas usage graph"><a href="/perfschemas/detailed/{{ d['host_name'] }}?from_date={{ from_date }}&to_date={{ to_date }}">{{ d['min'] }} </a></td>
+                <td title="Click to see schemas usage graph"><a href="/perfschemas/detailed/{{ d['host_name'] }}?from_date={{ from_date }}&to_date={{ to_date }}">{{ d['max'] }} </a></td>
+                <td><a href="/perfschemas/getdropschemasql/{{ d['host_name'] }}/{{ from_date }}/{{ to_date }}/{{ filter }}"><input type="button" value="Download drop SQL for this host"></a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+{% endblock %}

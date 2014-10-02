@@ -1,0 +1,16 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'tables' %}
+{% block body %}
+
+<div class="container_12">
+   <div class="grid_12">
+      <h3>All tables on <a href="/{{hostuiname}}">{{hostname}}</a></h3>
+      {{ table }}
+   </div>
+</div>
+
+<script>
+$( "tr:odd" ).css( "background-color", "#1C1C1C" );
+</script>
+
+{% endblock %}

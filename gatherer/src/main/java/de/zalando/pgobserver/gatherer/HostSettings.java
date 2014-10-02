@@ -1,23 +1,33 @@
 package de.zalando.pgobserver.gatherer;
 
-/**
- * @author  jmussler Configuration values: check intervals in minutes 0 if disabled
- */
+
 public class HostSettings {
     private int loadGatherInterval = 0;
     private int tableIoGatherInterval = 0;
+    private int indexStatsGatherInterval = 0;
     private int sprocGatherInterval = 0;
+    private int schemaStatsGatherInterval = 0;
+    private int blockingStatsGatherInterval = 0;
     private int useTableSizeApproximation = 0;
-
-    public void setUiLongName(final String uiLongName) {
-        this.uiLongName = uiLongName;
-    }
-
-    public void setUiShortName(final String uiShortName) {
-        this.uiShortName = uiShortName;
-    }
-
     private int tableStatsGatherInterval = 0;
+    private int statStatementsGatherInterval = 0;
+    private int statDatabaseGatherInterval = 0;
+
+    public int getStatStatementsGatherInterval() {
+        return statStatementsGatherInterval * 60;
+    }
+
+    public void setStatStatementsGatherInterval(int statStatementsGathererInterval) {
+        this.statStatementsGatherInterval = statStatementsGathererInterval;
+    }
+    
+    public int getStatDatabaseGatherInterval() {
+        return statDatabaseGatherInterval * 60;
+    }
+
+    public void setStatDatabaseGatherInterval(int statDatabaseGatherInterval) {
+        this.statDatabaseGatherInterval = statDatabaseGatherInterval;
+    }
 
     public void setLoadGatherInterval(final int loadGatherInterval) {
         this.loadGatherInterval = loadGatherInterval;
@@ -34,20 +44,21 @@ public class HostSettings {
     public void setTableStatsGatherInterval(final int tableStatsGatherInterval) {
         this.tableStatsGatherInterval = tableStatsGatherInterval;
     }
+    
+    public void setIndexStatsGatherInterval(final int indexStatsGatherInterval) {
+        this.indexStatsGatherInterval = indexStatsGatherInterval;
+    }
+    
+    public void setSchemaStatsGatherInterval(final int schemaStatsGatherInterval) {
+        this.schemaStatsGatherInterval = schemaStatsGatherInterval;
+    }
+    
+    public void setBlockingStatsGatherInterval(final int blockingStatsGatherInterval) {
+        this.blockingStatsGatherInterval = blockingStatsGatherInterval;
+    }
 
     public void setUseTableSizeApproximation(final int useTableSizeApproximation) {
         this.useTableSizeApproximation = useTableSizeApproximation;
-    }
-
-    private String uiLongName = "";
-    private String uiShortName = "";
-    
-    public String getUiShortName() {
-        return uiShortName;
-    }
-    
-    public String getUiLongName() {
-        return uiLongName;
     }
 
     public int getLoadGatherInterval() {
@@ -64,6 +75,18 @@ public class HostSettings {
 
     public int getTableStatsGatherInterval() {
         return tableStatsGatherInterval * 60;
+    }
+    
+    public int getIndexStatsGatherInterval() {
+        return indexStatsGatherInterval * 60;
+    }
+
+    public int getSchemaStatsGatherInterval () {
+        return schemaStatsGatherInterval * 60;
+    }
+
+    public int getBlockingStatsGatherInterval () {
+        return blockingStatsGatherInterval * 60;
     }
 
     public int getUseTableSizeApproximation() {
@@ -84,6 +107,26 @@ public class HostSettings {
 
     public boolean isTableStatsGatherEnabled() {
         return tableStatsGatherInterval > 0;
+    }
+
+    public boolean isIndexStatsGatherEnabled() {
+        return indexStatsGatherInterval > 0;
+    }
+    
+    public boolean isSchemaStatsGatherEnabled() {
+        return schemaStatsGatherInterval > 0;
+    }
+    
+    public boolean isBlockingStatsGatherEnabled() {
+        return blockingStatsGatherInterval > 0;
+    }
+
+    public boolean isStatStatementsGatherEnabled() {
+        return statStatementsGatherInterval > 0;
+    }
+    
+    public boolean isStatDatabaseGatherEnabled() {
+        return statDatabaseGatherInterval > 0;
     }
 
 }

@@ -1,0 +1,11 @@
+<table class="frontTable noBorder">
+    <thead><th>Name</th><th>Calls</th><th>Total Time</th><th>Avg. Time</th></thead>
+    {% for row in list: %}
+    <tr>
+        <td><a href="/sprocs/show/{{hostuiname}}/{{ row.name[0:-2] }}">{{ row.name }}</a></td>
+        <td align="right">{{ row.calls }}</td>
+        <td align="right">{{ row.totalTime }}</td>
+        <td align="right">{{ row.avgTime }}</td>
+    </tr>
+    {% endfor %}
+</table>

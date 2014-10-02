@@ -1,9 +1,6 @@
 package de.zalando.pgobserver.gatherer.config;
 
-/**
- *
- * @author jmussler
- */
+
 public class Database {
     public String name;
     public String host;

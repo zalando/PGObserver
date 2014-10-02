@@ -1,0 +1,81 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'perfbloat' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+        <h3>Bloated Tables/Indexes report</h3>
+        <form method="GET" action="/perfbloat">
+            <span class="text3">Hostname:</span>
+            <select name="selected_hostname">
+                <option value=""></option>
+                {% for hn in hostnames: %}
+                <option value="{{ hn }}" {% if hn == selected_hostname %} selected="selected" {% endif %}>{{ hn }}</option>
+                {% endfor %}
+            </select>
+            <br />
+            <span class="text3">Show bloat for:&nbsp;&nbsp;</span>
+            <span class="text3">Tables</span>
+            <input type="radio" name="bloat_type" value="table" {% if bloat_type=='table' %} checked="checked" {% endif %}>
+            <span class="text3">Indexes</span>
+            <input type="radio" name="bloat_type" value="index" {% if bloat_type=='index' %} checked="checked" {% endif %}>
+            <br />
+            <span class="text3">Order by:&nbsp;&nbsp;</span>
+            <span class="text3">Wasted bytes</span>
+            <input type="radio" name="order_by" value="wasted_bytes" {% if order_by=='wasted_bytes' %} checked="checked" {% endif %}>
+            <span class="text3">Bloat factor</span>
+            <input type="radio" name="order_by" value="bloat_factor" {% if order_by=='bloat_factor' %} checked="checked" {% endif %}>
+            <br />
+            <span class="text3">Row limit</span>
+            <input type="text" name="limit" value="{{limit}}">
+            <br />
+            <input name="show" type="submit" value="show">
+        </form>
+    </div>
+    <div class="clear"></div>
+    <div class="grid_4">
+        <table class="perftable" border="1">
+            {% if selected_hostname: %}
+                {% if bloat_type=='table': %}
+                <tr>
+                    <th>Schema</th>
+                    <th>Table</th>
+                    <th>Bloat factor</th>
+                    <th>MB wasted </th>
+                </tr>
+                {% for d in data: %}
+                <tr>
+                    <td><a href="/perfschemas/detailed?selected_hostname={{hostuiname}}&show=show#{{d['schema_name']}}">{{ d['schema_name'] }}</a></td>
+                    <td><a href="/tables/show/{{hostuiname}}/{{d['schema_name']}}.{{d['table_name']}}">{{ d['table_name'] }}</a></td>
+                    <td>{{ d['bloat_factor'] }} </td>
+                    <td>{{ d['wasted_bytes_pretty'] }} </td>
+                </tr>
+                {% endfor %}
+
+                {% else %}
+
+                <tr>
+                    <th>Schema</th>
+                    <th>Table</th>
+                    <th>Index</th>
+                    <th>Bloat factor</th>
+                    <th>MB wasted </th>
+                </tr>
+                {% for d in data: %}
+                <tr>
+                    <td><a href="/perfschemas/detailed?selected_hostname={{hostuiname}}&show=show#{{d['schema_name']}}">{{ d['schema_name'] }}</a></td>
+                    <td><a href="/tables/show/{{hostuiname}}/{{d['schema_name']}}.{{d['table_name']}}">{{ d['table_name'] }}</a></td>
+                    <td><a href="/indexes/{{hostuiname}}/{{d['schema_name']}}.{{d['table_name']}}#{{d['schema_name']}}.{{d['index_name']}}">{{ d['index_name'] }}</a></td>
+                    <td>{{ d['bloat_factor'] }} </td>
+                    <td>{{ d['wasted_bytes_pretty'] }} </td>
+                </tr>
+                {% endfor %}
+                {% endif %}
+            {% endif %}
+
+        </table>
+        <br /><br />
+    </div>
+</div>
+
+{% endblock %}

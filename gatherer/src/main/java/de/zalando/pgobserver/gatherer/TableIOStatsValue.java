@@ -1,8 +1,6 @@
 package de.zalando.pgobserver.gatherer;
 
-/**
- * @author  jmussler
- */
+
 public class TableIOStatsValue {
     String name;
     String schema;
