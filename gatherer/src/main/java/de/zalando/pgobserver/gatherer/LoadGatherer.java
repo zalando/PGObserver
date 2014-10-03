@@ -22,7 +22,7 @@ public class LoadGatherer extends ADBGatherer {
 
     // used to store values until storage db is available again
     // could have used linked list for pop, but decided for arraylist due to space reasons in case of prolonged connection problems.
-    private final List<LoadStatsValue> valueStore = new ArrayList<LoadStatsValue>();
+    private final List<LoadStatsValue> valueStore = new ArrayList<>();
     
     public static final Logger LOG = LoggerFactory.getLogger(LoadGatherer.class);
 
@@ -42,9 +42,10 @@ public class LoadGatherer extends ADBGatherer {
             return 0;
                 
         String[] splits = xLogLocation.split("/");
-        while (splits[1].length() != 8)     // pg_current_xlog_location can return 0/1644148 or 1/4240
+        while (splits[1].length() != 8) {    // pg_current_xlog_location can return 0/1644148 or 1/4240
             splits[1] = "0" + splits[1];    // brrr, why doesn't Java have String.pad()?
-        
+        }
+
         long ret = Long.parseLong(splits[0] + splits[1].substring(0, 2), 16) * MB_PER_WAL
                 + Long.parseLong(splits[1].substring(2), 16) / (1000*1000) - MB_PER_WAL;
         if (ret < 0) {
@@ -85,7 +86,7 @@ public class LoadGatherer extends ADBGatherer {
 
             if (!valueStore.isEmpty()) {
 
-                LOG.debug("finished getting host load data " + host.name);
+                LOG.debug("finished getting host load data {}", host.name);
 
                 conn = DBPools.getDataConnection();                
 
@@ -111,22 +112,22 @@ public class LoadGatherer extends ADBGatherer {
                 conn.close();
                 conn = null;
 
-                LOG.debug("Load values stored " + host.name);
+                LOG.debug("Load values stored {}", host.name);
                 
             } else {
-                LOG.error("Could not retrieve host load values " + host.name);
+                LOG.error("Could not retrieve host load values {}", host.name);
             }
 
             return true;
         } catch (SQLException se) {
-            LOG.error("",se);
+            LOG.error("Error during Load gathering", se);
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException ex) {
-                    LOG.error("",ex);
+                    LOG.error("Error closing connection", ex);
                 }
             }
         }

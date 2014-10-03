@@ -8,5 +8,7 @@ import java.util.List;
  * @author jmussler
  */
 public class Logfiles extends HashMap<String,List<String>> {
-    
+    public Logfiles() {
+        super();
+    }
 }

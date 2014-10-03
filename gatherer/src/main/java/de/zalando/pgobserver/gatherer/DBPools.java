@@ -32,7 +32,7 @@ public class DBPools {
             try {
                 dataPool = new BoneCP(config);
             } catch (SQLException ex) {
-                LOG.error("",ex);
+                LOG.error("Error during BoneCP pool creation, exiting",ex);
                 System.exit(1);
             }
         }

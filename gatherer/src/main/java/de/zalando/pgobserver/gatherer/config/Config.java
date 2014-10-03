@@ -1,15 +1,11 @@
 package de.zalando.pgobserver.gatherer.config;
 
-import de.zalando.pgobserver.gatherer.Host;
-import de.zalando.pgobserver.gatherer.HostSettings;
 import java.io.File;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -22,25 +18,22 @@ public class Config {
     public Frontend frontend;
     public String default_schema_filter;
 
+    private static Logger LOG = LoggerFactory.getLogger(Config.class);
+
     @Override
     public String toString() {
-        return "Config{" + "database=" + database + ", logfiles=" + logfiles + ", frontend=" + frontend + '}';
+        return "Config{" + "database=" + database + ", logfiles=" + logfiles + ", frontend=" + frontend + ", default_schema_filter="+default_schema_filter+"}";
     }
-    
-    public static Config LoadConfigFromFile(String s) {
-        
-        ObjectMapper mapper = new ObjectMapper();
-        
+
+    public static Config LoadConfigFromFile(ObjectMapper mapper, String s) {
+        LOG.info("Reading config file from: {}", s);
         try {
-            Config config = mapper.readValue(
+            return mapper.readValue(
                 new File(s),
                 Config.class);
-            return config;
         } catch (IOException ex) {
-            Logger.getLogger(Config.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.error("Error reading config file", ex);
         }
-        
         return null;
-        
     }
 }
