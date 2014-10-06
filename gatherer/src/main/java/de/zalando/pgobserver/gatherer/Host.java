@@ -1,5 +1,6 @@
 package de.zalando.pgobserver.gatherer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.zalando.pgobserver.gatherer.config.Config;
 import java.io.IOException;
 
@@ -12,7 +13,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
