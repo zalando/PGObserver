@@ -82,6 +82,7 @@ public class SprocGatherer extends ADBGatherer {
                 this.schemaFilter = getSchemasToBeMonitored();
 
             ResultSet rs = st.executeQuery(getQuery(this.schemaFilter));
+
             while (rs.next()) {
                 SprocPerfValue v = new SprocPerfValue();
                 v.name = rs.getString("function_name");
@@ -153,7 +154,7 @@ public class SprocGatherer extends ADBGatherer {
 
             valueStore.clear();
 
-            LOG.info("[{0}] Sprocs read: {1} Sprocs written: {2}", new Object[]{this.getName(), this.sprocsRead, this.sprocValuesInserted});
+            LOG.info("[{}] Sprocs read: {} Sprocs written: {}", getName(), sprocsRead, sprocValuesInserted);
 
             return true;
         } catch (SQLException se) {

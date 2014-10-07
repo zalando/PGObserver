@@ -18,11 +18,11 @@ import hostsfrontend
 import welcomefrontend
 import datadb
 import tplE
+import yaml
 
 from argparse import ArgumentParser
 
 DEFAULT_CONF_FILE = '~/.pgobserver.conf'
-
 
 def main():
     parser = ArgumentParser(description='PGObserver Frontend')
@@ -34,13 +34,32 @@ def main():
 
     args.config = os.path.expanduser(args.config)
 
-    if not os.path.exists(args.config):
-        print 'Configuration file missing:', args.config
+    yaml_file = args.config.replace(".conf", ".yaml")
+
+    settings = None
+    if os.path.exists(yaml_file):
+        print "trying to read config file from {}".format(yaml_file)
+        with open(yaml_file, 'rb') as fd:
+            settings = yaml.load(fd)
+
+    if settings is None and os.path.exists(args.config):
+        print "trying to read config file from {}".format(os.path.exists(args.config))
+        with open(args.config, 'rb') as fd:
+            settings = json.load(fd)
+
+    if settings is None:
+        print 'Config file missing, neither Yaml nor JSON file could be found'
         parser.print_help()
         return
 
-    with open(args.config, 'rb') as fd:
-        settings = json.load(fd)
+    conn_string = ' '.join((
+        'dbname=' + settings['database']['name'],
+        'host=' + settings['database']['host'],
+        'user=' + settings['database']['frontend_user'],
+        'port=' + str(settings['database']['port']),
+    ))
+
+    print 'Setting connection string to ... ' + conn_string
 
     conn_string = ' '.join((
         'dbname=' + settings['database']['name'],
@@ -50,7 +69,6 @@ def main():
         'port=' + str(settings['database']['port']),
     ))
 
-    print 'Setting connection string to ... ' + conn_string
     datadb.setConnectionString(conn_string)
 
     current_dir = os.path.dirname(os.path.abspath(__file__))

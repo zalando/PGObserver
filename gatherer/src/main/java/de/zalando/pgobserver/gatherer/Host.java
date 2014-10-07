@@ -1,5 +1,7 @@
 package de.zalando.pgobserver.gatherer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.zalando.pgobserver.gatherer.config.Config;
 import java.io.IOException;
 
 import java.sql.Connection;
@@ -10,12 +12,9 @@ import java.sql.Statement;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import org.codehaus.jackson.map.ObjectMapper;
-
-import de.zalando.pgobserver.gatherer.config.Config;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author  jmussler
@@ -34,7 +33,7 @@ public class Host {
     private HostSettings settings = new HostSettings();
     private final HostGatherers gatherers = new HostGatherers();
 
-    private static final Logger LOG = Logger.getLogger(Host.class.getName());
+    private static final Logger LOG = LoggerFactory.getLogger(Host.class);
 
     public Host() { }
 
@@ -98,7 +97,7 @@ public class Host {
                 try {
                     h.settings = mapper.readValue(h.settingsAsString, HostSettings.class);
                 } catch (IOException e) {
-                    LOG.log(Level.SEVERE, "Could not deserialize settings object!", e);
+                    LOG.error("Could not deserialize settings object!", e);
                 }
 
                 if (h.id > 0) {
@@ -107,13 +106,13 @@ public class Host {
             }
 
         } catch (SQLException se) {
-            LOG.log(Level.SEVERE, "", se);
+            LOG.error("Error during loading of host configuration", se);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException e) {
-                    LOG.log(Level.SEVERE, "", e);
+                    LOG.error("Error during close of connection", e);
                 }
             }
         }
@@ -121,7 +120,7 @@ public class Host {
         return map;
     }
 
-    public void scheduleGatheres() {
+    public void scheduleGatheres(Config config) {
 
         LOG.info("Settings for Host " + getName() + "\n" + "Load: " + settings.getLoadGatherInterval() + " Seconds\n"
                 + "Sprocs: " + settings.getSprocGatherInterval() + " Seconds\n" + "Table IO: "
@@ -134,7 +133,7 @@ public class Host {
                 + settings.getStatDatabaseGatherInterval() + " Seconds\n");
 
         if (gatherers.executor == null) {
-            LOG.log(Level.SEVERE, "Adding Executor for Host:" + name);
+            LOG.info("Adding Executor for Host: {}", name);
             gatherers.executor = new ScheduledThreadPoolExecutor(1);
         }
 
@@ -209,28 +208,28 @@ public class Host {
         GathererApp.registerGatherer(gatherers.statDatabaseGatherer);
 
         if (settings.isSprocGatherEnabled()) {
-            LOG.info("Schedule SprocGather for " + getName());
+            LOG.info("Schedule SprocGather for {}", getName());
             gatherers.sprocGatherer.schedule();
         } else {
             gatherers.sprocGatherer.unschedule();
         }
 
         if (settings.isLoadGatherEnabled()) {
-            LOG.info("Schedule LoadGather for " + getName());
+            LOG.info("Schedule LoadGather for {}", getName());
             gatherers.loadGatherer.schedule();
         } else {
             gatherers.loadGatherer.unschedule();
         }
 
         if (settings.isTableIoStatsGatherEnabled()) {
-            LOG.info("Schedule TableIO for " + getName());
+            LOG.info("Schedule TableIO for {}", getName());
             gatherers.tableIOStatsGatherer.schedule();
         } else {
             gatherers.tableIOStatsGatherer.unschedule();
         }
 
         if (settings.isTableStatsGatherEnabled()) {
-            LOG.info("Schedule TableStats for " + getName());
+            LOG.info("Schedule TableStats for {}", getName());
             gatherers.tableStatsGatherer.schedule();
         } else {
             gatherers.tableStatsGatherer.unschedule();

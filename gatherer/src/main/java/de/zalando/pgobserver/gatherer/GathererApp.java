@@ -1,11 +1,11 @@
 package de.zalando.pgobserver.gatherer;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.zalando.pgobserver.gatherer.config.Config;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.restlet.Server;
 
@@ -13,15 +13,17 @@ import org.restlet.data.Protocol;
 
 import org.restlet.resource.Get;
 import org.restlet.resource.ServerResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author  jmussler
  */
 public class GathererApp extends ServerResource {
 
-    public static final List<AGatherer> ListOfRunnableChecks = new LinkedList<AGatherer>();
+    public static final List<AGatherer> ListOfRunnableChecks = new LinkedList<>();
     
-    public static final Logger LOG =  Logger.getLogger(GathererApp.class.getName());
+    public static final Logger LOG =  LoggerFactory.getLogger(GathererApp.class);
 
     public static void registerGatherer(final AGatherer a) {
         ListOfRunnableChecks.add(a);
@@ -31,30 +33,34 @@ public class GathererApp extends ServerResource {
      * @param  args  the command line arguments
      */
     public static void main(final String[] args) {
-        
-        Config config = Config.LoadConfigFromFile(System.getProperty("user.home") + "/.pgobserver.conf");
-        
+
+        Config config;
+
+        config = Config.LoadConfigFromFile(new ObjectMapper(new YAMLFactory()), System.getProperty("user.home") + "/.pgobserver.yaml");
         if ( config == null ) {
-            LOG.warning("Configfile could not be read");
-            return;
+            LOG.warn("Config could not be read from yaml");
+
+            config = Config.LoadConfigFromFile(new ObjectMapper(), System.getProperty("user.home") + "/.pgobserver.conf");
+            if ( null == config ) {
+                LOG.error("Config could not be read from json file either, missing config?");
+                return;
+            }
         }
-        
-        LOG.log(Level.INFO, config.toString());
-        
-        LOG.log(Level.INFO, "Connection to db:{0} using user: {1}", new Object[]{config.database.host, config.database.backend_user});
+
+        LOG.info("Connection to db:{} using user: {}", config.database.host, config.database.backend_user);
         
         DBPools.initializePool(config);
         
         Map<Integer, Host> hosts = Host.LoadAllHosts(config);
 
         for (Host h : hosts.values()) {
-            h.scheduleGatheres();
+            h.scheduleGatheres(config);
         }
 
         try {
             new Server(Protocol.HTTP, 8182, GathererApp.class).start();
         } catch (Exception ex) {
-            LOG.log(Level.SEVERE, null, ex);
+            LOG.error("Could not start restlet server", ex);
         }
     }
 
