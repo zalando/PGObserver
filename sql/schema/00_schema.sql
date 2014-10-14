@@ -54,7 +54,7 @@ CREATE TABLE hosts (
     host_id serial,
     host_name text not null,
     host_port integer not null default 5432,
-    host_user text not null default 'to_be_replaced_manually',
+    host_user text not null default 'pgobserver_gatherer',
     host_password text not null default 'to_be_replaced_manually', --PS when adding users via /hosts screen the the last enabled host's user/pw will be used
     host_db text not null,
     host_settings text not null DEFAULT '{

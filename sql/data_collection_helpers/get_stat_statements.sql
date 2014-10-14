@@ -4,6 +4,12 @@ GRANT USAGE ON SCHEMA zz_utils TO public;
 
 /*
 zz_utils.get_stat_statements() - a security workaround wrapper around pg_stat_statements view
+
+Be aware! Includes a security risk - non-superusers with execute grants on the sproc
+will be able to see executed utility commands which might include "secret" data (e.g. alter role x with password y)!
+
+Usage not really recommended for servers less than 9.2 (http://wiki.postgresql.org/wiki/What%27s_new_in_PostgreSQL_9.2#pg_stat_statements)
+thus the "if" in code
 */
 
 
@@ -22,7 +28,7 @@ BEGIN
     --RAISE WARNING '%', format(l_sproc_text, l_current_db);
     EXECUTE format(l_sproc_text, l_current_db);
     EXECUTE 'ALTER FUNCTION zz_utils.get_stat_statements() OWNER TO postgres';
-    EXECUTE 'GRANT EXECUTE ON FUNCTION zz_utils.get_stat_statements() TO public';
+    EXECUTE 'GRANT EXECUTE ON FUNCTION zz_utils.get_stat_statements() TO pgobserver_gatherer';
   END IF;
 END;
 $OUTER$;

@@ -1,6 +1,6 @@
---CREATE SCHEMA IF NOT EXISTS zz_utils;
+CREATE SCHEMA IF NOT EXISTS zz_utils;
 
---GRANT USAGE ON SCHEMA zz_utils TO public;
+GRANT USAGE ON SCHEMA zz_utils TO public;
 
 /*
 zz_utils.get_bloated_tables() - a security workaround wrapper around sql from https://wiki.postgresql.org/wiki/Show_database_bloat
