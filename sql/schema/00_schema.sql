@@ -66,11 +66,10 @@ CREATE TABLE hosts (
       "schemaStatsGatherInterval": 120,
       "blockingStatsGatherInterval": 0,
       "statStatementsGatherInterval": 0,
-      "statDatabaseGatherInterval": 5
-}'::text NOT NULL,
+      "statDatabaseGatherInterval": 5}'::text NOT NULL,
     host_group_id integer not null default 0,
     host_enabled boolean NOT NULL DEFAULT true,
-    host_gather_group text default 'host1' not null, --makes multiple java gatherers possible
+    host_gather_group text default 'gatherer1' not null, --makes multiple java gatherers possible
     host_db_export_name text,
     host_created timestamp not null default now(),
     host_last_modified timestamp not null default now(),

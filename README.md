@@ -49,27 +49,27 @@ pip install -r frontend/requirements.txt
 psql -f sql/schema/00_schema.sql [ 01_...]
 ```
 
- * Copy pgobserver.conf to home folder ~/.pgobserver.conf (if you're running the gatherer and the frontend on different machines you need it on both)
+ * Copy pgobserver.yaml to home folder ~/.pgobserver.yaml (if you're running the gatherer and the frontend on different machines you need it on both)
 
 ```
-cp pgobserver.conf ~/.pgobserver.conf
+cp pgobserver.yaml ~/.pgobserver.yaml
 ```
 
- * Configure .pgobserver.conf to match your setup
+ * Configure .pgobserver.yaml to match your setup
  	- set database where to store data
  	- configure usernames and passwords
-    - set hostgroup (important for gatherer only)
+    - set gather_group (important for gatherer only, enables many gatherer processes)
  * Create an unprivileged user on the database you want to monitor for doing selects from the system catalogs
  * Configure hosts to be monitored
     - insert an entry to monitor_data.hosts table to include the connection details and to-be-monitored features for the cluster you want to monitor (incl. password from previous step)
     OR do it via the "frontend" web application's (next step) /hosts page, by inserting all needed data and pressing "add" (followed by "reload" to refresh menus)
-    - set host_group to decide which gatherer monitors which cluster
+    - set host_gather_group to decide which gatherer monitors which cluster
     - for deciding which schemas are scanned for sprocs statistics review the table sproc_schemas_monitoring_configuration (defaults are provided)
  * For some features you need to create according helper functions on the databases being monitored
     - CPU load monitoring requires stored procedure from "sql/data_collection_helpers/cpu_load.sql" (this is a plpythonu function, so superuser is needed)
     - pg_stat_statement monitoring requires "sql/data_collection_helpers/get_stat_statement.sql"
     - Table & index bloat query requires "sql/data_collection_helpers/Bloated_tables_and_indexes.sql"
-    - Blocking processes monitoring requires setup from the "blockin_monitor" folder
+    - Blocking processes monitoring requires setup from the "blocking_monitor" folder
  * Run the frontend by going into "frontend" folder and running run.sh (which does a "python src/web.py")
  * Build the data gatherer single jar including dependencies by going to "gatherer" folder and running
 
@@ -77,7 +77,7 @@ cp pgobserver.conf ~/.pgobserver.conf
 mvn clean verify assembly:single
 ```
 
- * Start data monitoring daemon by running run.sh (which does a "java -jar target/PGObserver-Gatherer-1.0-SNAPSHOT-jar-with-dependencies.jar")
+ * Start data monitoring daemon(s) by running run.sh (which does a "java -jar target/PGObserver-Gatherer-1.${CUR_VER}-SNAPSHOT-jar-with-dependencies.jar")
 
 Hint
 ----
