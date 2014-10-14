@@ -3,8 +3,6 @@
 
 import cherrypy
 import os.path
-import json
-
 import api
 import monitorfrontend
 import tablesfrontend
@@ -22,7 +20,8 @@ import yaml
 
 from argparse import ArgumentParser
 
-DEFAULT_CONF_FILE = '~/.pgobserver.conf'
+DEFAULT_CONF_FILE = '~/.pgobserver.yaml'
+
 
 def main():
     parser = ArgumentParser(description='PGObserver Frontend')
@@ -34,21 +33,14 @@ def main():
 
     args.config = os.path.expanduser(args.config)
 
-    yaml_file = args.config.replace(".conf", ".yaml")
-
     settings = None
-    if os.path.exists(yaml_file):
-        print "trying to read config file from {}".format(yaml_file)
-        with open(yaml_file, 'rb') as fd:
+    if os.path.exists(args.config):
+        print "trying to read config file from {}".format(args.config)
+        with open(args.config, 'rb') as fd:
             settings = yaml.load(fd)
 
-    if settings is None and os.path.exists(args.config):
-        print "trying to read config file from {}".format(os.path.exists(args.config))
-        with open(args.config, 'rb') as fd:
-            settings = json.load(fd)
-
     if settings is None:
-        print 'Config file missing, neither Yaml nor JSON file could be found'
+        print 'Config file missing - Yaml file could not be found'
         parser.print_help()
         return
 

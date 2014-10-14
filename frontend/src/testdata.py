@@ -3,7 +3,7 @@
 
 import psycopg2
 import psycopg2.extras
-import json
+import yaml
 import os.path
 import random
 
@@ -281,7 +281,7 @@ def generate_test_data(connection_url, hostcount, tables, sprocs, days, interval
 
 
 # ".test" is added just to make sure it's not executed by default on a production db
-DEFAULT_CONF_FILE = '~/.pgobserver.conf.test'
+DEFAULT_CONF_FILE = '~/.pgobserver.yaml.test'
 
 
 def main():
@@ -303,8 +303,9 @@ def main():
         parser.print_help()
         return
 
+    settings = None
     with open(args.config, 'rb') as fd:
-        settings = json.load(fd)
+        settings = yaml.load(fd)
 
     connection_url = ' '.join((
         'host=' + settings['database']['host'],

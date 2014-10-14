@@ -38,13 +38,8 @@ public class GathererApp extends ServerResource {
 
         config = Config.LoadConfigFromFile(new ObjectMapper(new YAMLFactory()), System.getProperty("user.home") + "/.pgobserver.yaml");
         if ( config == null ) {
-            LOG.warn("Config could not be read from yaml");
-
-            config = Config.LoadConfigFromFile(new ObjectMapper(), System.getProperty("user.home") + "/.pgobserver.conf");
-            if ( null == config ) {
-                LOG.error("Config could not be read from json file either, missing config?");
-                return;
-            }
+            LOG.error("Config could not be read from yaml");
+            return;
         }
 
         LOG.info("Connection to db:{} using user: {}", config.database.host, config.database.backend_user);
