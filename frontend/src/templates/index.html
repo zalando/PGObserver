@@ -1,0 +1,153 @@
+{% extends "baselayout.html" %}
+{% set active_page = hostid %}
+{% set auto_reload = 300 %}
+{% block body %}
+
+<div class="container_12">
+    
+    {% if graph_load: %}
+    <div class="grid_12">
+        <h3>
+        <a href="/sprocs/all/{{hostuiname}}">[list all sprocs]</a>
+            &nbsp;<a href="/report/index/{{hostuiname}}">[10 week load report]</a>
+
+            {% if 'statStatementsGatherInterval' in features: %}
+                &nbsp;<a href="/perfstatstatements/?hostname={{hostname}}&show=show">[pg_stat_statements details]</a>
+            {% endif %}
+            {% if 'blockingStatsGatherInterval' in features: %}
+                &nbsp;<a href="/perflocks/?hostname={{hostname}}&show=show">[blocking locks details]</a>
+            {% endif %}
+
+            &nbsp;<a><img id="settings" src="/static/images/settings.png"></a>
+            <span id="settings_div" style="display:none">
+                <label for="days">Days to graph</label>
+                <input id="days" type="text" value="8" size="2" title="1-31 allowed">
+                &nbsp;
+                <label for="sprocs_to_show">#Sprocs to show</label>
+                <input id="sprocs_to_show" type="text" value="10" size="2" title="1-20 allowed">
+                &nbsp;
+                <input id="save" type="button" value="Save">
+            </span>
+        </h3>
+        <h4>Load Average 15min Sprocs only</h4>
+        <div id="graph_load" class="graphc" style="width:100%;height:200px;"></div>
+        {{ graph_load }}
+    </div>
+    {% endif %}
+
+
+    {% if graph_wal: %}
+    <div class="clear"></div>
+
+    <div class="grid_12">
+        <h4>WAL volume 15min</h4>
+        <div id="graph_wal" class="graphc" style="width:100%;height:200px;"></div>
+        {{ graph_wal }}
+    </div>
+    {% endif %}
+
+
+    {% if top_sprocs: %}
+    <div class="clear"></div>
+
+    <div class="fluid_grid grid_4">
+        <h3>Top {{ limit }} Sprocs last 1 hour by total run time</h3>
+        {{ top_sprocs['hours1total'] }}
+    </div>
+
+    <div class="fluid_grid grid_4">
+        <h3>Top {{ limit }} Sprocs last 1 hour by total calls</h3>
+        {{ top_sprocs['hours1calls'] }}
+    </div>
+
+    <div class="gridclear_6 clear"></div>
+
+    <div class="fluid_grid grid_4">
+        <h3>Top {{ limit }} Sprocs last 1 hour by avg. run time</h3>
+        {{ top_sprocs['hours1avg'] }}
+    </div>
+
+    <div class="gridclear_4 clear"></div>
+
+    <div class="fluid_grid grid_4">
+        <h3>Top {{ limit }} Sprocs last 3 hours by total run time</h3>
+        {{ top_sprocs['hours3total'] }}
+    </div>
+
+    <div class="gridclear_6 clear"></div>
+
+    <div class="fluid_grid grid_4">
+        <h3>Top {{ limit }} Sprocs last 3 hours by total calls</h3>
+        {{ top_sprocs['hours3calls'] }}
+    </div>
+
+    <div class="fluid_grid grid_4">
+        <h3>Top {{ limit }} Sprocs last 3 hours by avg. run time</h3>
+        {{ top_sprocs['hours3avg'] }}
+    </div>
+    {% endif %}
+
+
+    {% if graph_size: %}
+    <div class="clear"></div>
+
+    <div class="grid_12">
+        <h4>Database size <a href="/tables/alltables/{{hostuiname}}">show all tables</a></h4>
+        <div class="graphc" id="graph_size" style="width:100%;height:200px;"></div>
+        <div id="graph_size_choice"></div>
+        {{ graph_size }}
+    </div>
+    {% endif %}
+
+
+    {% if graph_dbstats: %}
+    <div class="clear"></div>
+
+    <div class="grid_12">
+        <h4>General Database indicators 15min</h4>
+        <div class="graphc" id="graph_dbstats" style="width:100%;height:200px;"></div>
+        <div id="graph_dbstats_div2"></div>
+        {{ graph_dbstats }}
+    </div>
+    {% endif %}
+
+    <div class="clear"></div>
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        if ($.cookie('days') != null)
+        {
+            $("#days").attr('value', $.cookie('days'));
+        }
+        if ($.cookie('sprocs_to_show') != null)
+        {
+            $("#sprocs_to_show").attr('value', $.cookie('sprocs_to_show'));
+        }
+
+        $("#settings").click(function() {
+            $("#settings_div").toggle();
+        });
+
+        $("#save").click(function() {
+            if (parseInt($("#days").val()) <= 0 || parseInt($("#days").val()) > 30) {
+                alert('invalid "days" range! 1 - 30 allowed');
+                return;
+            }
+            if (parseInt($("#sprocs_to_show").val()) < 1 || parseInt($("#sprocs_to_show").val()) > 20) {
+                alert('invalid "sprocs to show" range! 1 - 20 allowed');
+                return;
+            }
+
+            $.cookie('days', $("#days").val());
+            $.cookie('sprocs_to_show', $("#sprocs_to_show").val());
+            alert('cookie saved');
+
+        });
+
+    });
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'perfstatstatementsgraph' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+        <h3>Pg_stat_statements values over time <a href="/{{hostuiname}}">[Back to host overview]</a></h3>
+        <textarea class="sqlreadonly" readonly>{{ query }}</textarea>
+        <form method="GET" action="/perfstatstatements/graph/{{hostuiname}}/{{query_id}}">
+            <br />
+            <span class="text3">Timeframe:</span>
+            <input class="datefield" type="text" name="from_date" value="{{ from_date }}">
+            <input class="datefield" type="text" name="to_date" value="{{ to_date }}">
+            <input name="show" type="submit" value="show">
+        </form>
+    </div>
+    <script>
+        $(function() {
+            $(".datefield").datepicker({"dateFormat": "yy-mm-dd"});
+        });
+    </script>
+
+    <div class="clear"></div>
+    <div class="grid_12">
+        <h3>Calls</h3>
+        <div class="graphc" id="graphcalls" style="width:100%;height:240px;"></div>
+        {{ graphcalls }}
+    </div>
+
+    <div class="clear"></div>
+    <div class="grid_12">
+        <h3>Avg. runtime (in ms)</h3>
+        <div class="graphc" id="graphavgruntime" style="width:100%;height:240px;"></div>
+        {{ graphavgruntime }}
+    </div>
+
+    <div class="clear"></div>
+    <div class="grid_12">
+        <h3>Total runtime (in ms)</h3>
+        <div class="graphc" id="graphruntime" style="width:100%;height:240px;"></div>
+        {{ graphruntime }}
+    </div>
+
+    <div class="clear"></div>
+    <div class="grid_12">
+        <h3>Blocks read</h3>
+        <div class="graphc" id="graphblocksread" style="width:100%;height:240px;"></div>
+        {{ graphblocksread }}
+    </div>
+
+    <div class="clear"></div>
+    <div class="grid_12">
+        <h3>Blocks written</h3>
+        <div class="graphc" id="graphblockswritten" style="width:100%;height:240px;"></div>
+        {{ graphblockswritten }}
+    </div>
+
+
+</div>
+
+{% endblock %}

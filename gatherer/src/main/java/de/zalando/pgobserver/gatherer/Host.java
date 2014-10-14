@@ -27,6 +27,8 @@ public class Host {
     public String password;
     public int port;
     public String dbname;
+    public String uiShortName;
+    public String uiLongName;
     public String settingsAsString;
     private HostSettings settings = new HostSettings();
     private final HostGatherers gatherers = new HostGatherers();
@@ -59,7 +61,7 @@ public class Host {
         return name + "[" + dbname + "]";
     }
 
-    public static Map<Integer, Host> LoadAllHosts(Config config) {
+    public static Map<Integer, Host> LoadAllHosts(final Config config) {
 
         /*
          * host_id serial NOT NULL,
@@ -76,7 +78,9 @@ public class Host {
             conn = DBPools.getDataConnection();
 
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM monitor_data.hosts WHERE host_enabled = true AND host_gather_group = '"+ config.database.gather_group  +"';");
+            ResultSet rs = st.executeQuery(
+                    "SELECT * FROM monitor_data.hosts WHERE host_enabled = true AND host_gather_group = '"
+                        + config.database.gather_group + "';");
             while (rs.next()) {
                 Host h = new Host();
                 h.id = rs.getInt("host_id");
@@ -86,6 +90,8 @@ public class Host {
                 h.password = rs.getString("host_password");
                 h.dbname = rs.getString("host_db");
                 h.settingsAsString = rs.getString("host_settings");
+                h.uiLongName = rs.getString("host_ui_longname");
+                h.uiShortName = rs.getString("host_ui_shortname");
 
                 ObjectMapper mapper = new ObjectMapper();
                 try {
@@ -119,7 +125,12 @@ public class Host {
         LOG.info("Settings for Host " + getName() + "\n" + "Load: " + settings.getLoadGatherInterval() + " Seconds\n"
                 + "Sprocs: " + settings.getSprocGatherInterval() + " Seconds\n" + "Table IO: "
                 + settings.getTableIoStatsGatherInterval() + " Seconds\n" + "Table Stats: "
-                + settings.getTableStatsGatherInterval() + " Seconds\n");
+                + settings.getTableStatsGatherInterval() + " Seconds\n" + "Index Stats: "
+                + settings.getIndexStatsGatherInterval() + " Seconds\n" + "Schema Stats:"
+                + settings.getSchemaStatsGatherInterval() + " Seconds\n" + "Blocking Stats:"
+                + settings.getBlockingStatsGatherInterval() + " Seconds\n" + "StatStatements:"
+                + settings.getStatStatementsGatherInterval() + " Seconds\n" + "StatDatabase:"
+                + settings.getStatDatabaseGatherInterval() + " Seconds\n");
 
         if (gatherers.executor == null) {
             LOG.info("Adding Executor for Host: {}", name);
@@ -127,7 +138,7 @@ public class Host {
         }
 
         if (gatherers.sprocGatherer == null) {
-            gatherers.sprocGatherer = new SprocGatherer(this, settings.getSprocGatherInterval(), gatherers.executor, config.default_schema_filter);
+            gatherers.sprocGatherer = new SprocGatherer(this, settings.getSprocGatherInterval(), gatherers.executor);
         } else {
             gatherers.sprocGatherer.setIntervalInSeconds(settings.getSprocGatherInterval());
         }
@@ -137,6 +148,20 @@ public class Host {
                     gatherers.executor);
         } else {
             gatherers.tableStatsGatherer.setIntervalInSeconds(settings.getTableStatsGatherInterval());
+        }
+
+        if (gatherers.indexStatsGatherer == null) {
+            gatherers.indexStatsGatherer = new IndexStatsGatherer(this, settings.getIndexStatsGatherInterval(),
+                    gatherers.executor);
+        } else {
+            gatherers.indexStatsGatherer.setIntervalInSeconds(settings.getIndexStatsGatherInterval());
+        }
+
+        if (gatherers.schemaStatsGatherer == null) {
+            gatherers.schemaStatsGatherer = new SchemaStatsGatherer(this, settings.getSchemaStatsGatherInterval(),
+                    gatherers.executor);
+        } else {
+            gatherers.schemaStatsGatherer.setIntervalInSeconds(settings.getSchemaStatsGatherInterval());
         }
 
         if (gatherers.loadGatherer == null) {
@@ -152,10 +177,35 @@ public class Host {
             gatherers.tableIOStatsGatherer.setIntervalInSeconds(settings.getTableIoStatsGatherInterval());
         }
 
+        if (gatherers.blockingStatsGatherer == null) {
+            gatherers.blockingStatsGatherer = new BlockingStatsGatherer(this, settings.getBlockingStatsGatherInterval(),
+                    gatherers.executor);
+        } else {
+            gatherers.schemaStatsGatherer.setIntervalInSeconds(settings.getBlockingStatsGatherInterval());
+        }
+
+        if (gatherers.statStatementsGatherer == null) {
+            gatherers.statStatementsGatherer = new StatStatementsGatherer(this,
+                    settings.getStatStatementsGatherInterval(), gatherers.executor);
+        } else {
+            gatherers.statStatementsGatherer.setIntervalInSeconds(settings.getStatStatementsGatherInterval());
+        }
+
+        if (gatherers.statDatabaseGatherer == null) {
+            gatherers.statDatabaseGatherer = new StatDatabaseGatherer(this,
+                    settings.getStatDatabaseGatherInterval(), gatherers.executor);
+        } else {
+            gatherers.statDatabaseGatherer.setIntervalInSeconds(settings.getStatDatabaseGatherInterval());
+        }
+
         GathererApp.registerGatherer(gatherers.sprocGatherer);
         GathererApp.registerGatherer(gatherers.tableStatsGatherer);
         GathererApp.registerGatherer(gatherers.loadGatherer);
-        GathererApp.registerGatherer(gatherers.loadGatherer);
+        GathererApp.registerGatherer(gatherers.indexStatsGatherer);
+        GathererApp.registerGatherer(gatherers.schemaStatsGatherer);
+        GathererApp.registerGatherer(gatherers.blockingStatsGatherer);
+        GathererApp.registerGatherer(gatherers.statStatementsGatherer);
+        GathererApp.registerGatherer(gatherers.statDatabaseGatherer);
 
         if (settings.isSprocGatherEnabled()) {
             LOG.info("Schedule SprocGather for {}", getName());
@@ -183,6 +233,41 @@ public class Host {
             gatherers.tableStatsGatherer.schedule();
         } else {
             gatherers.tableStatsGatherer.unschedule();
+        }
+
+        if (settings.isIndexStatsGatherEnabled()) {
+            LOG.info("Schedule IndexStats for " + getName());
+            gatherers.indexStatsGatherer.schedule();
+        } else {
+            gatherers.indexStatsGatherer.unschedule();
+        }
+
+        if (settings.isSchemaStatsGatherEnabled()) {
+            LOG.info("Schedule SchemaStats for " + getName());
+            gatherers.schemaStatsGatherer.schedule();
+        } else {
+            gatherers.schemaStatsGatherer.unschedule();
+        }
+
+        if (settings.isBlockingStatsGatherEnabled()) {
+            LOG.info("Schedule BlockingStats for " + getName());
+            gatherers.blockingStatsGatherer.schedule();
+        } else {
+            gatherers.blockingStatsGatherer.unschedule();
+        }
+
+        if (settings.isStatStatementsGatherEnabled()) {
+            LOG.info("Schedule StatStatement for " + getName());
+            gatherers.statStatementsGatherer.schedule();
+        } else {
+            gatherers.statStatementsGatherer.unschedule();
+        }
+
+        if (settings.isStatDatabaseGatherEnabled()) {
+            LOG.info("Schedule StatDatabase for " + getName());
+            gatherers.statDatabaseGatherer.schedule();
+        } else {
+            gatherers.statDatabaseGatherer.unschedule();
         }
     }
 }

@@ -1,0 +1,87 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'perfstatstatements' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+        <h3>Top 100 pg_stat_statements entries</h3>
+        <form method="GET" action="/perfstatstatements">
+            <span class="text3">Hostname:</span>
+            <select name="hostname">
+                <option value=""></option>
+                {% for host_id, host in host_names: %}
+                <option value="{{ host['host_name'] }}" {% if hostname == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
+                {% endfor %}
+            </select>
+            <br />
+            </span>
+            <br />
+            <span class="text3">Timeframe:</span>
+            <input class="datefield" type="text" name="from_date" value="{{ from_date }}">
+            <input class="datefield" type="text" name="to_date" value="{{ to_date }}">
+            <br />
+            <span class="text3" title="max. 500">Limit:</span><input name="limit" type="text" size="3" value="{{limit}}">
+            <input name="show" type="submit" value="show">
+        </form>
+    </div>
+    <script>
+        $(function() {
+            $(".datefield").datepicker({"dateFormat": "yy-mm-dd"});
+        });
+
+        prev_full_query = null;
+
+        $(document).ready(function(){
+          $(".query_text").click(function(){
+            if (prev_full_query != null) {
+                prev_full_query.toggle();
+            }
+            prev_full_query = $(this).parent().parent().next();
+            prev_full_query.toggle();
+            return false;
+          });
+        });
+    </script>
+
+    <div class="clear"></div>
+
+    <div class="grid_4">
+        <table class="perftable" border="1">
+            <tr>
+                <th title="Click on the query to expand it" style="width: 500px">Query</th>
+                <th title="Click to sort">
+                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=1">Calls{% if order_by == '1' %}&darr;{% endif %}</a></th>
+                <th title="Click to sort">
+                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=2">Total time{% if order_by == '2' %}&darr;{% endif %}</a></th>
+                <th title="Click to sort">
+                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=3">Blocks read{% if order_by == '3' %}&darr;{% endif %}</a></th>
+                <th title="Click to sort">
+                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=4">Blocks written{% if order_by == '4' %}&darr;{% endif %}</a></th>
+                <th title="Click to sort">
+                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=5">Temp Blocks read{% if order_by == '5' %}&darr;{% endif %}</a></th>
+                <th title="Click to sort">
+                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=6">Temp Blocks written{% if order_by == '6' %}&darr;{% endif %}</a></th>
+                <th>Show graph</th>
+            </tr>
+            {% for d in data: %}
+            <tr>
+                <td><a class="query_text" href="">{{ d['query_short'] }}</a></td>
+                <td>{{ d['calls'] }}</td>
+                <td>{{ d['total_time'] }}</td>
+                <td>{{ d['blks_read'] }}</td>
+                <td>{{ d['blks_written'] }}</td>
+                <td>{{ d['temp_blks_read'] }}</td>
+                <td>{{ d['temp_blks_written'] }}</td>
+                <td><a href="/perfstatstatements/graph/{{ hostuiname }}/{{ d['query_id'] }}" target="_blank">show</a></td>
+            </tr>
+            <tr class="hiddenrow" style="display:none" ><td colspan="8"><textarea readonly>{{ d['query'] }}</textarea></td>
+            </tr>
+            {% endfor %}
+        </table>
+        <br />
+        <br />
+    </div>
+
+</div>
+
+{% endblock %}

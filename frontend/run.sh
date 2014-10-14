@@ -1,1 +1,1 @@
-nohup python2.7 web.py >pgobserver_web.log 2>&1 &
+nohup python2.7 src/web.py &> pgobserver_web.log &

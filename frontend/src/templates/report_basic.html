@@ -1,0 +1,37 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'report' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+        <h3>Load Report</h3>
+    </div>
+    <div class="clear"></div>
+    {% for d in data: %}
+    <div class="grid_4">
+        <table>
+            <tr><td colspan=6><h2><a href="/{{hosts[d[0]['id']]['uishortname']}}">{{ hosts[d[0]['id']]['uilongname'] }}</a></h2></td></tr>
+            <tr>
+                <th>KW</th>
+                <th align=left>Date:</th>
+                <th title="load 15">Avg. load</th>
+                <th title="load 15">Max load</th>
+                <th title="in GB">Data size</th>
+				<th title="in GB">WAL vol.</th>
+            </tr>
+            {% for p in d: %}
+            <tr>
+                <td align=right>{{ p['kw'] }}</td>
+                <td>{{ p['min_date'] }} - {{ p['max_date'] }}</td>
+                <td align=right class="{% if 1 == p['trendAvg'] %}higher{% endif %}{% if -1==p['trendAvg'] %}lower{% endif %}">{{ p['avg'] }}</td>
+                <td align=right class="{% if 1 == p['trendMax'] %}higher{% endif %}{% if -1==p['trendMax'] %}lower{% endif %}">{{ p['max'] }}</td>
+                <td align=right class="{% if 1 == p['trendSize'] %}higher{% endif %}{% if -1==p['trendSize'] %}lower{% endif %}">{{ p['db_size'] }}</td>
+          		<td align=right class="{% if 1 == p['trendWal'] %}higher{% endif %}{% if -1==p['trendWal'] %}lower{% endif %}">{{ p['wal_written'] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

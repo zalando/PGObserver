@@ -9,9 +9,7 @@ import de.zalando.pgobserver.gatherer.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author  jmussler
- */
+
 public class DBPools {
     private static BoneCP dataPool = null;
     
@@ -25,7 +23,7 @@ public class DBPools {
             config.setUsername(settings.database.backend_user);
             config.setPassword(settings.database.backend_password);
             config.setPartitionCount(1);
-            config.setMaxConnectionsPerPartition(10);
+            config.setMaxConnectionsPerPartition(20);
             config.setMinConnectionsPerPartition(1);
             config.setConnectionTimeoutInMs(2000);
 

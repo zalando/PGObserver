@@ -1,0 +1,51 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'perfschemas_detailed' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+        <h3>Per-day schema usage report <a href="/perfschemas">(to un-used schemas report)</a></h3>
+        <form method="GET" action="/perfschemas/detailed">
+            <span class="text3">Hostname:</span>
+            <select name="selected_hostname">
+                <option value=""></option>
+                {% for host_name in host_names: %}
+                <option value="{{ host_name }}" {% if selected_hostname == host_name %} selected="selected" {% endif %}>{{ host_name }}</option>
+                {% endfor %}
+            </select>
+            <br />
+            <span class="text3">Timeframe:</span>
+            <input class="datefield" type="text" name="from_date" value="{{ from_date }}">
+            <input class="datefield" type="text" name="to_date" value="{{ to_date }}">
+            <br />
+            <span class="text3">Schema name filter:</span>
+            <input name="filter" type="text" value="{{ filter }}">
+            <br />
+            <input name="show" type="submit" value="show">
+            <br /><br />
+        </form>
+    </div>
+    <script>
+        $(function() {
+            $(".datefield").datepicker({"dateFormat": "yy-mm-dd"});
+        });
+    </script>
+
+    <div class="clear"></div>
+
+    {% for schema_name, graphs in schemagraphs: %}
+    <div class="grid_12">
+        <h3 id="{{schema_name}}">{{schema_name}}</h3>
+        <div class="graphc" id="{{schema_name}}_calls" style="width:100%;height:240px;"></div>
+        {{ graphs[0] }}
+        <div class="graphc" id="{{schema_name}}_iud" style="width:100%;height:240px;"></div>
+        {{ graphs[1] }}
+        <div class="graphc" id="{{schema_name}}_scans" style="width:100%;height:240px;"></div>
+        {{ graphs[2] }}
+    </div>
+
+    <div class="clear"></div>
+    {% endfor %}
+</div>
+
+{% endblock %}

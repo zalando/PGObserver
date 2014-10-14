@@ -5,7 +5,7 @@
 
     <groupId>de.zalando.pgobserver</groupId>
     <artifactId>PGObserver-Gatherer</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>PGObserver-Gatherer</name>
@@ -122,4 +122,11 @@
         </dependency>
 
     </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <url>${repository.url.releases}</url>
+        </repository>
+    </distributionManagement>
 </project>

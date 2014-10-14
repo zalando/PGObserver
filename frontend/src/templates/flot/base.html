@@ -1,0 +1,83 @@
+<script type="text/javascript">
+$(function () {
+   var xmin;
+   var xmax;
+
+   var direction = true;
+   var _downX = 0;
+   var _upX = 0;
+
+    var datasets = [
+       {% for d in data %}
+          {% if not loop.first %},{% endif %}
+          {
+             label: "{{ d.label }}",
+             color: "{{ d.color }}",
+             data: [
+                {% for r in d.data %}{% if not loop.first %},{% endif %}[ {{ r.x }}, {{ r.y }} ]{% endfor %}
+             ],
+             yaxis: {{ d.yaxis }}
+          }
+       {% endfor %}
+    ];
+
+       $("#{{ graphContainer }}").bind("plotselected", function (event, ranges, rec , recD ) {
+           from = new Date(Math.floor(ranges.xaxis.from.toFixed(1)));
+           to = new Date(Math.ceil(ranges.xaxis.to.toFixed(1)));
+           xmin = ranges.xaxis.from;
+           xmax = ranges.xaxis.to;
+
+           if(typeof rec == 'undefined') {
+              if(!direction ) {
+                 xmin = null;
+                 xmax = null;
+              }
+           }
+           else {
+              if ( !recD ) {
+                 xmin = null;
+                 xmax = null;
+              }
+           }
+
+           var selectedData = xmax ? flotSmartRescale(datasets, xmin, xmax) : datasets;
+
+           $flots[{{ graphContainer }}] = $.plot($("#{{ graphContainer }}"), selectedData, {
+                 legend : { position: "nw" },
+                selection : { mode : "x" },
+                grid : { clickable: true },
+                   yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth , position: "{{ legendPosition }}" },
+                       { position: "{% if legendPosition=="left" %}right{% else %}left{% endif %}", reserveSpace: true, labelWidth: defaultLabelWidth }],
+                   xaxis: { min: xmin, max: xmax, mode: "time", timezone: "browser", timeformat: "%d.%m. %H:%M", tickDecimals: 0, color: "#9A6C3D"  }
+          });
+
+          if(typeof rec == 'undefined') {
+             containers = $(".graphc");
+
+             jQuery.each(containers, function(k,v) {
+                   if(v.id!='{{ graphContainer }}') jQuery(v).trigger("plotselected",  [ ranges , true , direction] );
+                }
+             );
+          }
+       });
+
+       $("#{{ graphContainer }}").bind("mousedown", function (event, ranges) {
+            _downX = event.clientX;
+            _upX = event.clientX-1;
+       });
+
+       $("#{{ graphContainer }}").bind("mouseup", function (event, ranges) {
+          _upX = event.clientX;
+            direction = _upX > _downX;
+       });
+
+$flots[{{ graphContainer }}] = $.plot($("#{{ graphContainer }}"), datasets, {
+                 legend : { position: "nw" },
+                selection : { mode : "x" },
+                grid : { clickable: true },
+                   yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth , position: "{{ legendPosition }}" },
+                       { position: "{% if legendPosition=="left" %}right{% else %}left{% endif %}", reserveSpace: true, labelWidth: defaultLabelWidth }],
+                   xaxis: { mode: "time", timeformat: "%d.%m. %H:%M", timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  }
+    });
+});
+</script>

@@ -1,14 +1,11 @@
 package de.zalando.pgobserver.gatherer;
 
 import java.sql.Connection;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * @author  jmussler
- */
+
 public abstract class IdCache {
     protected Host host;
     protected Map<String, Map<String, Integer>> cache = null;

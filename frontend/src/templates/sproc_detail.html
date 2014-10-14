@@ -1,0 +1,84 @@
+{% extends "baselayout.html" %}
+{% set active_page = hostid %}
+{% block body %}
+
+<div class="container_12">
+
+    {% if name_wo_params %}
+
+    <div class="grid_12">
+        <form method="GET" action="/sprocs/show/{{hostuiname}}/{{name_wo_params}}">
+        <h4>Sproc details for: {{ name_wo_params }} on <a href="/{{hostuiname}}">{{ hostname }}</a>
+            {% if 'opengrok_baseurl' in settings and settings['opengrok_baseurl']!='' %}
+             | show in <a href="https://{{ settings['opengrok_baseurl'] }}&q={{ name_wo_params }}">opengrok</a>
+            {% endif %}
+            | <input id="sproc_search" name="sproc_search" placeholder="Sproc search..."><input id="search" name="search" type="submit" value="search">
+            | <a href="/sprocs/show/{{hostuiname}}">show sproc listing </a>
+        </h4>
+
+        <h2 title="Params are taken the oldest schema being used in the given timeframe">Parameters: {{ params }}</h2>
+            <span class="text3">Timeframe: </span><input class="datefield" type="text" name="from" value="{{ interval['from'] }}"><input class="datefield" type="text" name="to" value="{{ interval['to'] }}">
+            <input type="submit" value="show">
+        </form>
+    </div>
+    <script>
+    var i = 0;
+    var all_sprocs_json = {{all_sprocs_json}};
+
+    $(function() {
+     $( ".datefield" ).datepicker({"dateFormat":"yy-mm-dd"});
+     $( "#sproc_search" ).autocomplete({
+      source: all_sprocs_json
+       });
+    });
+    </script>
+
+    <div class="clear"></div>
+
+    <div class="grid_12">
+        <h3>Number of calls per 15 minutes</h3>
+        <div class="graphc" id="graphcalls" style="width:100%;height:240px;"></div>
+        {{ graphcalls }}
+    </div>
+    <div class="clear"></div>
+
+    <div class="grid_12">
+        <h3>Run time total per 15 minutes</h3>
+        <div class="graphc" id="graphruntime" style="width:100%; height:240px;">
+        </div>
+        {{ graphruntime }}
+    </div>
+
+    <div class="clear"></div>
+
+    <div class="grid_12">
+        <h3>Total time avg.</h3>
+        <div class="graphc" id="graphavg" style="width:100%; height:240px;">
+        </div>
+        {{ graphavg }}
+    </div>
+
+    <div class="clear"></div>
+
+    <div class="grid_12">
+        <h3>Self time avg.</h3>
+        <div class="graphc" id="graphselfavg" style="width:100%; height:240px;">
+        </div>
+        {{ graphselfavg }}
+    </div>
+
+    {% else %}
+        <div class="clear"></div>
+        <h4>List of active sprocs</h4>
+        <div class="grid_12">
+        <ol>
+        {% for sp in all_sprocs: %}
+        <li><h5><a href="/sprocs/show/{{ hostuiname}}/{{ sp }}"> {{ sp }} </a></h5></li>
+        {% endfor %}
+        </ol>
+        <br />
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'welcome' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+        <h2>List of monitored databases by Groups</h2>
+    </div>
+    <div class="clear"></div>
+
+    <div class="grid_4">
+        {% for group_name, hosts_with_last_stats in hosts_with_last_stats_by_groups.iteritems()  %}
+        <br />
+        <br />
+        <h4>{{ group_name }}</h4>
+
+        <table id="welcome_listing">
+            <tr>
+                <th>Database</th>
+                <th>Last CPU load (load 5) </th>
+                <th title="as of last cron aggregation [max 2h delay] if using aggregation">DB size</th>
+            </tr>
+
+            {% for h in hosts_with_last_stats: %}
+            <tr>
+                <td class="wl_db"><a href="/{{hosts[h['host_id']]['uishortname']}}">{{ hosts[h['host_id']]['uilongname'] }}</a></td>
+                <td class="wl_load"><a href="/{{hosts[h['host_id']]['uishortname']}}">{{ h['last_5min_load'] }}</a></td>
+                <td class="wl_size" title="as of last cron aggregation [max 2h delay] if using aggregation">
+                    <a href="/{{hosts[h['host_id']]['uishortname']}}">{{ h['last_agg_size'] }}</a>
+                </td>
+
+            </tr>
+            </a>
+            {% endfor %}
+        </table>
+        {% endfor %}
+        <br />
+        <br />
+    </div>
+
+
+</div>
+
+{% endblock %}

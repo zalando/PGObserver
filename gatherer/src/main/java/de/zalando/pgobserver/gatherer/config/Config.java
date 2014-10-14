@@ -7,22 +7,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- *
- * @author jmussler
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Config {
     public Database database;
-    public Logfiles logfiles;
     public Frontend frontend;
-    public String default_schema_filter;
 
     private static Logger LOG = LoggerFactory.getLogger(Config.class);
 
     @Override
     public String toString() {
-        return "Config{" + "database=" + database + ", logfiles=" + logfiles + ", frontend=" + frontend + ", default_schema_filter="+default_schema_filter+"}";
+        return "Config{" + "database=" + database + ", frontend=" + frontend + "}";
     }
 
     public static Config LoadConfigFromFile(ObjectMapper mapper, String s) {

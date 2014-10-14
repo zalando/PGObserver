@@ -1,2 +1,4 @@
 #!/bin/bash
-nohup java -jar PGObserver-Gatherer-1.0-SNAPSHOT-jar-with-dependencies.jar &>> pgmon_java.log &
+DATE=$(date +%F_%H%M)
+JAR=$(ls target/PGObserver-Gatherer-*-jar-with-dependencies.jar | tail -1)
+nohup java -jar ${JAR} &> pgmon_java_${DATE}.log &

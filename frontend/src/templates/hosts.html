@@ -1,0 +1,126 @@
+{% extends "baselayout.html" %}
+{% set active_page = 'hosts' %}
+{% block body %}
+
+<div id="reports" class="container_12">
+    <div class="grid_12">
+    <h2>Hosts configuration</h2>
+
+
+    <table class="hoststable" border="1">
+        <tr>
+            <th><a href="/hosts/index/host_id">Host ID</a></th>
+            <th><a href="/hosts/index/host_name">Hostname</a></th>
+            <th><a href="/hosts/index/host_">Port</a></th>
+            <th><a href="/hosts/index/host_db">DB</a></th>
+            <th><a href="/hosts/index/host_enabled">Is Enabled?</a></th>
+            <th><a href="/hosts/index/host_group_id">Host group</a></th>
+            <th title="used for URLs"><a href="/hosts/index/host_ui_shortname">UI Shortname</a></th>
+            <th title="used in menus"><a href="/hosts/index/host_ui_longname">UI Longame</a></th>
+            <th style="width: 200px">Settings</th>
+            <th></th>
+        </tr>
+        {% for d in all_hosts: %}
+        <tr>
+            <td><input type="hidden" value="{{ d[1]['host_id'] }}"><a href="/{{ d[1]['uishortname'] }}">{{ d[1]['host_id'] }}</a></td>
+            <td><input value="{{ d[1]['host_name'] }}"></td>
+            <td><input value="{{ d[1]['host_port'] }}"></td>
+            <td><input value="{{ d[1]['host_db'] }}"></td>
+            <td>
+                <select class="enabled_select">
+                    <option value="True" {% if d[1]['host_enabled'] == True %} selected="selected"{% endif %}>Yes</option>
+                    <option value="False" {% if not d[1]['host_enabled'] %} selected="selected"{% endif %}>No</option>
+                </select>
+            </td>
+            <td>
+                <select class="group_select">
+                    {% for k,v in groups.iteritems(): %}
+                    <option value="{{k}}" {% if d[1]['host_group_id'] == k %} selected="selected"{% endif %}>{{v}}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td><input value="{{ d[1]['host_ui_shortname'] }}"></td>
+            <td><input value="{{ d[1]['host_ui_longname'] }}"></td>
+            <td><textarea class="host_settings">{{ d[1]['host_settings'] }}</textarea></td>
+            <td><input type="button" class="save" value="Save" ></td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td><input type="hidden" value=""></td>
+            <td><input value="hostname"></td>
+            <td><input value="5432"></td>
+            <td><input value="prod_x_db"></td>
+            <td>
+                <select class="enabled_select">
+                    <option value="True" selected="selected">Yes</option>
+                    <option value="False">No</option>
+                </select>
+            </td>
+            <td>
+                <select class="group_select">
+                    {% for k,v in groups.iteritems(): %}
+                    <option value="{{k}}">{{v}}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td><input value="ui_shortname"></td>
+            <td><input value="ui_longname"></td>
+            <td><textarea>
+{
+   "loadGatherInterval": 5,
+   "tableIoGatherInterval": 10,
+   "sprocGatherInterval": 5,
+   "tableStatsGatherInterval": 10,
+   "indexStatsGatherInterval": 20,
+   "schemaStatsGatherInterval": 120,
+   "blockingStatsGatherInterval": 0,
+   "statStatementsGatherInterval": 0,
+   "statDatabaseGatherInterval": 5
+}
+            </textarea></td>
+            <td><input class="add" type="button" value="Add" title="fyi - user/password will be copied from the latest existing entry"> </td>
+        </tr>
+    </table>
+    <form action="/hosts/reload">
+    <input id="reload" type="submit" value="Reload Config" title="refreshes menus">
+    </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $(".save").add(".add").click(function() {
+            var data = {};
+            var parent_tr = $(this).parent().parent();
+            var inputs = parent_tr.find('input');
+
+            data['host_id'] = inputs.eq(0).val();
+            data['host_name'] = inputs.eq(1).val();
+            data['host_port'] = inputs.eq(2).val();
+            data['host_db'] = inputs.eq(3).val();
+            data['host_enabled'] = parent_tr.find('.enabled_select').val();
+            data['host_group_id'] = parent_tr.find('.group_select').val();
+            data['host_settings'] = parent_tr.find('textarea').val();
+            data['host_ui_shortname'] = inputs.eq(4).val();
+            data['host_ui_longname'] = inputs.eq(5).val();
+
+
+            // alert(JSON.stringify(data));
+            $.ajax({
+                url: '/hosts/save?',
+                type: 'POST',
+                data: data,
+                success: function(retdata) {
+                    alert(retdata);
+                    if (data['host_id'].length == 0) {
+                        window.location = '/hosts';
+                    }
+                }
+            });
+        });
+
+    });
+</script>
+
+{% endblock %}
