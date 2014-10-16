@@ -1,3 +1,14 @@
+/*
+ This sporc is intended to evaluate permoance GLOBALY, comparing full days to avg. of past weeks values. 
+ It was first used to analyze the impact of PG version upgrade on performance, and detect sprocs that suffered the most.
+ 
+ Note that it is possible to provide hours-range params - so one can evaluate performance between 8 and 10 AM for example, 
+ if a switch happened at 8 in the morning... 
+ 
+ Also note that this sproc does not gather data on its own, it depends on the hourly sprocs performance data collection and processing.
+ */
+
+
 ﻿--select * from hosts where host_name like '%zalos%'
 -- select * from sprocs_evaluate_performance_after_db_upgrade()
 -- select * from sprocs_evaluate_performance_after_db_upgrade(null,null,null,null,null,null,null,5)
