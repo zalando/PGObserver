@@ -1,4 +1,7 @@
-﻿
+-- includes our initial setup of which pairs of hosts should be combined/compared for the analysis. 
+-- and the default run-time configuration values
+
+
 insert into  host_clusters select 16,13;
 insert into  host_clusters select 16,14;
 insert into  host_clusters select 16,15;
