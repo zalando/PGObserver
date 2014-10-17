@@ -1,4 +1,6 @@
-﻿----select * from sprocs_evaluate_performance_modified_sproc('false','true')
+-- intended to compare sproc performance in less that one hour's time range, for recent sproc replacement. Not yet in use.
+
+----select * from sprocs_evaluate_performance_modified_sproc('false','true')
 CREATE OR REPLACE FUNCTION sprocs_evaluate_performance_modified_sproc(
   IN  p_is_eval_averages	boolean default 'true',
   IN  p_is_combine_hosts   	boolean default 'true',
