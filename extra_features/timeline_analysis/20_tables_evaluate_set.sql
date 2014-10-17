@@ -1,4 +1,6 @@
-﻿-- select * from tables_evaluate_set (null, 'FALSE', '{"sales_order_header_export","street"}')
+-- not used, intended for comparing table seq scans and sizes for a set of tables to past weeks stats, for a given day
+
+-- select * from tables_evaluate_set (null, 'FALSE', '{"sales_order_header_export","street"}')
 -- select * from tables_evaluate_set (null, 'true', null)
 CREATE OR REPLACE FUNCTION tables_evaluate_set(
   IN  p_date			timestamp without time zone default NULL,
