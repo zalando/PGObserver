@@ -4,6 +4,8 @@ SET search_path TO monitor_data, public;
 
 SET role TO pgobserver_gatherer;
 
+-- calculates the total memory page faults in the past day
+
 -- select * from calc_hosts_summary ('2014-04-11');
 -- select * from hosts_summary where hs_date = '2014-04-11';
 CREATE OR REPLACE FUNCTION calc_hosts_summary(
