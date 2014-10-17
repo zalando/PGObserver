@@ -1,4 +1,6 @@
-﻿
+-- compares table size and table seq scans for the past day to the results of previous weeks to find significant increases 
+
+
 ----- now gives real table size, not size change, when p_is_combine_hosts IS FALSE 
 CREATE OR REPLACE FUNCTION tables_evaluate_last_day(
   IN  p_date			timestamp without time zone default NULL,
