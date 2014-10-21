@@ -1,4 +1,7 @@
-﻿CREATE OR REPLACE FUNCTION sproc_get_prev_values(
+-- this sproc is not part of the automatic processing - it is used manually to get the past results of a sproc suspected to have
+-- a problem (one can also find the function's graph in pgObserver)
+
+CREATE OR REPLACE FUNCTION sproc_get_prev_values(
   IN  p_host_id			integer,
   IN  p_sproc_name		text,
   OUT avg_time			integer,
