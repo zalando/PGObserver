@@ -66,7 +66,8 @@ CREATE TABLE hosts (
       "schemaStatsGatherInterval": 120,
       "blockingStatsGatherInterval": 0,
       "statStatementsGatherInterval": 0,
-      "statDatabaseGatherInterval": 5}'::text NOT NULL,
+      "statDatabaseGatherInterval": 5,
+      "useTableSizeApproximation": 0}'::text NOT NULL,
     host_group_id integer not null default 0,
     host_enabled boolean NOT NULL DEFAULT true,
     host_gather_group text default 'gatherer1' not null, --makes multiple java gatherers possible
@@ -278,3 +279,53 @@ sdd_blk_write_time int8
 );
 create index on stat_database_data(sdd_host_id, sdd_timestamp);
 
+
+
+
+
+
+/*
+ helpers for doing mass parameterer changes
+ */
+
+/*
+  adds a new key or updates and existing value to input string. expects that all keys are on different lines!
+
+--select set_setting_key(E'{\n"loadGatherInterval": 10\n}', 'keyX', 1)
+--select set_setting_key2(E'{\n"loadGatherInterval": 10\n}', 'loadGatherInterval', 100);
+*/
+create or replace function set_setting_key(p_settings text, p_key text, p_value int)
+returns text
+as $$
+declare
+  l_data text[];
+  l_key_found boolean := false;
+  c record;
+  l_ret text;
+begin
+  p_settings := trim(p_settings);
+  if position('"'||p_key||'"' in p_settings) = 0 then
+    return regexp_replace(p_settings, E'(.*)\n}', format(E'\\1,\n"%s": %s\n}', p_key, p_value), 'g');
+  else
+    return regexp_replace(p_settings, format('"(%s)"\s?:\s?(\d+)', p_key), format('"\1": %s', p_value));
+  end if;
+end;
+$$ language plpgsql;
+
+
+/*
+  updates and existing value, does not create a key if not there. expects that all keys are on different lines!
+*/
+create or replace function update_setting_key(p_settings text, p_key text, p_value int)
+returns text
+as $$
+declare
+  l_data text[];
+  l_key_found boolean := false;
+  c record;
+  l_ret text;
+begin
+  p_settings := trim(p_settings);
+  return regexp_replace(p_settings, format('"(%s)"\s?:\s?(\d+)', p_key), format('"\1": %s', p_value));
+end;
+$$ language plpgsql;

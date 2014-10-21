@@ -26,8 +26,7 @@ if not args.user:
     if not args.user:
         print '--user is required if no PGUSER set'
         exit(1)
-print args
-exit()
+
 logging.basicConfig(level=(logging.DEBUG if args.verbose else logging.WARNING))
 
 conn = psycopg2.connect(host=args.host, port=args.port, database=args.dbname, user=args.user)
