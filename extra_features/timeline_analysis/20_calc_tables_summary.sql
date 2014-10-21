@@ -1,4 +1,5 @@
-﻿
+-- calcualtes the number of table-scans and table-size delta for the past day (by subtracting the totals from the prev day)
+
 CREATE OR REPLACE FUNCTION calc_tables_summary(
  p_date	timestamp without time zone
 )
