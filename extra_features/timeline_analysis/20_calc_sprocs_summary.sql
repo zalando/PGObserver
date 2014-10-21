@@ -1,4 +1,5 @@
-﻿
+-- calculates the sproc run time stats for the past hour (by comaring current total run-time to last hour's total run-time)
+
 CREATE OR REPLACE FUNCTION calc_sprocs_summary(
  p_date	timestamp without time zone,
  p_hour integer	-- note 0==midnight to 1AM...
