@@ -1,4 +1,6 @@
-﻿CREATE OR REPLACE FUNCTION hosts_evaluate_performance_last_day(
+-- compares cach misses between last day and the average of past weeks (configurable, default 4)
+
+CREATE OR REPLACE FUNCTION hosts_evaluate_performance_last_day(
   IN  p_date			timestamp without time zone default NULL,
   OUT host_name			text array,
   OUT cache_misses		bigint,
