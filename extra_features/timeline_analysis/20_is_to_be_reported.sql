@@ -1,4 +1,8 @@
-﻿CREATE OR REPLACE FUNCTION is_to_be_reported (  -- evaluated only ONE statistic per object, to decide if fluction needs to be reported
+-- this function was added to filter noisy reports regarding sprocs performance checks - it reports just sprocs that reached a new high 
+-- (or 2nd) record high compared to the past few days (configrable)
+
+
+CREATE OR REPLACE FUNCTION is_to_be_reported (  -- evaluated only ONE statistic per object, to decide if fluction needs to be reported
   IN  p_host_id			integer,
   IN  p_object_type		text, -- sproc/table/cache
   IN  p_object_name		text,
