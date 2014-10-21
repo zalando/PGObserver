@@ -1,4 +1,7 @@
-﻿CREATE OR REPLACE FUNCTION sprocs_evaluate_total_performance_last_hour(
+
+-- compares the sum/avg of sproc times per host in the past hour to the sum/avg of sproc times per host in past weeks
+
+CREATE OR REPLACE FUNCTION sprocs_evaluate_total_performance_last_hour(
   IN  p_date			timestamp without time zone default NULL,
   IN  p_hour			integer default NULL,
   IN  p_is_eval_averages	boolean default 'false',
