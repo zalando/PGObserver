@@ -1,3 +1,7 @@
+﻿-- this function compares 'shards' to each other for the past day, this is the best indication that something got wrong in
+﻿-- one of the shards, like a missing index (e.g. an index that became invalid during rebuild)
+﻿
+﻿
 ﻿CREATE OR REPLACE FUNCTION sprocs_compare_shards_last_day(
   IN  p_date			timestamp without time zone default NULL,
   OUT test_name			text,
