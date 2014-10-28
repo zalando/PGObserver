@@ -1,4 +1,10 @@
-﻿CREATE OR REPLACE FUNCTION sprocs_evaluate_performance_last_hour(
+-- the most important sproc - compares function performance to historical values
+
+-- select * from sprocs_evaluate_performance_last_hour (null, null, 'false','false')
+-- select * from tmp_sprocs_summary where ss_sproc_name = 'article_get_details'
+-- select * from sprocs_evaluate_performance_last_hour ('2014-10-24'::timestamp,14, 'true','false')
+
+CREATE OR REPLACE FUNCTION sprocs_evaluate_performance_last_hour(
   IN  p_date			timestamp without time zone default NULL,
   IN  p_hour			integer default NULL,
   IN  p_is_eval_averages	boolean default 'false',
@@ -120,6 +126,21 @@ BEGIN
   update tmp_prev_sums 
      set sum_total_time = 1
    where sum_total_time = 0;	----- fix Apr14 to prevent divide by zero
+
+
+  -- insert rows for 'new functions' so they won't be ignored if heavy and don't have hisotry 
+  insert into tmp_prev_sums (ss_host_id, ss_sproc_name, weeks_cnt, sum_calls, sum_total_time )
+  select array[ss.ss_host_id], ss.ss_sproc_name, 1, 1, 1
+    from sprocs_summary ss
+   where ss.ss_date = p_date and
+	 ss.ss_hour = p_hour and
+	 not ss.ss_is_suspect and
+	 ss.ss_total_time > l_time_threshod and
+	 ss.ss_calls > 0 and
+	 not exists ( select 1 
+		      from tmp_prev_sums tmp
+		       where ss.ss_host_id = ANY(tmp.ss_host_id) and
+			     ss.ss_sproc_name = tmp.ss_sproc_name );
 
 
   -- average results over non-zero values
