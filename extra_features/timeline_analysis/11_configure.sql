@@ -1,51 +1,7 @@
--- includes our initial setup of which pairs of hosts should be combined/compared for the analysis. 
--- and the default run-time configuration values
-
-
-insert into  host_clusters select 16,13;
-insert into  host_clusters select 16,14;
-insert into  host_clusters select 16,15;
-insert into  host_clusters select 16,16;
-insert into  host_clusters select 20,17;
-insert into  host_clusters select 20,18;
-insert into  host_clusters select 20,19;
-insert into  host_clusters select 20,20;
-
-
-insert into shard_pairs select 3,10;
-insert into shard_pairs select 10,11;
-insert into shard_pairs select 11,12;
-insert into shard_pairs select 12,3;
-insert into shard_pairs select 41,42;
-insert into shard_pairs select 42,43;
-insert into shard_pairs select 43,44;
-insert into shard_pairs select 44,41;
-
-insert into shard_pairs select 13,14;
-insert into shard_pairs select 14,15;
-insert into shard_pairs select 15,16;
-insert into shard_pairs select 16,17;
-insert into shard_pairs select 17,18;
-insert into shard_pairs select 18,19;
-insert into shard_pairs select 19,20;
-insert into shard_pairs select 20,13;
-
-
-insert into shard_pairs select 8,107;
-
-insert into shard_pairs select 98,99;
-insert into shard_pairs select 99,100;
-insert into shard_pairs select 100,101;
-insert into shard_pairs select 101,102;
-insert into shard_pairs select 102,103;
-insert into shard_pairs select 103,104;
-insert into shard_pairs select 104,105;
-insert into shard_pairs select 105,98;
-
+/* default run-time configuration values */
 
 --truncate table monitoring_configuration;
---insert into monitoring_configuration select 'total_time_same_days_daily_past_samples','4', 'number of weeks back to average for comparison';
---insert into monitoring_configuration select 'total_time_same_days_daily_percent','30', 'the percent increase to trigger daily total time alert for procedures';
+
 insert into monitoring_configuration select 'total_time_same_days_hourly_past_samples','4', 'number of weeks back to average for comparison';
 insert into monitoring_configuration select 'total_time_same_days_hourly_percent','30', 'the percent increase to trigger hourly total time alert for procedures';
 insert into monitoring_configuration select 'total_time_same_days_threshold','1000000', 'minimum number of ms/hour deemed interesting';
@@ -75,12 +31,14 @@ insert into monitoring_configuration select 'shard_compare_min_total_time','1000
 insert into monitoring_configuration select 'shard_compare_min_tbl_scans','100000', 'do not check tables with less than 100,000 scans a day';
 insert into monitoring_configuration select 'shard_compare_min_factor_to_report','10', 'report only if a shard is TEN times worse than the other';
 
---insert into monitoring_configuration select 'number_of_runs_locks_loop','100', 'HOW MANY TIMES TO RUN THE LOCKS LOOP, 0 = infinate';
 
+/* setup of which pairs of hosts should be combined/compared for the "shard" analysis */
 
+-- insert into host_clusters ...
+-- insert into shard_pairs ...
 
---insert into performance_ignore_list select 46,null;
-insert into performance_ignore_list select 99,'payment_control_get_zgate_state';
+/* case some functions behave totally chaotic */
+--insert into performance_ignore_list ..
 
 
 
