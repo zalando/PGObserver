@@ -279,10 +279,23 @@ sdd_blk_write_time int8
 );
 create index on stat_database_data(sdd_host_id, sdd_timestamp);
 
+CREATE TABLE stat_bgwriter(
+    sb_timestamp                timestamp NOT NULL,
+    sb_host_id                  int NOT NULL,
+    sb_checkpoints_timed        bigint,
+    sb_checkpoints_req          bigint,
+    sb_checkpoint_write_time    double precision,
+    sb_checkpoint_sync_time     double precision,
+    sb_buffers_checkpoint       bigint,
+    sb_buffers_clean            bigint,
+    sb_maxwritten_clean         bigint,
+    sb_buffers_backend          bigint,
+    sb_buffers_backend_fsync    bigint,
+    sb_buffers_alloc            bigint,
+    sb_stats_reset              timestamp
+);
 
-
-
-
+CREATE UNIQUE INDEX ON stat_bgwriter (sb_host_id, sb_timestamp);
 
 /*
  helpers for doing mass parameterer changes
@@ -329,3 +342,4 @@ begin
   return regexp_replace(p_settings, format('"(%s)"\s?:\s?(\d+)', p_key), format('"\1": %s', p_value));
 end;
 $$ language plpgsql;
+

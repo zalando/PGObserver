@@ -1,7 +1,5 @@
 package de.zalando.pgobserver.gatherer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import de.zalando.pgobserver.gatherer.config.Config;
 import java.io.IOException;
 
 import java.sql.Connection;
@@ -15,6 +13,10 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import de.zalando.pgobserver.gatherer.config.Config;
 
 /**
  * @author  jmussler
@@ -120,7 +122,7 @@ public class Host {
         return map;
     }
 
-    public void scheduleGatheres(Config config) {
+    public void scheduleGatheres(final Config config) {
 
         LOG.info("Settings for Host " + getName() + "\n" + "Load: " + settings.getLoadGatherInterval() + " Seconds\n"
                 + "Sprocs: " + settings.getSprocGatherInterval() + " Seconds\n" + "Table IO: "
@@ -130,7 +132,8 @@ public class Host {
                 + settings.getSchemaStatsGatherInterval() + " Seconds\n" + "Blocking Stats:"
                 + settings.getBlockingStatsGatherInterval() + " Seconds\n" + "StatStatements:"
                 + settings.getStatStatementsGatherInterval() + " Seconds\n" + "StatDatabase:"
-                + settings.getStatDatabaseGatherInterval() + " Seconds\n");
+                + settings.getStatDatabaseGatherInterval() + " Seconds\n" + "Bgwriter: "
+                + settings.getStatBgwriterGatherInterval());
 
         if (gatherers.executor == null) {
             LOG.info("Adding Executor for Host: {}", name);
@@ -192,10 +195,15 @@ public class Host {
         }
 
         if (gatherers.statDatabaseGatherer == null) {
-            gatherers.statDatabaseGatherer = new StatDatabaseGatherer(this,
-                    settings.getStatDatabaseGatherInterval(), gatherers.executor);
+            gatherers.statDatabaseGatherer = new StatDatabaseGatherer(this, settings.getStatDatabaseGatherInterval(),
+                    gatherers.executor);
         } else {
             gatherers.statDatabaseGatherer.setIntervalInSeconds(settings.getStatDatabaseGatherInterval());
+        }
+
+        if (gatherers.bgwriterStatsGatherer == null) {
+            gatherers.bgwriterStatsGatherer = new BgwriterStatsGatherer("", this, gatherers.executor,
+                    settings.getStatDatabaseGatherInterval());
         }
 
         GathererApp.registerGatherer(gatherers.sprocGatherer);
@@ -268,6 +276,13 @@ public class Host {
             gatherers.statDatabaseGatherer.schedule();
         } else {
             gatherers.statDatabaseGatherer.unschedule();
+        }
+
+        if (settings.isStatBwriterGatherEnabled()) {
+            LOG.info("Schedule Bgwriter for " + getName());
+            gatherers.bgwriterStatsGatherer.schedule();
+        } else {
+            gatherers.bgwriterStatsGatherer.unschedule();
         }
     }
 }
