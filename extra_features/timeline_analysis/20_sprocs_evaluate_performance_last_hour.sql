@@ -1,8 +1,5 @@
 -- the most important sproc - compares function performance to historical values
 
--- select * from sprocs_evaluate_performance_last_hour (null, null, 'false','false')
--- select * from tmp_sprocs_summary where ss_sproc_name = 'article_get_details'
--- select * from sprocs_evaluate_performance_last_hour ('2014-10-24'::timestamp,14, 'true','false')
 
 CREATE OR REPLACE FUNCTION sprocs_evaluate_performance_last_hour(
   IN  p_date			timestamp without time zone default NULL,
@@ -161,6 +158,7 @@ BEGIN
 	      on hosts.host_id = ss.ss_host_id
 	   where ss.ss_date = p_date and
 		 ss.ss_hour = p_hour and
+	 	 ss.ss_sproc_name != ' ' and -- ignore the host totals
 		 not ss.ss_is_suspect and
 		 tmp.sum_total_time > 0 and
 		 tmp.sum_calls > 0 and
@@ -212,6 +210,7 @@ BEGIN
 	      on hosts.host_id = ss.ss_host_id
 	   where ss.ss_date = p_date and
 		 ss.ss_hour = p_hour and
+		 ss.ss_sproc_name != ' ' and -- ignore the host totals
 		 not ss.ss_is_suspect and
 		 ss.ss_total_time > l_time_threshod and
 		 tmp.sum_total_time > 0 and

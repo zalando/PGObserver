@@ -72,6 +72,7 @@ BEGIN
 	   from sprocs_summary
 	   where ss_date = case when (p_hour = 0) then p_date::date - interval '1 day' else p_date::date end
 		and ss_hour = case when (p_hour = 0) then 23 else p_hour -1 end
+		and ss_sproc_name != ' ' -- without the total host aggr  !!!
 
      ) t;
 
@@ -105,7 +106,8 @@ BEGIN
         ( select 1 
            from tmp_sprocs_summary2 
           where tmp_sprocs_summary2.ss_host_id = sprocs_summary.ss_host_id
-            and tmp_sprocs_summary2.ss_sproc_name = sprocs_summary.ss_sproc_name
+            and ( tmp_sprocs_summary2.ss_sproc_name = sprocs_summary.ss_sproc_name 
+		or  sprocs_summary.ss_sproc_name = ' ' )  -- hourly totals
             and tmp_sprocs_summary2.ss_date = p_date::date
             and tmp_sprocs_summary2.ss_hour = p_hour
             and sprocs_summary.ss_is_final = 'false');
@@ -152,6 +154,38 @@ BEGIN
              and sprocs_summary.ss_hour = curr.ss_hour
 	     and sprocs_summary.ss_is_final
          );
+
+-- handle hourly totals
+  insert into sprocs_summary (
+	ss_host_id, 
+	ss_sproc_name, 
+	ss_date,
+	ss_hour, 
+	ss_calls,
+	ss_total_time,
+	ss_orig_calls,
+	ss_orig_total_time,
+	ss_is_final,
+	ss_is_suspect
+  )
+  select 
+	curr.ss_host_id, 
+	' ', 
+	curr.ss_date,
+	curr.ss_hour, 
+	sum(ss_calls),
+	sum(ss_total_time),
+	sum(ss_orig_calls),
+	sum(ss_orig_total_time),
+	't',
+	'f'
+   from sprocs_summary curr
+   where ss_is_final
+     and not ss_is_suspect
+     and ss_date = p_date::date 
+     and ss_hour = p_hour
+   group by ss_host_id, ss_date, ss_hour;
+   
 
 END;
 $$
