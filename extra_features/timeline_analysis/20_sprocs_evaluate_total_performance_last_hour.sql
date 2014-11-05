@@ -1,5 +1,6 @@
 
 -- compares the sum/avg of sproc times per host in the past hour to the sum/avg of sproc times per host in past weeks
+-- now uses the calculated hourly totals (per host)
 
 CREATE OR REPLACE FUNCTION sprocs_evaluate_total_performance_last_hour(
   IN  p_date			timestamp without time zone default NULL,
@@ -104,6 +105,7 @@ BEGIN
 	    from sprocs_summary
 	   where ss_hour = p_hour
 	     and ss_date = ANY (l_dates_array) and
+		 ss_sproc_name = ' ' and -- just the sums per host
 		 not ss_is_suspect and
 		 not exists (select 1 
 			       from performance_ignore_list 
@@ -117,6 +119,7 @@ BEGIN
 	    from sprocs_summary
 	   where ss_hour = p_hour and
 	         ss_date = ANY (l_dates_array) and
+       		 ss_sproc_name = ' ' and -- just the sums per host
 		 not ss_is_suspect
 	  group by ss_host_id;
   end if;
@@ -131,9 +134,10 @@ BEGIN
   insert into tmp_curr_sums
   select ss_host_id, sum(ss_calls) as sum_calls, sum(ss_total_time) as sum_total_time
     from sprocs_summary
-   where ss_hour = p_hour
-     and ss_date = p_date 
-     and not ss_is_suspect 
+   where ss_hour = p_hour and
+         ss_date = p_date and
+	 ss_sproc_name = ' ' and -- just the sums per host
+	 not ss_is_suspect 
   group by ss_host_id;
 
 
@@ -155,6 +159,7 @@ BEGIN
 	      on hosts.host_id = ss.ss_host_id
 	   where ss.ss_date = p_date and
 		 ss.ss_hour = p_hour and
+		 ss_sproc_name = ' ' and -- just the sums per host
 		 not ss.ss_is_suspect and
 		 tmp.sum_total_time > 0 and
 		 tmp.sum_calls > 0 and
@@ -221,6 +226,8 @@ BEGIN
 				     (pil_object_name IS NULL)
 			    ) 
 	   ) t
+	    where 
+		not l_is_calc_for_last_hour OR is_to_be_reported (t.host_id,'sproc',' ',t.total_time)  -- check reporting threshold 
 	    order by 5 desc;
   end if;	   
 	   
