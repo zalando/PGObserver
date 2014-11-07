@@ -130,7 +130,7 @@ public class HostSettings {
     }
 
     public int getStatBgwriterGatherInterval() {
-        return statBgwriterGatherInterval;
+        return statBgwriterGatherInterval * 60;
     }
 
     public void setStatBgwriterGatherInterval(final int statBgwriterGatherInterval) {

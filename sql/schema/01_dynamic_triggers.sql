@@ -61,9 +61,9 @@ $SPROC$ language plpgsql;
 DO $$
 DECLARE
   l_tables text[] := array['sproc_performance_data', 'table_io_data', 'table_size_data', 'host_load', 'index_usage_data',
-                            'schema_usage_data', 'stat_statements_data', 'stat_database_data'];
+                            'schema_usage_data', 'stat_statements_data', 'stat_database_data', 'stat_bgwriter_data'];
   l_table_prefixes text[] := array['sp', 'tio', 'tsd', 'load', 'iud',
-                            'sud', 'ssd', 'sdd'];
+                            'sud', 'ssd', 'sdd', 'sbd'];
 BEGIN
   FOR i IN 1.. array_upper(l_tables, 1)
   LOOP

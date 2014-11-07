@@ -279,33 +279,33 @@ sdd_blk_write_time int8
 );
 create index on stat_database_data(sdd_host_id, sdd_timestamp);
 
-CREATE TABLE stat_bgwriter(
-    sb_timestamp                timestamp NOT NULL,
-    sb_host_id                  int NOT NULL,
-    sb_checkpoints_timed        bigint,
-    sb_checkpoints_req          bigint,
-    sb_checkpoint_write_time    double precision,
-    sb_checkpoint_sync_time     double precision,
-    sb_buffers_checkpoint       bigint,
-    sb_buffers_clean            bigint,
-    sb_maxwritten_clean         bigint,
-    sb_buffers_backend          bigint,
-    sb_buffers_backend_fsync    bigint,
-    sb_buffers_alloc            bigint,
-    sb_stats_reset              timestamp
+CREATE TABLE stat_bgwriter_data(
+    sbd_timestamp                timestamp NOT NULL,
+    sbd_host_id                  int NOT NULL,
+    sbd_checkpoints_timed        bigint,
+    sbd_checkpoints_req          bigint,
+    sbd_checkpoint_write_time    double precision,
+    sbd_checkpoint_sync_time     double precision,
+    sbd_buffers_checkpoint       bigint,
+    sbd_buffers_clean            bigint,
+    sbd_maxwritten_clean         bigint,
+    sbd_buffers_backend          bigint,
+    sbd_buffers_backend_fsync    bigint,
+    sbd_buffers_alloc            bigint,
+    sbd_stats_reset              timestamp
 );
 
-CREATE UNIQUE INDEX ON stat_bgwriter (sb_host_id, sb_timestamp);
+CREATE UNIQUE INDEX ON stat_bgwriter_data (sbd_host_id, sbd_timestamp);
 
 /*
  helpers for doing mass parameterer changes
  */
 
 /*
-  adds a new key or updates and existing value to input string. expects that all keys are on different lines!
+  adds a new key or updates an existing key to provided value. expects that all keys are on different lines!
 
 --select set_setting_key(E'{\n"loadGatherInterval": 10\n}', 'keyX', 1)
---select set_setting_key2(E'{\n"loadGatherInterval": 10\n}', 'loadGatherInterval', 100);
+--select set_setting_key(E'{\n"loadGatherInterval": 10\n}', 'loadGatherInterval', 100);
 */
 create or replace function set_setting_key(p_settings text, p_key text, p_value int)
 returns text
@@ -318,7 +318,7 @@ declare
 begin
   p_settings := trim(p_settings);
   if position('"'||p_key||'"' in p_settings) = 0 then
-    return regexp_replace(p_settings, E'(.*)\n}', format(E'\\1,\n"%s": %s\n}', p_key, p_value), 'g');
+    return regexp_replace(p_settings, E'^{(.*\\d)\\s*}$', format(E'{\\1,\n"%s": %s\n}', p_key, p_value), 'g');
   else
     return regexp_replace(p_settings, format('"(%s)"\s?:\s?(\d+)', p_key), format('"\1": %s', p_value));
   end if;
@@ -327,7 +327,7 @@ $$ language plpgsql;
 
 
 /*
-  updates and existing value, does not create a key if not there. expects that all keys are on different lines!
+  updates an existing key, does not create a key if not there. expects that all keys are on different lines!
 */
 create or replace function update_setting_key(p_settings text, p_key text, p_value int)
 returns text

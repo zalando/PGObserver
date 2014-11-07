@@ -133,7 +133,7 @@ public class Host {
                 + settings.getBlockingStatsGatherInterval() + " Seconds\n" + "StatStatements:"
                 + settings.getStatStatementsGatherInterval() + " Seconds\n" + "StatDatabase:"
                 + settings.getStatDatabaseGatherInterval() + " Seconds\n" + "Bgwriter: "
-                + settings.getStatBgwriterGatherInterval());
+                + settings.getStatBgwriterGatherInterval() + " Seconds");
 
         if (gatherers.executor == null) {
             LOG.info("Adding Executor for Host: {}", name);
@@ -203,7 +203,7 @@ public class Host {
 
         if (gatherers.bgwriterStatsGatherer == null) {
             gatherers.bgwriterStatsGatherer = new BgwriterStatsGatherer("", this, gatherers.executor,
-                    settings.getStatDatabaseGatherInterval());
+                    settings.getStatBgwriterGatherInterval());
         }
 
         GathererApp.registerGatherer(gatherers.sprocGatherer);

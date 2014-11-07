@@ -15,7 +15,7 @@ public class BgwriterValue {
     @DatabaseField
     int hostId;
     @DatabaseField
-    Date sbTimestamp;
+    Date logTimestamp;
     @DatabaseField
     long checkpointsTimed;
     @DatabaseField
@@ -47,12 +47,12 @@ public class BgwriterValue {
         this.hostId = hostId;
     }
 
-    public Date getSbTimestamp() {
-        return sbTimestamp;
+    public Date getLogTimestamp() {
+        return logTimestamp;
     }
 
-    public void setSbTimestamp(final Date sbTimestamp) {
-        this.sbTimestamp = sbTimestamp;
+    public void setLogTimestamp(final Date logTimestamp) {
+        this.logTimestamp = logTimestamp;
     }
 
     public long getCheckpointsTimed() {
