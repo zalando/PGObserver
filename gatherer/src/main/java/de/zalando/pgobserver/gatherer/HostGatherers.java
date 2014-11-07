@@ -16,4 +16,5 @@ public class HostGatherers {
     public BlockingStatsGatherer blockingStatsGatherer = null;
     public StatStatementsGatherer statStatementsGatherer = null;
     public StatDatabaseGatherer statDatabaseGatherer = null;
+    public ADBGatherer bgwriterStatsGatherer = null;
 }
