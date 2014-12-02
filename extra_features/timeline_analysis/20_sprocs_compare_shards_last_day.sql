@@ -16,6 +16,7 @@ DECLARE
   l_shard_compare_min_total_time integer;
   l_shard_compare_min_tbl_scans integer;
   l_shard_compare_min_factor_to_report integer;
+  l_size_threshod integer;
 BEGIN
 
 
@@ -41,6 +42,11 @@ BEGIN
     from monitoring_configuration
    where mc_config_name = 'shard_compare_min_factor_to_report'
     into l_shard_compare_min_factor_to_report;
+
+  select mc_config_value::integer
+    from monitoring_configuration
+   where mc_config_name = 'size_same_days_threshold'
+    into l_size_threshod;
 
 	  RETURN QUERY
     -- increase in avg time
@@ -125,7 +131,7 @@ BEGIN
 	 where ( ((1.0*a.ts_seq_scans) > (1.0*b.ts_seq_scans) *l_shard_compare_min_factor_to_report) OR ((1.0*a.ts_seq_scans)*l_shard_compare_min_factor_to_report < (1.0*b.ts_seq_scans)) )
 	   and (a.ts_seq_scans > l_shard_compare_min_tbl_scans or b.ts_seq_scans > l_shard_compare_min_tbl_scans)
 	   and a.ts_date = p_date
-
+           and a.ts_orig_table_size > l_size_threshod
 	 order by test_name, ratio desc, shard1, shard2, object_name ;
 
            
