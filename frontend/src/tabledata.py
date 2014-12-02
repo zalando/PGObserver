@@ -67,7 +67,6 @@ def getSizeTrendSQL(host_id, days='8'):
 def getDatabaseSizes(host_id = None, days='8'):
     size_data = {}
     current_host = 0
-    last_timestamp = None
 
     for record in datadb.execute(getSizeTrendSQL(host_id, days)):
 
@@ -80,10 +79,6 @@ def getDatabaseSizes(host_id = None, days='8'):
             l_ins = None
             l_upd = None
             l_del = None
-            last_timestamp = None
-
-        if last_timestamp == None:
-            last_timestamp = int(time.mktime(record['tsd_timestamp'].timetuple()) * 1000)
 
         if not record['tsd_host_id'] in size_data:
             size_data[record['tsd_host_id']] = { 'size' : [] , 'ins': [], 'upd': [], 'del':[] }
@@ -119,8 +114,6 @@ def getDatabaseSizes(host_id = None, days='8'):
         l_ins = record['s_ins']
         l_upd = record['s_upd']
         l_del = record['s_del']
-
-        last_timestamp = int(time.mktime(record['tsd_timestamp'].timetuple()) * 1000)
 
     return size_data
 
@@ -198,30 +191,25 @@ def getTableIOData(host, name, interval = None):
     last_hh = None
     last_ir = None
     last_ih = None
-    last_timestamp = 0
 
     for r in cur:
 
-        if int(time.mktime(r['tio_timestamp'].timetuple()) * 1000) - last_timestamp <= ( 15*60*1000 ):
-            if last_hr != None:
-                d['heap_read'].append(( r['tio_timestamp'] , r['tio_heap_read'] - last_hr ))
+        if last_hr != None:
+            d['heap_read'].append(( r['tio_timestamp'] , r['tio_heap_read'] - last_hr ))
 
-            if last_hh != None:
-                d['heap_hit'].append(( r['tio_timestamp'] , r['tio_heap_hit'] - last_hh ))
+        if last_hh != None:
+            d['heap_hit'].append(( r['tio_timestamp'] , r['tio_heap_hit'] - last_hh ))
 
-            if last_ir != None:
-                d['index_read'].append(( r['tio_timestamp'] , r['tio_idx_read'] - last_ir ))
+        if last_ir != None:
+            d['index_read'].append(( r['tio_timestamp'] , r['tio_idx_read'] - last_ir ))
 
-            if last_ih != None:
-                d['index_hit'].append(( r['tio_timestamp'] , r['tio_idx_hit'] - last_ih ))
+        if last_ih != None:
+            d['index_hit'].append(( r['tio_timestamp'] , r['tio_idx_hit'] - last_ih ))
 
         last_hr = r['tio_heap_read']
         last_hh = r['tio_heap_hit']
         last_ir = r['tio_idx_read']
         last_ih = r['tio_idx_hit']
-
-        last_timestamp = int(time.mktime(r['tio_timestamp'].timetuple()) * 1000)
-
 
     cur.close()
     datadb.closeDataConnection(conn)
