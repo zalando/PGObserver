@@ -69,7 +69,7 @@ class ShowTable(object):
             graph_t_del.addPoint("count", int(time.mktime(p[0].timetuple()) * 1000) , p[1])
 
 
-        data = tabledata.getTableIOData(hostId, name)
+        data = tabledata.getTableIOData(hostId, name, interval)
 
         graph_index_iob = flotgraph.Graph ("graphindexiob","right")
         graph_index_iob.addSeries("Index_hit","ihit")

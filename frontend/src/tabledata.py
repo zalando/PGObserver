@@ -250,24 +250,23 @@ def getTableData(host, name, interval = None):
         d['table_size'].append ( ( r['tsd_timestamp'] , r['tsd_table_size'] ) )
         d['index_size'].append ( ( r['tsd_timestamp'] , r['tsd_index_size'] ) )
 
-        if int(time.mktime(r['tsd_timestamp'].timetuple()) * 1000) - last_timestamp <= ( 15*60*1000 ):
-            if last_ss != None:
-                d['seq_scans'].append  ( ( r['tsd_timestamp'] , r['tsd_seq_scans']-last_ss ) )
+        if last_ss != None:
+            d['seq_scans'].append  ( ( r['tsd_timestamp'] , r['tsd_seq_scans']-last_ss ) )
 
-            if last_is != None:
-                d['index_scans'].append( ( r['tsd_timestamp'] , r['tsd_index_scans'] - last_is ) )
+        if last_is != None:
+            d['index_scans'].append( ( r['tsd_timestamp'] , r['tsd_index_scans'] - last_is ) )
 
-            if last_ins != None and last_ins != 0:
-                d['ins'].append( ( r['tsd_timestamp'] , r['tsd_tup_ins'] - last_ins ) )
+        if last_ins != None and last_ins != 0:
+            d['ins'].append( ( r['tsd_timestamp'] , r['tsd_tup_ins'] - last_ins ) )
 
-            if last_del != None and last_del != 0:
-                d['del'].append( ( r['tsd_timestamp'] , r['tsd_tup_del'] - last_del ) )
+        if last_del != None and last_del != 0:
+            d['del'].append( ( r['tsd_timestamp'] , r['tsd_tup_del'] - last_del ) )
 
-            if last_upd != None and last_upd != 0:
-                d['upd'].append( ( r['tsd_timestamp'] , r['tsd_tup_upd'] - last_upd ) )
+        if last_upd != None and last_upd != 0:
+            d['upd'].append( ( r['tsd_timestamp'] , r['tsd_tup_upd'] - last_upd ) )
 
-            if last_hot != None and last_hot != 0:
-                d['hot'].append( ( r['tsd_timestamp'] , r['tsd_tup_hot_upd'] - last_hot ) )
+        if last_hot != None and last_hot != 0:
+            d['hot'].append( ( r['tsd_timestamp'] , r['tsd_tup_hot_upd'] - last_hot ) )
 
         last_is = r['tsd_index_scans']
         last_ss = r['tsd_seq_scans']
