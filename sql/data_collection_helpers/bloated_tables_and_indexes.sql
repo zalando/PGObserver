@@ -24,7 +24,7 @@ DECLARE
     SELECT
       schemaname::text,
       tblname::text,
-      bloat_ratio::numeric,
+      round(bloat_ratio::numeric, 1),
       bloat_size::numeric,
       pg_size_pretty(bloat_size::int8)
     FROM (

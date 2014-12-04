@@ -86,7 +86,7 @@ GRANT EXECUTE ON FUNCTION monitor_data.create_partitioned_table(text, text, text
 
 --DROP FUNCTION IF EXISTS monitor_data.clean_up_partitioned_tables();
 
-CREATE OR REPLACE FUNCTION monitor_data.clean_up_partitioned_tables(p_month_to_keep text, p_dry_run boolean default true)
+CREATE OR REPLACE FUNCTION monitor_data.clean_up_partitioned_tables(p_yyyymm_to_keep text, p_dry_run boolean default true)
   RETURNS VOID AS
 $BODY$
 DECLARE
@@ -95,15 +95,57 @@ DECLARE
   l_rec record;
 BEGIN
 
-  IF length(p_month_to_keep) != 6 THEN
-    RAISE EXCEPTION 'p_month_to_keep needs to be XXXXYY';
+  IF length(p_yyyymm_to_keep) != 6 THEN
+    RAISE EXCEPTION 'p_yyyymm_to_keep is meant to be in YYYYMM format';
   END IF;
 
   FOR l_rec IN (
     SELECT tablename, regexp_replace(tablename, E'\\D+','') as date
       FROM pg_tables
      WHERE schemaname = 'monitor_data_partitions'
-       AND regexp_replace(tablename, E'\\D+','') < p_month_to_keep
+       AND regexp_replace(tablename, E'\\D+','') < p_yyyymm_to_keep
+       AND length(regexp_replace(tablename, E'\\D+','')) = 6
+  )
+  LOOP
+    l_drop_string := 'DROP TABLE monitor_data_partitions.' || l_rec.tablename || ' CASCADE';
+    if p_dry_run then
+      RAISE WARNING 'would drop: %', l_rec.tablename;
+    else
+      RAISE WARNING 'dropping: %', l_rec.tablename;
+      EXECUTE l_drop_string;
+    end if;
+
+  END LOOP;
+
+END;
+$BODY$
+LANGUAGE plpgsql;
+
+/*
+
+cleans up older data partitions - should run from somekind of monthly cron
+
+*/
+CREATE OR REPLACE FUNCTION monitor_data.clean_up_partitioned_tables(p_months_to_keep int default 6, p_dry_run boolean default true)
+  RETURNS VOID AS
+$BODY$
+DECLARE
+  l_drop_string text;
+  l_yyyymm_to_keep text;
+  l_rec record;
+BEGIN
+
+  IF p_months_to_keep < 2 THEN
+    RAISE EXCEPTION 'p_months_to_keep needs to be >= 2';
+  END IF;
+
+  l_yyyymm_to_keep := to_char(date_trunc('month', now() - (p_months_to_keep||' months')::interval ), 'YYYYMM');
+
+  FOR l_rec IN (
+    SELECT tablename, regexp_replace(tablename, E'\\D+','') as date
+      FROM pg_tables
+     WHERE schemaname = 'monitor_data_partitions'
+       AND regexp_replace(tablename, E'\\D+','') < l_yyyymm_to_keep
        AND length(regexp_replace(tablename, E'\\D+','')) = 6
   )
   LOOP
