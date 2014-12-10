@@ -22,11 +22,17 @@ import org.slf4j.LoggerFactory;
 public class GathererApp extends ServerResource {
 
     public static final List<AGatherer> ListOfRunnableChecks = new LinkedList<>();
+
+    public static Map<Integer, Host> hosts = null;
     
     public static final Logger LOG =  LoggerFactory.getLogger(GathererApp.class);
 
     public static void registerGatherer(final AGatherer a) {
         ListOfRunnableChecks.add(a);
+    }
+
+    public static void unRegisterGatherer(final AGatherer a) {
+        ListOfRunnableChecks.remove(a);
     }
 
     /**
@@ -45,14 +51,20 @@ public class GathererApp extends ServerResource {
         LOG.info("Connection to db:{} using user: {}", config.database.host, config.database.backend_user);
         
         DBPools.initializePool(config);
-        
-        Map<Integer, Host> hosts = Host.LoadAllHosts(config);
 
-        for (Host h : hosts.values()) {
+        GathererApp.hosts = Host.LoadAllHosts(config);
+
+        for (Host h : GathererApp.hosts.values()) {
             h.scheduleGatheres(config);
         }
 
+        Thread configCheckerThread = new Thread(new ConfigChecker(GathererApp.hosts, config));
+        configCheckerThread.setDaemon(true);
+        configCheckerThread.start();
+        LOG.info("ConfigChecker thread started");
+
         try {
+            LOG.info("Starting restlet server");
             new Server(Protocol.HTTP, 8182, GathererApp.class).start();
         } catch (Exception ex) {
             LOG.error("Could not start restlet server", ex);
@@ -67,7 +79,10 @@ public class GathererApp extends ServerResource {
                 result += ",";
             }
 
-            result += "{ \"name\": \"" + g.getName() + "\", \"last_run\": " + g.getLastRunFinishedInSeconds()
+            result += "{ \"host_id\" : \"" + ((ADBGatherer)g).host.id
+                    + "\", \"host_name\": \"" + g.getHostName()
+                    + "\", \"gatherer_name\": \"" + g.getGathererName()
+                    + "\", \"last_run\": " + g.getLastRunFinishedInSeconds()
                     + ", \"run_time\" : " + (g.getLastRunFinishedInSeconds() - g.getLastRunInSeconds())
                     + ", \"next_run\" : " + (g.getNextRunInSeconds())
                     + ", \"last_persist\" : " + ( g.getLastSuccessfullPersist() ) + "} ";
@@ -75,4 +90,5 @@ public class GathererApp extends ServerResource {
 
         return "{ \"current_time\" : " + System.currentTimeMillis() / 1000 + " , \"jobs\": [" + result + "] }";
     }
+
 }

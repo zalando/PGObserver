@@ -34,6 +34,7 @@ public class Host {
     public String settingsAsString;
     private HostSettings settings = new HostSettings();
     private final HostGatherers gatherers = new HostGatherers();
+    // public Map<String, ADBGatherer> gatherersMap = new HashMap<>(); TODO
 
     private static final Logger LOG = LoggerFactory.getLogger(Host.class);
 
@@ -142,6 +143,7 @@ public class Host {
 
         if (gatherers.sprocGatherer == null) {
             gatherers.sprocGatherer = new SprocGatherer(this, settings.getSprocGatherInterval(), gatherers.executor);
+            GathererApp.registerGatherer(gatherers.sprocGatherer);
         } else {
             gatherers.sprocGatherer.setIntervalInSeconds(settings.getSprocGatherInterval());
         }
@@ -149,6 +151,7 @@ public class Host {
         if (gatherers.tableStatsGatherer == null) {
             gatherers.tableStatsGatherer = new TableStatsGatherer(this, settings.getTableStatsGatherInterval(),
                     gatherers.executor);
+            GathererApp.registerGatherer(gatherers.tableStatsGatherer);
         } else {
             gatherers.tableStatsGatherer.setIntervalInSeconds(settings.getTableStatsGatherInterval());
         }
@@ -156,6 +159,7 @@ public class Host {
         if (gatherers.indexStatsGatherer == null) {
             gatherers.indexStatsGatherer = new IndexStatsGatherer(this, settings.getIndexStatsGatherInterval(),
                     gatherers.executor);
+            GathererApp.registerGatherer(gatherers.indexStatsGatherer);
         } else {
             gatherers.indexStatsGatherer.setIntervalInSeconds(settings.getIndexStatsGatherInterval());
         }
@@ -163,12 +167,14 @@ public class Host {
         if (gatherers.schemaStatsGatherer == null) {
             gatherers.schemaStatsGatherer = new SchemaStatsGatherer(this, settings.getSchemaStatsGatherInterval(),
                     gatherers.executor);
+            GathererApp.registerGatherer(gatherers.schemaStatsGatherer);
         } else {
             gatherers.schemaStatsGatherer.setIntervalInSeconds(settings.getSchemaStatsGatherInterval());
         }
 
         if (gatherers.loadGatherer == null) {
             gatherers.loadGatherer = new LoadGatherer(this, settings.getLoadGatherInterval(), gatherers.executor);
+            GathererApp.registerGatherer(gatherers.loadGatherer);
         } else {
             gatherers.loadGatherer.setIntervalInSeconds(settings.getLoadGatherInterval());
         }
@@ -176,6 +182,7 @@ public class Host {
         if (gatherers.tableIOStatsGatherer == null) {
             gatherers.tableIOStatsGatherer = new TableIOStatsGatherer(this, settings.getTableIoStatsGatherInterval(),
                     gatherers.executor);
+            GathererApp.registerGatherer(gatherers.tableIOStatsGatherer);
         } else {
             gatherers.tableIOStatsGatherer.setIntervalInSeconds(settings.getTableIoStatsGatherInterval());
         }
@@ -183,6 +190,7 @@ public class Host {
         if (gatherers.blockingStatsGatherer == null) {
             gatherers.blockingStatsGatherer = new BlockingStatsGatherer(this, settings.getBlockingStatsGatherInterval(),
                     gatherers.executor);
+            GathererApp.registerGatherer(gatherers.blockingStatsGatherer);
         } else {
             gatherers.schemaStatsGatherer.setIntervalInSeconds(settings.getBlockingStatsGatherInterval());
         }
@@ -190,6 +198,7 @@ public class Host {
         if (gatherers.statStatementsGatherer == null) {
             gatherers.statStatementsGatherer = new StatStatementsGatherer(this,
                     settings.getStatStatementsGatherInterval(), gatherers.executor);
+            GathererApp.registerGatherer(gatherers.statStatementsGatherer);
         } else {
             gatherers.statStatementsGatherer.setIntervalInSeconds(settings.getStatStatementsGatherInterval());
         }
@@ -197,6 +206,7 @@ public class Host {
         if (gatherers.statDatabaseGatherer == null) {
             gatherers.statDatabaseGatherer = new StatDatabaseGatherer(this, settings.getStatDatabaseGatherInterval(),
                     gatherers.executor);
+            GathererApp.registerGatherer(gatherers.statDatabaseGatherer);
         } else {
             gatherers.statDatabaseGatherer.setIntervalInSeconds(settings.getStatDatabaseGatherInterval());
         }
@@ -204,85 +214,85 @@ public class Host {
         if (gatherers.bgwriterStatsGatherer == null) {
             gatherers.bgwriterStatsGatherer = new BgwriterStatsGatherer("", this, gatherers.executor,
                     settings.getStatBgwriterGatherInterval());
+            GathererApp.registerGatherer(gatherers.bgwriterStatsGatherer);
         }
 
-        GathererApp.registerGatherer(gatherers.sprocGatherer);
-        GathererApp.registerGatherer(gatherers.tableStatsGatherer);
-        GathererApp.registerGatherer(gatherers.loadGatherer);
-        GathererApp.registerGatherer(gatherers.indexStatsGatherer);
-        GathererApp.registerGatherer(gatherers.schemaStatsGatherer);
-        GathererApp.registerGatherer(gatherers.blockingStatsGatherer);
-        GathererApp.registerGatherer(gatherers.statStatementsGatherer);
-        GathererApp.registerGatherer(gatherers.statDatabaseGatherer);
 
         if (settings.isSprocGatherEnabled()) {
             LOG.info("Schedule SprocGather for {}", getName());
             gatherers.sprocGatherer.schedule();
-        } else {
-            gatherers.sprocGatherer.unschedule();
         }
 
         if (settings.isLoadGatherEnabled()) {
             LOG.info("Schedule LoadGather for {}", getName());
             gatherers.loadGatherer.schedule();
-        } else {
-            gatherers.loadGatherer.unschedule();
         }
 
         if (settings.isTableIoStatsGatherEnabled()) {
             LOG.info("Schedule TableIO for {}", getName());
             gatherers.tableIOStatsGatherer.schedule();
-        } else {
-            gatherers.tableIOStatsGatherer.unschedule();
         }
 
         if (settings.isTableStatsGatherEnabled()) {
             LOG.info("Schedule TableStats for {}", getName());
             gatherers.tableStatsGatherer.schedule();
-        } else {
-            gatherers.tableStatsGatherer.unschedule();
         }
 
         if (settings.isIndexStatsGatherEnabled()) {
             LOG.info("Schedule IndexStats for " + getName());
             gatherers.indexStatsGatherer.schedule();
-        } else {
-            gatherers.indexStatsGatherer.unschedule();
         }
 
         if (settings.isSchemaStatsGatherEnabled()) {
             LOG.info("Schedule SchemaStats for " + getName());
             gatherers.schemaStatsGatherer.schedule();
-        } else {
-            gatherers.schemaStatsGatherer.unschedule();
         }
 
         if (settings.isBlockingStatsGatherEnabled()) {
             LOG.info("Schedule BlockingStats for " + getName());
             gatherers.blockingStatsGatherer.schedule();
-        } else {
-            gatherers.blockingStatsGatherer.unschedule();
         }
 
         if (settings.isStatStatementsGatherEnabled()) {
             LOG.info("Schedule StatStatement for " + getName());
             gatherers.statStatementsGatherer.schedule();
-        } else {
-            gatherers.statStatementsGatherer.unschedule();
         }
 
         if (settings.isStatDatabaseGatherEnabled()) {
             LOG.info("Schedule StatDatabase for " + getName());
             gatherers.statDatabaseGatherer.schedule();
-        } else {
-            gatherers.statDatabaseGatherer.unschedule();
         }
 
         if (settings.isStatBwriterGatherEnabled()) {
             LOG.info("Schedule Bgwriter for " + getName());
             gatherers.bgwriterStatsGatherer.schedule();
-        } else {
-            gatherers.bgwriterStatsGatherer.unschedule();
         }
     }
+
+    public void removeGatherers() {
+        LOG.info("Removing gatherers for host {}", this.id);
+        if (this.gatherers.executor == null)
+            return;
+
+        try {
+            this.gatherers.executor.shutdown();
+            this.gatherers.executor = null;
+
+            // TODO turn into a generic list
+            GathererApp.unRegisterGatherer(gatherers.sprocGatherer);
+            GathererApp.unRegisterGatherer(gatherers.tableStatsGatherer);
+            GathererApp.unRegisterGatherer(gatherers.loadGatherer);
+            GathererApp.unRegisterGatherer(gatherers.indexStatsGatherer);
+            GathererApp.unRegisterGatherer(gatherers.schemaStatsGatherer);
+            GathererApp.unRegisterGatherer(gatherers.blockingStatsGatherer);
+            GathererApp.unRegisterGatherer(gatherers.statStatementsGatherer);
+            GathererApp.unRegisterGatherer(gatherers.statDatabaseGatherer);
+        }
+        catch (Exception e) {
+            LOG.error(e.getMessage());
+        }
+        LOG.info("Gatherers successfully removed for host {}", this.id);
+
+    }
+
 }

@@ -43,6 +43,7 @@ public class DBPools {
                 // check if we can connect to our database
                 @SuppressWarnings("unused")
                 Connection tryConn = pgObserverDatasource.getConnection();
+                tryConn.close();
             } catch (SQLException ex) {
                 LOG.error("Error during BoneCP pool creation, exiting", ex);
                 System.exit(1);

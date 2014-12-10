@@ -78,7 +78,7 @@ public class TableIOStatsGatherer extends ADBGatherer {
 
             for (Entry<Long, List<TableIOStatsValue>> toStore : valueStore.entrySet()) {
                 for (TableIOStatsValue v : toStore.getValue()) {
-                    // Logger.getLogger(SprocGatherer.class.getName()).log(Level.INFO, v.schema + "." + v.name);
+                    // Logger.getLogger(SprocGatherer.class.getHostName()).log(Level.INFO, v.schema + "." + v.name);
 
                     int id = idCache.getId(conn, v.schema, v.name);
 

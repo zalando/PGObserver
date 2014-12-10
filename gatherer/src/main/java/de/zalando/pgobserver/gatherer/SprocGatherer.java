@@ -154,7 +154,7 @@ public class SprocGatherer extends ADBGatherer {
 
             valueStore.clear();
 
-            LOG.info("[{}] Sprocs read: {} Sprocs written: {}", getName(), sprocsRead, sprocValuesInserted);
+            LOG.info("[{}] Sprocs read: {} Sprocs written: {}", getHostName(), sprocsRead, sprocValuesInserted);
 
             return true;
         } catch (SQLException se) {

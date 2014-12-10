@@ -51,8 +51,12 @@ public abstract class AGatherer implements Runnable {
         lastSuccessfullPersistInSeconds = System.currentTimeMillis() / 1000;
     }
 
-    public String getName() {
+    public String getHostName() {
         return hostName;
+    }
+
+    public String getGathererName() {
+        return gathererName;
     }
 
     public boolean isOk() {

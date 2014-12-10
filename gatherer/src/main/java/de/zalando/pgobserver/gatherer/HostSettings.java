@@ -141,4 +141,8 @@ public class HostSettings {
         return this.statBgwriterGatherInterval > 0;
     }
 
+    @Override
+    public String toString() {
+        return String.format("{ \"getLoadGatherInterval\": %s}", this.getLoadGatherInterval());
+    }
 }
