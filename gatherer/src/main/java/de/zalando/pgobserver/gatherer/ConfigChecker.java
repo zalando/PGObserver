@@ -11,7 +11,7 @@ import java.util.Map;
 
 
 public class ConfigChecker implements Runnable {
-    private static final long CONFIG_CHECK_INTERVAL_MILLIS = 300000;    // 5min
+    public static final long CONFIG_CHECK_INTERVAL_SECONDS = 600;    // 10min
 
     private Map<Integer, Host> hosts;
     private Config config;
@@ -28,13 +28,13 @@ public class ConfigChecker implements Runnable {
         while (true) {
 
             try {
-                Thread.sleep(CONFIG_CHECK_INTERVAL_MILLIS);
+                Thread.sleep(CONFIG_CHECK_INTERVAL_SECONDS * 1000);
 
                 Map<Integer, Host> hosts_new = Host.LoadAllHosts(config);
 
                 applyConfigChangesIfAny(hosts_new);
 
-                LOG.error("finished checking new config settings. sleeping for {} ms", CONFIG_CHECK_INTERVAL_MILLIS);
+                LOG.error("finished checking new config settings. sleeping for {} s", CONFIG_CHECK_INTERVAL_SECONDS);
             } catch (InterruptedException ie) {
                 LOG.error("", ie);
             }
@@ -67,7 +67,8 @@ public class ConfigChecker implements Runnable {
             {
                 Boolean changeDetected = false;
                 HostSettings settings = h.getSettings();
-                HostSettings settingsOld = this.hosts.get(h.id).getSettings();
+                Host hostOld = this.hosts.get(h.id);
+                HostSettings settingsOld = hostOld.getSettings();
 
                 if (settings.getBlockingStatsGatherInterval() != settingsOld.getBlockingStatsGatherInterval()
                         || settings.getIndexStatsGatherInterval() != settingsOld.getIndexStatsGatherInterval()
@@ -80,12 +81,17 @@ public class ConfigChecker implements Runnable {
                         || settings.getTableIoStatsGatherInterval() != settingsOld.getTableIoStatsGatherInterval()
                         || settings.getTableStatsGatherInterval() != settingsOld.getTableStatsGatherInterval()
                         || settings.getUseTableSizeApproximation() != settingsOld.getUseTableSizeApproximation()
+                        || !h.name.equalsIgnoreCase(hostOld.name)
+                        || h.port != hostOld.port
+                        || !h.dbname.equalsIgnoreCase(hostOld.dbname)
+                        || !h.user.equalsIgnoreCase(hostOld.user)
+                        || !h.password.equalsIgnoreCase(hostOld.password)
                         )
                     changeDetected = true;
 
                 if (changeDetected) {
                     LOG.info("change in config values detected for host {}. restarting scheduling", h.id);
-                    this.hosts.get(h.id).removeGatherers();
+                    hostOld.removeGatherers();
                     this.hosts.put(h.id, h);
                     h.scheduleGatheres(config);
                 }

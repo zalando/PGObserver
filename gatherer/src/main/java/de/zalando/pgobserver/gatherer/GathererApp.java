@@ -61,7 +61,7 @@ public class GathererApp extends ServerResource {
         Thread configCheckerThread = new Thread(new ConfigChecker(GathererApp.hosts, config));
         configCheckerThread.setDaemon(true);
         configCheckerThread.start();
-        LOG.info("ConfigChecker thread started");
+        LOG.info("ConfigChecker thread started with check interval of {}s", ConfigChecker.CONFIG_CHECK_INTERVAL_SECONDS);
 
         try {
             LOG.info("Starting restlet server");
