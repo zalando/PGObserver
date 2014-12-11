@@ -74,7 +74,7 @@ public class TableStatsGatherer extends ADBGatherer {
             conn.close(); // we close here, because we are done
             conn = null;
 
-            LOG.info("[{0}] finished getting table size data",host.name);
+            LOG.info("[{}] finished getting table size data",host.name);
 
             conn = DBPools.getDataConnection();
 

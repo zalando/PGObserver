@@ -69,7 +69,7 @@ public class IndexStatsGatherer extends ADBGatherer {
             conn.close(); // we close here, because we are done
             conn = null;
 
-            LOG.info("[{0}] finished getting index data",host.name);
+            LOG.info("[{}] finished getting index data",host.name);
 
             conn = DBPools.getDataConnection();
 

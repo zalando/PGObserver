@@ -16,7 +16,7 @@ public class ConfigChecker implements Runnable {
     private Map<Integer, Host> hosts;
     private Config config;
 
-    private static final Logger LOG = LoggerFactory.getLogger(SprocGatherer.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConfigChecker.class);
 
     public ConfigChecker(Map<Integer, Host> hosts, Config config) {
         this.hosts = hosts;

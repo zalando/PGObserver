@@ -92,7 +92,7 @@ public abstract class AGatherer implements Runnable {
             LOG.log(Level.SEVERE, "Schedule: Interval {0} for Host: {1}", new Object[]{intervalInSeconds, hostName});
             executor.scheduleAtFixedRate(this, 1, intervalInSeconds, TimeUnit.SECONDS);
         } else {
-            LOG.log(Level.SEVERE, "Interval 0 for Host: {0}", hostName);
+            LOG.log(Level.SEVERE, "Interval 0 for Host: {}", hostName);
         }
     }
 
