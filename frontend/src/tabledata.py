@@ -7,12 +7,13 @@ import tplE
 from psycopg2.extensions import adapt
 
 
-def getSizeTrendSQL(host_id, days='8'):
+def getSizeTrendSQL(host_id=None, days='8'):
     days += 'days'
+    host_id = str(adapt(host_id)) if host_id else 'NULL'
     sql = """
         SELECT
           tsda_timestamp AS tsd_timestamp,
-          """ + str(adapt(host_id)) + """ AS tsd_host_id,
+          tsda_host_id AS tsd_host_id,
           tsda_db_size AS size,
           tsda_tup_ins AS s_ins,
           tsda_tup_upd AS s_upd,
@@ -22,14 +23,14 @@ def getSizeTrendSQL(host_id, days='8'):
         WHERE
           tsda_timestamp > now() - """ + str(adapt(days)) + """::interval
           AND tsda_timestamp < now() - '2 hours'::interval
-          AND tsda_host_id = """ + str(adapt(host_id)) + """
+          AND (""" + host_id + """ IS NULL OR tsda_host_id = """ + host_id + """)
         UNION ALL
         SELECT
           *
         FROM
           ( SELECT
               tsd_timestamp,
-              """ + str(adapt(host_id)) + """ AS tsd_host_id,
+              tsd_host_id,
               SUM(tsd_table_size)+SUM(tsd_index_size) AS size,
               SUM(tsd_tup_ins) AS s_ins,
               SUM(tsd_tup_upd) AS s_upd,
@@ -38,33 +39,33 @@ def getSizeTrendSQL(host_id, days='8'):
               monitor_data.table_size_data
             WHERE
               tsd_timestamp >= now() - '2 hours'::interval
-              AND tsd_host_id = """ + str(adapt(host_id)) + """
+              AND (""" + host_id + """ IS NULL OR tsd_host_id = """ + host_id + """)
             GROUP BY
-              tsd_timestamp
+              tsd_host_id, tsd_timestamp
             ORDER BY
-              tsd_timestamp
+              tsd_host_id, tsd_timestamp
           ) a
         """
     if not tplE._settings['run_aggregations']:
         sql = """SELECT
                     tsd_timestamp,
-                    """ + str(adapt(host_id)) + """ AS tsd_host_id,
+                    tsd_host_id,
                     ( SUM(tsd_table_size)+SUM(tsd_index_size) ) AS size,
                     SUM(tsd_tup_ins) AS s_ins,
                     SUM(tsd_tup_upd) AS s_upd,
                     SUM(tsd_tup_del) AS s_del
                 FROM monitor_data.table_size_data
-                WHERE tsd_timestamp > 'now'::timestamp - """ + str(adapt(days)) + """::interval
-                AND tsd_host_id = """ + str(adapt(host_id)) + """
-              GROUP BY tsd_timestamp
-              ORDER BY tsd_timestamp
+                WHERE tsd_timestamp > now() - """ + str(adapt(days)) + """::interval
+                AND (""" + host_id + """ IS NULL OR tsd_host_id = """ + host_id + """)
+              GROUP BY tsd_host_id, tsd_timestamp
+              ORDER BY tsd_host_id, tsd_timestamp
               """
 
     return sql
 
 
 
-def getDatabaseSizes(host_id = None, days='8'):
+def getDatabaseSizes(host_id=None, days='8'):
     size_data = {}
     current_host = 0
 
@@ -272,8 +273,10 @@ def getTableData(host, name, interval = None):
     return d
 
 
-def getTopTables(hostId, date_from, date_to, order=2, limit=10):
+def getTopTables(hostId, date_from, date_to, order=None, limit=10):
     limit_sql = "" if limit is None else """ LIMIT """ + str(adapt(limit))
+    if not order:
+        order = 2   # size
 
     order_by_sql = { 1: "ORDER BY schema ASC,name ASC ",
               2: "ORDER BY table_size DESC" ,
@@ -293,15 +296,18 @@ def getTopTables(hostId, date_from, date_to, order=2, limit=10):
         with
         q_min_max_timestamps AS (
               SELECT
+                tsd_host_id as host_id,
                 MIN(tsd_timestamp) AS min_date,
                 MAX(tsd_timestamp) AS max_date
               FROM monitor_data.table_size_data
-              WHERE tsd_host_id = %s
+              WHERE (%s is null or tsd_host_id = %s)
               AND tsd_timestamp >= %s::timestamp
               AND tsd_timestamp <= %s::timestamp
+              GROUP BY 1
         ),
         q_min_sizes AS (
               SELECT
+                tsd_host_id,
                 tsd_table_id,
                 tsd_table_size as min_table_size,
                 tsd_index_size as min_index_size,
@@ -312,13 +318,13 @@ def getTopTables(hostId, date_from, date_to, order=2, limit=10):
                 tsd_tup_del as min_d
               FROM
                 monitor_data.table_size_data st
-                JOIN q_min_max_timestamps on true
+                JOIN q_min_max_timestamps on q_min_max_timestamps.host_id = st.tsd_host_id
               WHERE
-                st.tsd_host_id = %s
-                AND st.tsd_timestamp = q_min_max_timestamps.min_date
+                st.tsd_timestamp = q_min_max_timestamps.min_date
         ),
         q_max_sizes AS (
               SELECT
+                tsd_host_id,
                 tsd_table_id,
                 tsd_table_size as max_table_size,
                 tsd_index_size as max_index_size,
@@ -329,15 +335,15 @@ def getTopTables(hostId, date_from, date_to, order=2, limit=10):
                 tsd_tup_del as max_d
               FROM
                 monitor_data.table_size_data st
-                JOIN q_min_max_timestamps on true
+                JOIN q_min_max_timestamps on q_min_max_timestamps.host_id = st.tsd_host_id
               WHERE
-                st.tsd_host_id = %s
-                AND st.tsd_timestamp = q_min_max_timestamps.max_date
+                st.tsd_timestamp = q_min_max_timestamps.max_date
         )
         SELECT
         *
         FROM (
         SELECT
+          q_max_sizes.tsd_host_id as host_id,
           t_schema AS schema,
           t_name AS name,
           q_max_sizes.max_table_size AS table_size,
@@ -357,12 +363,10 @@ def getTopTables(hostId, date_from, date_to, order=2, limit=10):
           q_min_sizes ON q_min_sizes.tsd_table_id = q_max_sizes.tsd_table_id
           JOIN
           monitor_data.tables ON t_id = q_max_sizes.tsd_table_id
-        WHERE
-          t_host_id = %s
         ) t
         """ + order_by_sql + limit_sql
 
-    list = datadb.execute(sql, (hostId, date_from, date_to, hostId, hostId, hostId))
+    list = datadb.execute(sql, (hostId, hostId, date_from, date_to))
     for d in list:
 
         d['table_size_pretty'] = makePrettySize( d['table_size'] )
@@ -383,6 +387,7 @@ def getTopTables(hostId, date_from, date_to, order=2, limit=10):
         d['i_delta'] =  makePrettyCounter(d['i_delta'])
         d['u_delta'] =  makePrettyCounter(d['u_delta'])
         d['d_delta'] =  makePrettyCounter(d['d_delta'])
+        # d['hostuiname'] = hosts.getHostData()[]['host_ui_longname']
 
     return list
 

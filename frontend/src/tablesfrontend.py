@@ -121,13 +121,26 @@ class TableFrontend(object):
     def __init__(self):
         self.show = ShowTable()
 
-    def index(self):
-        systems = self.get_data()
+    def index(self, order='2', date_from=None, date_to=None, limit=50, show=None):
+        """ top tables over all dbs """
+        order = int(order)
+        if not date_from:
+            date_from = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime('%Y-%m-%d')
+        if not date_to:
+            date_to = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+        top_tables = []
+        top_tables = tabledata.getTopTables(None, date_from, date_to, order, limit)
+        table = tplE.env.get_template('tables_global_top.html')
+        return table.render(list=top_tables,
+                            limit=limit, order=order, date_from=date_from, date_to=date_to)
+
+    def allgraph(self):
+        systems = self.get_all_databases_size()
         tmpl = tplE.env.get_template('tables.html')
         return tmpl.render(systems=sorted(systems,key=lambda x : x['h']['uishortname']),
                            target='World')
 
-    def get_data(self):
+    def get_all_databases_size(self):   # show a graph of all db sizes?
         size = tabledata.getDatabaseSizes()
 
         systems = []
@@ -138,7 +151,7 @@ class TableFrontend(object):
             g = flotgraph.SizeGraph("s" + str(h['host_id']))
             tabledata.fillGraph(g,size[h['host_id']])
 
-            s = self.renderSizeTable(h['host_id'])
+            s = self.renderSizeTable(h['host_id'])  # TODO doesnt exist
             systems.append({ 'id' : "s"+str(h['host_id']) , 't' : s , 'g' : g.render() , 'h' : h })
         return systems
 
@@ -173,10 +186,8 @@ class TableFrontend(object):
     def default(self):
         return ""
 
-    def renderSizeTable(self, hostId):
-            table = tplE.env.get_template('tables_size_table.html')
-            return table.render( hostId = hostId, list=tabledata.getTopTables( hostId, 10) )
 
     alltables.exposed = True
     default.exposed = True
+    allgraph.exposed = True
     index.exposed = True

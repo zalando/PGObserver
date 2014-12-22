@@ -2,7 +2,7 @@ import psycopg2
 import psycopg2.extras
 
 
-connection_string = "dbname=local_pgobserver_db host=localhost user=postgres password=postgres"
+connection_string = "dbname=local_pgobserver_db host=localhost user=postgres password=postgres connect_timeout='3'"
 
 def setConnectionString(conn_string):
     global connection_string
