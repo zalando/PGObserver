@@ -272,7 +272,7 @@ def getTableData(host, name, interval = None):
     return d
 
 
-def getTopTables(hostId=1, limit=10, order=2):
+def getTopTables(hostId, date_from, date_to, order=2, limit=10):
     limit_sql = "" if limit is None else """ LIMIT """ + str(adapt(limit))
 
     order_by_sql = { 1: "ORDER BY schema ASC,name ASC ",
@@ -282,7 +282,12 @@ def getTopTables(hostId=1, limit=10, order=2):
               5: "ORDER BY index_size DESC",
               6: "ORDER BY index_size - min_index_size DESC",
               7: "ORDER BY CASE WHEN min_index_size > 0 THEN index_size::float / min_index_size ELSE 0 END DESC",
-              8: "ORDER BY iud_delta DESC"}[int(order)]
+              8: "ORDER BY iud_delta DESC",
+              9: "ORDER BY s_delta DESC",
+              10: "ORDER BY i_delta DESC",
+              11: "ORDER BY u_delta DESC",
+              12: "ORDER BY d_delta DESC"
+            }[int(order)]
 
     sql = """
         with
@@ -292,14 +297,19 @@ def getTopTables(hostId=1, limit=10, order=2):
                 MAX(tsd_timestamp) AS max_date
               FROM monitor_data.table_size_data
               WHERE tsd_host_id = %s
-              AND tsd_timestamp > now() - '7 days'::interval
+              AND tsd_timestamp >= %s::timestamp
+              AND tsd_timestamp <= %s::timestamp
         ),
         q_min_sizes AS (
               SELECT
                 tsd_table_id,
                 tsd_table_size as min_table_size,
                 tsd_index_size as min_index_size,
-                tsd_tup_ins + tsd_tup_upd + tsd_tup_del as min_iud
+                tsd_tup_ins + tsd_tup_upd + tsd_tup_del as min_iud,
+                tsd_seq_scans + tsd_index_scans as min_s,
+                tsd_tup_ins as min_i,
+                tsd_tup_upd as min_u,
+                tsd_tup_del as min_d
               FROM
                 monitor_data.table_size_data st
                 JOIN q_min_max_timestamps on true
@@ -312,7 +322,11 @@ def getTopTables(hostId=1, limit=10, order=2):
                 tsd_table_id,
                 tsd_table_size as max_table_size,
                 tsd_index_size as max_index_size,
-                tsd_tup_ins + tsd_tup_upd + tsd_tup_del as max_iud
+                tsd_tup_ins + tsd_tup_upd + tsd_tup_del as max_iud,
+                tsd_seq_scans + tsd_index_scans as max_s,
+                tsd_tup_ins as max_i,
+                tsd_tup_upd as max_u,
+                tsd_tup_del as max_d
               FROM
                 monitor_data.table_size_data st
                 JOIN q_min_max_timestamps on true
@@ -332,7 +346,11 @@ def getTopTables(hostId=1, limit=10, order=2):
           q_max_sizes.max_index_size AS index_size,
           COALESCE(q_min_sizes.min_index_size, 0) AS min_index_size,
           q_max_sizes.max_index_size - COALESCE(q_min_sizes.min_index_size, 0) AS index_size_delta,
-          q_max_sizes.max_iud - COALESCE(q_min_sizes.min_iud, 0) AS iud_delta
+          q_max_sizes.max_iud - COALESCE(q_min_sizes.min_iud, 0) AS iud_delta,
+          q_max_sizes.max_s - COALESCE(q_min_sizes.min_s, 0) AS s_delta,
+          q_max_sizes.max_i - COALESCE(q_min_sizes.min_i, 0) AS i_delta,
+          q_max_sizes.max_u - COALESCE(q_min_sizes.min_u, 0) AS u_delta,
+          q_max_sizes.max_d - COALESCE(q_min_sizes.min_d, 0) AS d_delta
         FROM
           q_max_sizes
           LEFT JOIN
@@ -344,7 +362,7 @@ def getTopTables(hostId=1, limit=10, order=2):
         ) t
         """ + order_by_sql + limit_sql
 
-    list = datadb.execute(sql, (hostId, hostId, hostId, hostId))
+    list = datadb.execute(sql, (hostId, date_from, date_to, hostId, hostId, hostId))
     for d in list:
 
         d['table_size_pretty'] = makePrettySize( d['table_size'] )
@@ -361,6 +379,10 @@ def getTopTables(hostId=1, limit=10, order=2):
         else:
             d['growth_index'] = 0
         d['iud_delta'] =  makePrettyCounter(d['iud_delta'])
+        d['s_delta'] =  makePrettyCounter(d['s_delta'])
+        d['i_delta'] =  makePrettyCounter(d['i_delta'])
+        d['u_delta'] =  makePrettyCounter(d['u_delta'])
+        d['d_delta'] =  makePrettyCounter(d['d_delta'])
 
     return list
 

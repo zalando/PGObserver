@@ -143,18 +143,23 @@ class TableFrontend(object):
         return systems
 
 
-    def alltables(self, hostId , order=None):
-        table = tplE.env.get_template('tables_size_table_all.html')
+    def alltables(self, hostId, date_from=None, date_to=None, order=None, **params):
         tpl = tplE.env.get_template('all_tables.html')
         hostUiName = hostId if not hostId.isdigit() else hosts.hostIdToUiShortname(hostId)
-        hostId, hostname, top_tables, order = self.get_alltables_data(hostId, order)
-        return tpl.render(hostname=hostname, hostuiname=hostUiName, table=table.render(hostid = hostId, hostuiname=hostUiName, order=int(order), list=top_tables))
 
-    def raw_alltables(self, host, order=None):
-        hostId, hostname, top_tables, order = self.get_alltables_data(host, order)
+        if not date_from:
+            date_from = (datetime.datetime.now() - datetime.timedelta(days=6)).strftime('%Y-%m-%d')
+        if not date_to:
+            date_to = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+        hostId, hostname, top_tables, order = self.get_alltables_data(hostId, date_from, date_to, order)
+        return tpl.render(hostname=hostname, hostuiname=hostUiName, order=int(order), list=top_tables,
+                          date_from=date_from, date_to=date_to)
+
+    def raw_alltables(self, host, date_from, date_to, order=None):
+        hostId, hostname, top_tables, order = self.get_alltables_data(host, date_from, date_to, order)
         return top_tables
 
-    def get_alltables_data(self, hostId, order=None):
+    def get_alltables_data(self, hostId, date_from, date_to, order=None):
         hostId = hostId if hostId.isdigit() else hosts.uiShortnameToHostId(hostId)
 
         if hostId is None:
@@ -162,7 +167,7 @@ class TableFrontend(object):
         if order==None:
             order=2
         hostname = hosts.getHostData()[int(hostId)]['uilongname']
-        top_tables = tabledata.getTopTables(hostId, None, order)
+        top_tables = tabledata.getTopTables(hostId, date_from, date_to, order, None)
         return hostId, hostname, top_tables, order
 
     def default(self):

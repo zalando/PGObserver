@@ -5,12 +5,59 @@
 <div class="container_12">
    <div class="grid_12">
       <h3>All tables on <a href="/{{hostuiname}}">{{hostname}}</a></h3>
-      {{ table }}
+      <form method="GET" action="/tables/alltables/{{hostuiname}}">
+         <span class="text3">Timeframe:</span>
+         <input type="text" class="datefield" name="date_from" value="{{ date_from }}">
+         <input type="text" class="datefield" name="date_to" value="{{ date_to }}">
+         <input name="show" type="submit" value="show">
+         <br />
+         <br />
+      </form>
+
+      <table class="frontTable">
+          <!-- {{ order }} -->
+          <thead>
+              <th align="left"><a {% if order==1 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/1">Table name</a></th>
+              <th align="right"><a {% if order==2 or order == None %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/2">Size</a></th>
+              <th align="right"><a {% if order==3 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/3">Change</a></th>
+              <th align="right"><a {% if order==4 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/4">Change %</a></th>
+              <th align="right"><a {% if order==5 %}class="active"{% endif %} href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/5">Index Size</a></th>
+              <th align="right"><a {% if order==6 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/6">Change</a></th>
+              <th align="right"><a {% if order==7 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/7">Change %</a></th>
+              <th align="right"><a {% if order==8 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/8">IUD</a></th>
+              <th align="right" title="Seq. scans + Ind. scans"><a {% if order==9 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/9">Select</a></th>
+              <th align="right"><a {% if order==10 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/10">Insert</a></th>
+              <th align="right"><a {% if order==11 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/11">Update</a></th>
+              <th align="right"><a {% if order==12 %}class="active"{% endif %}href="/tables/alltables/{{ hostuiname }}/{{ date_from }}/{{ date_to }}/12">Delete</a></th>
+          </thead>
+          {% for row in list: %}
+              <tr>
+                  <td><a target="_new" href="/tables/show/{{hostuiname}}/{{row.schema}}.{{row.name}}">{{ row.schema }}.{{ row.name }}</a></td>
+                  <td align="right">{{ row.table_size_pretty }}</td>
+                  <td align="right">{{ row.table_size_delta }}</td>
+                  <td align="right">{{ row.growth }} %</td>
+                  <td align="right">{{ row.index_size_pretty }}</td>
+                  <td align="right">{{ row.index_size_delta }}</td>
+                  <td align="right">{{ row.growth_index }} %</td>
+                  <td align="right">{{ row.iud_delta }}</td>
+                  <td align="right">{{ row.s_delta }}</td>
+                  <td align="right">{{ row.i_delta }}</td>
+                  <td align="right">{{ row.u_delta }}</td>
+                  <td align="right">{{ row.d_delta }}</td>
+              </tr>
+          {% endfor %}
+      </table>
+
+
    </div>
 </div>
 
 <script>
 $( "tr:odd" ).css( "background-color", "#1C1C1C" );
+
+ $(function() {
+  $( ".datefield" ).datepicker({"dateFormat":"yy-mm-dd"});
+ });
 </script>
 
 {% endblock %}
