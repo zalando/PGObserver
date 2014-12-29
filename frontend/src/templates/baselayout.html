@@ -38,6 +38,7 @@
              <div class="navrow">
                  <label>Performance Analyzes</label>
                  <a {% if "report" == active_page %}id="current"{% endif %} href="/report">Load Overview</a>
+                 <a {% if "toptables" == active_page %}id="current"{% endif %} href="/tables">Top Tables</a>
                  <a {% if "perftables" == active_page %}id="current"{% endif %} href="/perftables">Perf. Issues - Tables</a>
                  <a {% if "perfapi" == active_page %}id="current"{% endif %} href="/perfapi">Perf. Issues - SProcs</a>
                  <a {% if "perfindexes" == active_page %}id="current"{% endif %} href="/perfindexes">Perf. Issues - Indexes</a>
