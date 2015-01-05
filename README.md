@@ -51,7 +51,7 @@ This will take a moment, doing the following inside the VM:
  * Create a Docker image for the frontend and start it inside the VM
  * Expose port 38080 and 38081 for frontend and gatherer respectively.
 
-You can then open the frontend on port 38080 and configure a database cluster to be monitored. Data is stored within the VM.
+You can then open the frontend on port 38080 and configure a database cluster to be monitored, e.g.: http://localhost:38080/hosts/
 
 If you want to run it somewhere else, the easy way would be to change the config files and create your own Docker images to deploy. Basically just point it to a configure PostgreSQL cluster, where you created the PGObserver database.
 
