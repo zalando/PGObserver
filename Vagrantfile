@@ -14,7 +14,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Frontend
     config.vm.network :forwarded_port, guest: 8080, host: 38080
     # Gatherer
-    config.vm.network :forwarded_port, guest: 8081, host: 38081
+    config.vm.network :forwarded_port, guest: 8182, host: 38081
 
     config.vm.provider "virtualbox" do |vb|
         vb.customize ["modifyvm", :id, "--memory", "2048"]

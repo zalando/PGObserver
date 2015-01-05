@@ -26,5 +26,5 @@ ip=$(ip -o -4 a show eth0|awk '{print $4}' | cut -d/ -f 1)
 
 for comp in gatherer frontend; do
     docker rm pgobserver-$comp
-    docker run --name zmon-$comp --net host -d pgobserver-$comp
+    docker run --name pgobserver-$comp --net host -d pgobserver-$comp
 done
