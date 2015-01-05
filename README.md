@@ -34,6 +34,27 @@ A testdata.py (frontends/src) script is included to generate minimalistic test d
 
 Visit us at http://tech.zalando.com or feel free to create issues on Github
 
+Running using Vagrant
+---------------------
+
+Make sure you run the latest Vagrant version on your system (vagrantup.com)
+
+Clone PGObserver to the machine where you want to run it using Vagrant and run from the PGObserver base directory:
+
+```
+vagrant up
+```
+
+This will take a moment, doing the following inside the VM:
+ * Install PostgreSQL 9.3
+ * Compile the gatherer for you, create a Docker image and start it inside the VM
+ * Create a Docker image for the frontend and start it inside the VM
+ * Expose port 38080 and 38081 for frontend and gatherer respectively.
+
+You can then open the frontend on port 38080 and configure a database cluster to be monitored. Data is stored within the VM.
+
+If you want to run it somewhere else, the easy way would be to change the config files and create your own Docker images to deploy. Basically just point it to a configure PostgreSQL cluster, where you created the PGObserver database.
+
 Setup
 -----
  * PGObserver frontend is developed/run using Python 2.7
