@@ -16,6 +16,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Gatherer
     config.vm.network :forwarded_port, guest: 8182, host: 38081
 
+    # PostgreSQL
+    config.vm.network :forwarded_port, guest: 5432, host: 35432
+
     config.vm.provider "virtualbox" do |vb|
         vb.customize ["modifyvm", :id, "--memory", "2048"]
     end

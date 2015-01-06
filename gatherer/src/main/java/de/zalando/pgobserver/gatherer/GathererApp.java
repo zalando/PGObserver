@@ -35,6 +35,14 @@ public class GathererApp extends ServerResource {
         ListOfRunnableChecks.remove(a);
     }
 
+
+    public static String getEnv(String key, String def) {
+        String value = System.getenv(key);
+        if(value==null || "".equals(value)) {
+            return def;
+        }
+        return value;
+    }
     /**
      * @param  args  the command line arguments
      */
@@ -47,6 +55,12 @@ public class GathererApp extends ServerResource {
             LOG.error("Config could not be read from yaml");
             return;
         }
+
+        // Make env vars overwrite yaml file, to run via docker without changing config file
+        config.database.host = getEnv("PGOBS_HOST", config.database.host);
+        config.database.name = getEnv("PGOBS_DATABASE", config.database.name);
+        config.database.backend_user = getEnv("PGOBS_USER", config.database.backend_user);
+        config.database.backend_password = getEnv("PGOBS_PASSWORD", config.database.backend_password);
 
         LOG.info("Connection to db:{} using user: {}", config.database.host, config.database.backend_user);
         
