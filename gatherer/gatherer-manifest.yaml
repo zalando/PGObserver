@@ -1,0 +1,5 @@
+---
+application_name: pgobserver-gatherer
+team_name: Zalando/Platform
+stateful: false
+exposed_ports: [8182]
