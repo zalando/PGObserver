@@ -46,6 +46,7 @@ def main():
 
     # Make env vars overwrite yaml file, to run via docker without changing config file
     settings['database']['host'] = os.getenv('PGOBS_HOST', settings['database']['host'])
+    settings['database']['port'] = os.getenv('PGOBS_PORT', settings['database']['port'])
     settings['database']['name'] = os.getenv('PGOBS_DATABASE', settings['database']['name'])
     settings['database']['frontend_user'] = os.getenv('PGOBS_USER', settings['database']['frontend_user'])
     settings['database']['frontend_password'] = os.getenv('PGOBS_PASSWORD', settings['database']['frontend_password'])

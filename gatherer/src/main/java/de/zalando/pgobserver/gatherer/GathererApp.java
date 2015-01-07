@@ -58,6 +58,7 @@ public class GathererApp extends ServerResource {
 
         // Make env vars overwrite yaml file, to run via docker without changing config file
         config.database.host = getEnv("PGOBS_HOST", config.database.host);
+        config.database.port = Integer.parseInt(getEnv("PGOBS_PORT", "" + config.database.port));
         config.database.name = getEnv("PGOBS_DATABASE", config.database.name);
         config.database.backend_user = getEnv("PGOBS_USER", config.database.backend_user);
         config.database.backend_password = getEnv("PGOBS_PASSWORD", config.database.backend_password);
