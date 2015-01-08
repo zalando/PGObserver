@@ -111,6 +111,16 @@
     </div>
     {% endif %}
 
+    {% if graph_checkpoint: %}
+    <div class="clear"></div>
+
+    <div class="grid_12">
+        <h4>Background Writer</h4>
+        <div class="graphc" id="graph_bgwriter" style="width:100%;height:200px;"></div>
+        {{ graph_checkpoint }}
+   </div>
+    {% endif %}
+
     <div class="clear"></div>
 
 </div>

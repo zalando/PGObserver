@@ -5,6 +5,7 @@ import time
 import datadb
 import tplE
 from psycopg2.extensions import adapt
+from datetime import date, datetime
 
 
 def getSizeTrendSQL(host_id=None, days='8'):
@@ -421,3 +422,54 @@ def fillGraph(graph,data):
             if current_time > last_time:
                 graph.addPoint('upd',current_time , p[1]*1000 / ( current_time - last_time ) )
             last_time = current_time
+
+def retrieve_bgwriter_stats(hostId, from_date, to_date=datetime.now()):
+    """Loads the prepared performance indicators from monitordb and 
+    returns a dataset with data points which can be displayed as graph"""
+    
+    sql="""select date_trunc('hour', sbd_timestamp) as sbd_timestamp,
+       sum(elapsed) as elapsed,
+       sum(checkpoints_timed) as checkpoints_timed,
+       sum(checkpoints_req) as checkpoints_req,
+       sum(buffers_checkpoint) as buffers_checkpoint,
+       sum(buffers_clean) as buffers_clean,
+       sum(buffers_backend) as buffers_backend,
+       max(block_size) as block_size
+  from (
+    SELECT sbd_timestamp, sbd_timestamp - lead(sbd_timestamp, 1, sbd_timestamp) over hostpart AS elapsed,
+      sbd_checkpoints_timed - lead(sbd_checkpoints_timed, 1, sbd_checkpoints_timed) OVER hostpart as checkpoints_timed,
+      sbd_checkpoints_req - lead(sbd_checkpoints_req, 1, sbd_checkpoints_req) OVER hostpart as checkpoints_req,
+      sbd_buffers_checkpoint - lead(sbd_buffers_checkpoint, 1, sbd_buffers_checkpoint) OVER hostpart as buffers_checkpoint,
+      sbd_buffers_clean - lead(sbd_buffers_clean, 1, sbd_buffers_clean) OVER hostpart as buffers_clean,
+      sbd_buffers_backend - lead(sbd_buffers_backend, 1, sbd_buffers_backend) OVER hostpart as buffers_backend,
+      sbd_buffers_alloc - lead(sbd_buffers_alloc, 1, sbd_buffers_alloc) OVER hostpart as buffers_alloc,
+      (select cast(current_setting('block_size') as integer)) as block_size
+      FROM monitor_data.stat_bgwriter_data
+     WHERE sbd_host_id = %(hostId)s
+       AND sbd_timestamp > %(from)s
+     WINDOW hostpart as (PARTITION BY sbd_host_id ORDER BY sbd_timestamp DESC)
+      ) as a
+where a.elapsed > '0 sec'::interval
+group by date_trunc('hour', sbd_timestamp)
+order by 1"""
+    rows = datadb.execute(sql, {'hostId':hostId, 'from': from_date})
+    result = {'avgWritesPerCheckpoint': [],
+              'checkpointRequestPercentage': [],
+              'checkpoint_write_percentage': [],
+              'backend_write_percentage': [],
+              'written_per_second': [],}
+    for row in rows:
+        checkpoints = (row['checkpoints_timed'] + row['checkpoints_req'])
+        timepoint = time.mktime(row['sbd_timestamp'].timetuple()) * 1000
+        total_buffer_writes = row['buffers_checkpoint'] + row['buffers_clean'] + row['buffers_backend']
+        block_size = row['block_size']
+        # there might be too many gathered data which result in 0 difference or somebody reseted statistics
+        if checkpoints > 0:
+            avg_chp_write = row['buffers_checkpoint'] *  block_size / checkpoints
+            result['avgWritesPerCheckpoint'].append({'x': timepoint, 'y': avg_chp_write})
+            result['checkpointRequestPercentage'].append({'x': timepoint, 'y': 100*row['checkpoints_req']/checkpoints})
+        if total_buffer_writes > 0:
+            result['checkpoint_write_percentage'].append({'x': timepoint, 'y': 100*row['buffers_checkpoint']/total_buffer_writes})
+            result['backend_write_percentage'].append({'x': timepoint, 'y': 100*row['buffers_backend']/total_buffer_writes})
+            result['written_per_second'].append({'x': timepoint, 'y': block_size*total_buffer_writes/row['elapsed'].seconds})
+    return result
