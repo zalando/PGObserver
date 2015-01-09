@@ -1,5 +1,7 @@
 package de.zalando.pgobserver.gatherer;
 
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.sql.DataSource;
@@ -7,10 +9,10 @@ import javax.sql.DataSource;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import de.zalando.pgobserver.gatherer.persistence.GatherSprocService;
+import de.zalando.pgobserver.gatherer.persistence.GatherSprocService90Impl;
 import de.zalando.pgobserver.gatherer.persistence.GatherSprocServiceImpl;
 import de.zalando.pgobserver.gatherer.persistence.PgoWriterSprocService;
 import de.zalando.pgobserver.gatherer.persistence.PgoWriterSprocServiceImpl;
-
 import de.zalando.sprocwrapper.dsprovider.DataSourceProvider;
 import de.zalando.sprocwrapper.dsprovider.SingleDataSourceProvider;
 
@@ -37,9 +39,22 @@ public abstract class ADBGatherer extends AGatherer {
 // persistent connection?
         String url = "jdbc:postgresql://" + host.name + ":" + host.port + "/" + host.dbname;
         DataSource ds = new DriverManagerDataSource(url, host.user, host.password);
+        int minorVersion = 0;
+        try {
+            DatabaseMetaData meta = ds.getConnection().getMetaData();
+            minorVersion = meta.getDatabaseMinorVersion();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         DataSourceProvider datasource = new SingleDataSourceProvider(ds);
-        this.gatherService = new GatherSprocServiceImpl(datasource);
+
+        if (minorVersion == 0) {
+            this.gatherService = new GatherSprocService90Impl(datasource);
+        } else {
+            this.gatherService = new GatherSprocServiceImpl(datasource);
+        }
+        //this.gatherService = new GatherSprocServiceImpl(datasource);
     }
 
     /**

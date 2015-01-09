@@ -9,7 +9,6 @@ $(function () {
 
     var datasets = [
        {% for d in data %}
-          {% if not loop.first %},{% endif %}
           {
              label: "{{ d.label }}",
              color: "{{ d.color }}",
@@ -17,7 +16,7 @@ $(function () {
                 {% for r in d.data %}{% if not loop.first %},{% endif %}[ {{ r.x }}, {{ r.y }} ]{% endfor %}
              ],
              yaxis: {{ d.yaxis }}
-          }
+          },
        {% endfor %}
     ];
 
