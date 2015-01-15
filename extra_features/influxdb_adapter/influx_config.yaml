@@ -1,0 +1,19 @@
+---
+database:
+  # PGObserver database
+  name: pgobserver
+  host: localhost
+  port: 5432
+
+  # frontend credentials for PGObserver database
+  frontend_user: pgobserver_frontend
+  frontend_password: pgobserver_frontend
+
+
+influxdb:
+  host: localhost
+  port: 8086
+  username: root
+  password: root
+  database: pgobserver
+  max_days_to_fetch: 1      # how much old data to fetch when starting up
