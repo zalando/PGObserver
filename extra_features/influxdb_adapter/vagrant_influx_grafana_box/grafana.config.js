@@ -18,11 +18,18 @@ define(['settings'], function(Settings) {
 
       // InfluxDB example setup (the InfluxDB databases specified need to exist)
       datasources: {
-        influxdb: {
+        'influxdb': {
           type: 'influxdb',
           url: "http://localhost:8086/db/pgobserver",
           username: 'root',
           password: 'root',
+        },
+        'grafana': {
+          type: 'influxdb',
+          url: 'http://localhost:8086/db/grafana',
+          username: 'root',
+          password: 'root',
+          grafanaDB: true
         }
       },
 

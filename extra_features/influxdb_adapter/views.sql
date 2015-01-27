@@ -11,12 +11,14 @@ as
     load_host_id as host_id,
     load_timestamp as "timestamp",
     extract(epoch from load_timestamp) as time,
-    load_1min_value as "1min",
-    load_5min_value as "5min",
-    load_15min_value as "15min",
-    xlog_location_mb as xlog_mb
+    round(load_1min_value::numeric/100.0, 1)::float as "1min",
+    round(load_5min_value::numeric/100.0, 1)::float as "5min",
+    round(load_15min_value::numeric/100.0, 1)::float as "15min",
+    xlog_location_mb * 10^6 as xlog_b
   from
-    monitor_data.host_load;
+    monitor_data.host_load
+  where
+    load_timestamp <= now() - '1minute'::interval;    -- this is a "safety" to not to show fully inserted datasets
 
 grant select on monitor_data.v_influx_load to pgobserver_frontend;
 
@@ -38,7 +40,9 @@ as
     sdd_blk_read_time as blk_read_time_ms,
     sdd_blk_write_time as blk_write_time_ms
   from
-    monitor_data.stat_database_data;
+    monitor_data.stat_database_data
+  where
+    sdd_timestamp <= now() - '1minute'::interval;
 
 grant select on monitor_data.v_influx_db_info to pgobserver_frontend;
 
@@ -56,10 +60,40 @@ as
   from
     monitor_data.sproc_performance_data
     join
-    monitor_data.sprocs on sproc_id = sp_sproc_id;
+    monitor_data.sprocs on sproc_id = sp_sproc_id
+  where
+    sp_timestamp <= now() - '1minute'::interval;
 
 grant select on monitor_data.v_influx_sproc_info to pgobserver_frontend;
 
+
+/*
+
+should get the lag values for every timepoint? in grafana we lose precision
+
+create or replace view monitor_data.v_influx_sproc_info2
+as
+  select
+    sp_host_id as host_id,
+    sp_timestamp as "timestamp",
+    extract(epoch from sp_timestamp) as time,
+    sproc_schema||'.'||sproc_name as sproc,
+    sp_calls as calls,
+    sp_total_time as total_ms,
+    sp_self_time as self_ms,
+    COALESCE(sp_calls - lag(sp_calls) OVER w, 0::bigint) AS delta_calls,
+    COALESCE(sp_total_time - lag(sp_total_time) OVER w, 0::bigint) AS delta_total
+  from
+    monitor_data.sproc_performance_data
+    join
+    monitor_data.sprocs on sproc_id = sp_sproc_id
+  where
+    sp_timestamp <= now() - '1minute'::interval
+  window w as
+    ( PARTITION BY sp_sproc_id ORDER BY sp_timestamp );
+
+grant select on monitor_data.v_influx_sproc_info2 to pgobserver_frontend;
+*/
 
 create or replace view monitor_data.v_influx_table_info
 as
@@ -79,13 +113,84 @@ as
     join
     monitor_data.tables on t_id = tsd_table_id
   where
-    not t_schema like any(array['pg_temp%', 'z_blocking', 'tmp%', 'temp%', '\_v']);
-
+    not t_schema like any(array['pg_temp%', 'z_blocking', 'tmp%', 'temp%', '\_v'])
+    and tsd_timestamp <= now() - '1minute'::interval;
 
 grant select on monitor_data.v_influx_table_info to pgobserver_frontend;
 
 
 
+-- TODO lag
+create or replace view monitor_data.v_influx_table_io_info
+as
+  select
+    tio_host_id as host_id,
+    tio_timestamp as timestamp,
+    extract(epoch from tio_timestamp) as time,
+    t_schema||'.'||t_name as name,
+    tio_heap_read as h_read,
+    tio_heap_hit as h_hit,
+    100 as h_hit_p,
+    tio_idx_read as i_read,
+    tio_idx_hit as i_hit,
+    100 as i_hit_p
+  from
+    monitor_data.table_io_data
+    join
+    monitor_data.tables on t_id = tio_table_id
+  where
+    not t_schema like any(array['pg_temp%', 'z_blocking', 'tmp%', 'temp%', '\_v'])
+    and tio_timestamp <= now() - '1minute'::interval;
+
+
+grant select on monitor_data.v_influx_table_io_info to pgobserver_frontend;
+
+
+create or replace view monitor_data.v_influx_blocked_processes
+as
+  select
+    bp_host_id as host_id,
+    bp_timestamp as timestamp,
+    extract(epoch from bp_timestamp) as time,
+    count(1)
+  from
+    monitor_data.blocking_processes
+  where
+    waiting
+    and bp_timestamp <= now() - '1minute'::interval
+  group by
+    1, 2, 3
+  order by
+    1, 2;
+
+
+grant select on monitor_data.v_influx_blocked_processes to pgobserver_frontend;
+
+
+create or replace view monitor_data.v_influx_index_info
+as
+  select
+    iud_host_id as host_id,
+    iud_timestamp as timestamp,
+    extract(epoch from iud_timestamp) as time,
+    i_schema||'.'|| i_name as name,
+    i_schema||'.'|| i_table_name as table_name,
+    iud_scan as scans,
+    iud_size as size,
+    iud_tup_read as tup_read,
+    iud_tup_fetch as tup_fetch
+  from
+    monitor_data.index_usage_data
+    join
+    monitor_data.indexes on i_id = iud_index_id
+  where
+    not i_schema like any(array['pg_temp%', 'z_blocking', 'tmp%', 'temp%', '\_v'])
+    and iud_timestamp <= now() - '1minute'::interval;
+
+
+grant select on monitor_data.v_influx_table_info to pgobserver_frontend;
+
+
 /*
-SELECT TIMESTAMP WITH TIME ZONE 'epoch' + 1421341189 * '1s'::interval;
+SELECT TIMESTAMP WITH TIME ZONE 'epoch' + 1422379452000 * '1ms'::interval;
 */
