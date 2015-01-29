@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from datetime import datetime
+import json
 import os
 from influxdb import client as influxdb
 import yaml
@@ -10,20 +11,25 @@ DEFAULT_CONF_FILE = './influx_config.yaml'
 
 
 VIEW_TO_SERIES_MAPPING = {
-    'monitor_data.v_influx_load': 'load.{host_ui_shortname}',
+    # 'monitor_data.v_influx_load': 'load.{host_ui_shortname}',
     # 'monitor_data.v_influx_db_info': 'db_info.{host_ui_shortname}',
     # 'monitor_data.v_influx_sproc_info': 'sproc_info.{host_ui_shortname}',
     # 'monitor_data.v_influx_table_info': 'table_info.{host_ui_shortname}',
     # 'monitor_data.v_influx_table_io_info': 'table_io_info.{host_ui_shortname}',
     # 'monitor_data.v_influx_index_info': 'index_info.{host_ui_shortname}',
     # 'monitor_data.v_influx_blocked_processes': 'blocked_processes.{host_ui_shortname}',
+
+    # views starting with TPL are actually not views but SQL templates
+    'tpl_avg_query_runtime.sql': 'avg_query_runtime.{host_ui_shortname}'
 }
+
+TEMPLATES_FOLDER = 'data_collection_sql_templates'
 
 # TODO add option to split into separate series based on some columns ?
 # zB { 'series': 'sproc_info.{host_ui_shortname}', 'expand_series': 'sproc, month' }
 
 
-def pgo_get_data_and_columns_from_view(host_id, view_name, max_days_to_fetch, idb_latest_timestamp=None):
+def pgo_get_data_and_columns_from_view(host_id, host_ui_shortname, view_name, max_days_to_fetch, idb_latest_timestamp=None):
     sql = """
         select
           *
@@ -35,10 +41,19 @@ def pgo_get_data_and_columns_from_view(host_id, view_name, max_days_to_fetch, id
           and case when %s is null then true else "timestamp" > %s end
         order by time
         """
+    sql_params = (host_id, max_days_to_fetch, idb_latest_timestamp, idb_latest_timestamp)
+
+    if view_name.startswith('tpl_'):
+        sql = open(os.path.join(TEMPLATES_FOLDER, view_name)).read()
+        # if not idb_latest_timestamp:
+        #     idb_latest_timestamp = 'NULL'
+        # sql = sql.format(in_host_id=host_id, in_last_timestamp="'"+idb_latest_timestamp+"'", in_max_days=max_days_to_fetch)
+        sql_params = {'host_id': host_id, 'last_timestamp': idb_latest_timestamp, 'max_days': max_days_to_fetch}
+        # print sql
 
     print "executing..."
-    print datadb.mogrify(sql, (host_id, max_days_to_fetch, idb_latest_timestamp, idb_latest_timestamp))
-    view_data, columns = datadb.executeAsDict(sql, (host_id, max_days_to_fetch, idb_latest_timestamp, idb_latest_timestamp))
+    print datadb.mogrify(sql, sql_params)
+    view_data, columns = datadb.executeAsDict(sql, sql_params)
     # print len(view_data), 'points found'
     # print view_data[0]
 
@@ -80,11 +95,12 @@ def idb_get_last_timestamp_for_series_as_local_datetime(db, series_name):
     max_as_datetime = None
 
     try:
-        max_timestamp = db.query("""select * from """ + series_name + """ limit 1""")[0]['points'][0][0]
-        max_as_datetime = datetime.fromtimestamp(max_timestamp / 1000.0)
+        data = db.query("""select * from """ + series_name + """ limit 1""", time_precision='s')[0]['points'][0]
+        # print data
+        max_timestamp = data[0]
+        max_as_datetime = datetime.fromtimestamp(max_timestamp + 1) # adding 1s
     except Exception as e:
         print e
-
     return max_as_datetime
 
 
@@ -99,7 +115,7 @@ def idb_push_data(idb, name, columns, load_data):
 
 def main():
     parser = ArgumentParser(description='PGObserver InfluxDB Exporter Daemon')
-    parser.add_argument('-c', '--config', help='Path to config file. (default: %s)'.format(DEFAULT_CONF_FILE),
+    parser.add_argument('-c', '--config', help='Path to config file. (default: {})'.format(DEFAULT_CONF_FILE),
                         default=DEFAULT_CONF_FILE)
     parser.add_argument('--hosts-to-sync', help='only given host_ids (comma separated) will be pushed to Influx')
     parser.add_argument('--drop-db', help='start with a fresh InfluxDB', action='store_true')
@@ -185,6 +201,7 @@ def main():
                     latest_timestamp_for_series = idb_get_last_timestamp_for_series_as_local_datetime(idb, series_name)
                     print 'latest_timestamp_for_series:', latest_timestamp_for_series
                 data, columns = pgo_get_data_and_columns_from_view(active_host['host_id'],
+                                                                   active_host['host_ui_shortname'],
                                                                    view_name,
                                                                    settings['influxdb']['max_days_to_fetch'],
                                                                    latest_timestamp_for_series)
