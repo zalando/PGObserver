@@ -4,8 +4,12 @@
 {% block body %}
 
 <div class="container_12">
-    
-    {% if graph_load: %}
+
+    {% if global_announcement: %}
+    <hr />
+    <h4 class="global_announcement">{{global_announcement}}</h4>
+    {% endif %}
+
     <div class="grid_12">
         <h3>
         <a href="/sprocs/all/{{hostuiname}}">[list all sprocs]</a>
@@ -29,6 +33,10 @@
                 <input id="save" type="button" value="Save">
             </span>
         </h3>
+    </div>
+
+    {% if graph_load: %}
+    <div class="grid_12">
         <h4>Load Average 15min Sprocs only</h4>
         <div id="graph_load" class="graphc" style="width:100%;height:200px;"></div>
         {{ graph_load }}

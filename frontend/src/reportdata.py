@@ -592,11 +592,28 @@ def getDatabaseStatistics(hostid, days='8'):
     return ret
 
 
+def getGetActiveFrontendAnnouncementIfAny():
+    announcement = None
+    sql = """
+      SELECT fa_announcement_text FROM frontpage_announcement WHERE fa_validity_range @> now()::timestamp;
+    """
+
+    try:
+        announcement = datadb.execute(sql)
+        if announcement:
+            announcement = announcement[0]['fa_announcement_text']
+    except:
+        print('Exception reading frontpage_announcement table. is it there?')
+
+    return announcement
+
+
 if __name__ == '__main__':
     # print (getLocksReport(None, None))
     # print (getStatStatements('localhost', None, None))
 
-    for i, x in enumerate(getDatabaseStatistics(1)):
-        print (x)
-        if i==10:
-            break
+    # for i, x in enumerate(getDatabaseStatistics(1)):
+    #     print (x)
+    #     if i==10:
+    #         break
+    print (getGetActiveFrontendAnnouncementIfAny())

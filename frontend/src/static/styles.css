@@ -317,3 +317,8 @@ textarea {
     width: 95%;
     height: 60px;
 }
+
+.global_announcement {
+  /* outline: 1px solid #E65217; */
+  text-align: center;
+}

@@ -27,6 +27,7 @@ class MonitorFrontend(object):
         graph_size = None
         graph_dbstats = None
         top_sprocs = None
+        global_announcement = reportdata.getGetActiveFrontendAnnouncementIfAny()    # fyi - no escaping is performed deliberately
 
         if tplE._settings['show_load']:
             graph_load = flotgraph.Graph('graph_load', 'left', 30)
@@ -106,6 +107,7 @@ class MonitorFrontend(object):
             top_sprocs=top_sprocs,
             limit=sprocs_to_show,
             features=hosts.getActiveFeatures(hostId),
+            global_announcement=global_announcement,
             target='World',
         )
 

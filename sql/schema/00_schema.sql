@@ -21,7 +21,7 @@ ALTER DEFAULT PRIVILEGES FOR ROLE pgobserver_gatherer IN SCHEMA monitor_data GRA
 
 
 create extension if not exists pg_trgm;
---create extension if not exists btree_gin;
+create extension if not exists btree_gist;
 
 SET ROLE TO pgobserver_gatherer;
 
@@ -42,6 +42,15 @@ $_$;
 
 
 SET search_path = monitor_data, public;
+
+CREATE TABLE frontpage_announcement (
+    fa_announcement_text text not null,
+    fa_validity_range tsrange not null,
+    fa_created timestamp not null default now(),
+    EXCLUDE USING gist (fa_validity_range WITH &&)
+);
+-- insert into frontpage_announcement select 'testing...',  '[2015-02-01 14:30, 2015-03-01 00:30]';
+
 
 CREATE TABLE host_groups (
     group_id serial,
