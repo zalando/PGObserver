@@ -1,6 +1,6 @@
 drop view if exists monitor_data.v_influx_table_io_info;
 
--- TODO lag
+-- TODO lag + fan out
 create or replace view monitor_data.v_influx_table_io_info
 as
   select
@@ -19,8 +19,7 @@ as
     join
     monitor_data.tables on t_id = tio_table_id
   where
-    not t_schema like any(array['pg_temp%', 'z_blocking', 'tmp%', 'temp%', E'\\_v'])
-    and tio_timestamp <= now() - '1minute'::interval;
+    not t_schema like any(array['pg_temp%', 'z_blocking', 'tmp%', 'temp%', E'\\_v']);
 
 
 grant select on monitor_data.v_influx_table_io_info to pgobserver_frontend;

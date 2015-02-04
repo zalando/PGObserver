@@ -9,7 +9,7 @@ as
     i_schema||'.'|| i_name as name,
     i_schema||'.'|| i_table_name as "table",
     iud_scan as scans,
-    iud_size as size,
+    iud_size as "size",
     iud_tup_read as tup_read,
     iud_tup_fetch as tup_fetch
   from
@@ -17,8 +17,7 @@ as
     join
     monitor_data.indexes on i_id = iud_index_id
   where
-    not i_schema like any(array['pg_temp%', 'z_blocking', 'tmp%', 'temp%', E'\\_v'])
-    and iud_timestamp <= now() - '1minute'::interval;
+    not i_schema like any(array['pg_temp%', 'z_blocking', 'tmp%', 'temp%', E'\\_v']);
 
 
 grant select on monitor_data.v_influx_table_info to pgobserver_frontend;

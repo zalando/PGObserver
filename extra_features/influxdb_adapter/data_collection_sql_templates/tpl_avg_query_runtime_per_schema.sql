@@ -37,13 +37,8 @@ from
         join
         monitor_data.sprocs on sproc_id = sp_sproc_id
       where
-        sp_timestamp <= now() - '1minute'::interval
-        and case
-              when %(last_timestamp)s is null then
-                sp_timestamp > current_date - %(max_days)s
-              else
-                sp_timestamp > coalesce(%(last_timestamp)s, now()) - '1 hour'::interval
-            end
+        sp_timestamp > %(from_timestamp)s - '1 hour'::interval
+        and sp_timestamp <= %(to_timestamp)s
         and sp_host_id = %(host_id)s
         and sp_calls > 100
       group by
@@ -59,6 +54,6 @@ where
   and total_ms - total_ms_lag >= 0
 ) c
 where
-  sp_timestamp > coalesce(%(last_timestamp)s, current_date - %(max_days)s)
+  sp_timestamp > %(from_timestamp)s
 order by
   sproc_schema, sp_timestamp

@@ -11,7 +11,6 @@ as
     monitor_data.blocking_processes
   where
     waiting
-    and bp_timestamp <= now() - '1minute'::interval
   group by
     1, 2, 3
   order by

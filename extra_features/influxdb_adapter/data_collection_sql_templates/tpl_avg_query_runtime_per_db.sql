@@ -2,7 +2,7 @@ select
   ssd_host_id as host_id,
   ssd_timestamp as "timestamp",
   extract(epoch from ssd_timestamp::timestamp with time zone at time zone 'utc') as "time",
-  round( (sum(total_millis) - sum(lag_total_millis)) / (sum(calls) - sum(lag_calls)) ) as avg_ms
+  ((sum(total_millis) - sum(lag_total_millis)) / (sum(calls) - sum(lag_calls)))::int8 as avg_ms
 from
  (
     select
@@ -20,12 +20,8 @@ from
           stat_statements_data
         where
           ssd_host_id = %(host_id)s
-          and case
-                when %(last_timestamp)s is null then
-                  ssd_timestamp > current_date - %(max_days)s
-                else
-                  ssd_timestamp > coalesce(%(last_timestamp)s, now()) - '1 hour'::interval
-              end
+          and ssd_timestamp > %(from_timestamp)s - '1hour'::interval    -- 1h should be enough to get a "lag" value
+          and ssd_timestamp <= %(to_timestamp)s
           and ssd_calls > 100   -- mininum amount of calls for the sproc to be considered as a "regular"
           and lower(ssd_query) not like 'copy%%'
         order by
@@ -37,8 +33,7 @@ from
       ssd_query, ssd_timestamp
   ) b
 where
-  ssd_timestamp > coalesce(%(last_timestamp)s, current_date - %(max_days)s)
-  and ssd_timestamp < now() - '1minute'::interval;
+  ssd_timestamp > %(from_timestamp)s
 group by
   ssd_host_id, ssd_timestamp
 order by

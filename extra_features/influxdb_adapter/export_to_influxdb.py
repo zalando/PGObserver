@@ -1,8 +1,8 @@
 from argparse import ArgumentParser
-from datetime import datetime
-import json
+from datetime import datetime, timedelta
 import logging
 import os
+import collections
 from influxdb import client as influxdb
 import yaml
 import time
@@ -28,25 +28,43 @@ PGO_VIEW_TO_SERIES_MAPPING = {      # Not only views but also query templates - 
                                              'cols_to_expand': ['schema', 'sproc'],
                                              'is_fan_out': True},
 }
-
+MAX_DAYS_TO_SELECT_AT_A_TIME = 7    # chunk size for cases when we need to build up a history of many months
+SAFETY_SECONDS_FOR_LATEST_DATA = 30     # let's leave the freshest data out as the whole dataset might not be fully inserted yet
+HOST_UPDATE_STATUS_SERIES_NAME = 'host_update_status'
 
 def pgo_get_data_and_columns_from_view(host_id, view_name, max_days_to_fetch, idb_latest_timestamp=None):
     sql = """
         select
           *
         from
-          {}
+          {}.{}
         where
           host_id = %s
-          and "timestamp" > current_date - %s
-          and case when %s is null then true else "timestamp" > %s end
+          and "timestamp" > %s
+          and "timestamp" <= %s
         order by time
-        """.format(view_name)
-    sql_params = (host_id, max_days_to_fetch, idb_latest_timestamp, idb_latest_timestamp)
+        """.format(PGO_DATA_SCHEMA, view_name)
+
+    dt_now = datetime.now()
+    from_timestamp = idb_latest_timestamp
+    to_timestamp = dt_now
+
+    if from_timestamp is None:
+        from_timestamp = dt_now - timedelta(days=max_days_to_fetch)
+
+    if from_timestamp < dt_now - timedelta(days=MAX_DAYS_TO_SELECT_AT_A_TIME):
+        to_timestamp = from_timestamp + timedelta(days=MAX_DAYS_TO_SELECT_AT_A_TIME)
+    else:
+        to_timestamp = to_timestamp - timedelta(seconds=SAFETY_SECONDS_FOR_LATEST_DATA)
+
+    if from_timestamp >= to_timestamp:
+        return [], None
+
+    sql_params = (host_id, from_timestamp, to_timestamp)
 
     if view_name.startswith('tpl_'):
         sql = open(os.path.join(TEMPLATES_FOLDER, view_name)).read()
-        sql_params = {'host_id': host_id, 'last_timestamp': idb_latest_timestamp, 'max_days': max_days_to_fetch}
+        sql_params = {'host_id': host_id, 'from_timestamp': from_timestamp, 'to_timestamp': to_timestamp}
 
     logging.debug("Executing:")
     logging.debug("%s", datadb.mogrify(sql, sql_params))
@@ -98,12 +116,13 @@ def idb_get_last_timestamp_for_series_as_local_datetime(db, series_name, is_fan_
         data = db.query(sql, time_precision='s')
         if data:
             # logging.debug('Latest data for series %s: %s', series_name, data)
+            max_timestamp = None
             for x in data:
                 if x['points'][0][0] > max_timestamp:
                     max_timestamp = x['points'][0][0]
             max_as_datetime = datetime.fromtimestamp(max_timestamp + 1)     # adding 1s to safeguard against epoch to datetime conversion jitter
     except Exception as e:
-        logging.error("ERROR %s", e.message)
+        logging.warning("Exception while getting latest timestamp: %s", e.message)
 
     return max_as_datetime
 
@@ -143,14 +162,16 @@ def main():
     parser.add_argument('--drop-db', help='start with a fresh InfluxDB', action='store_true')
     parser.add_argument('--drop-series', help='drop single series', action='store_true')
     parser.add_argument('--daemon', help='keep scanning for new data in an endless loop', action='store_true')
-    parser.add_argument('--check-interval', help='seconds to sleep before re-looping the PgO hosts for new data',
+    parser.add_argument('--check-interval', help='min. seconds between checking for fresh data on PgO for host/view',
                         default=30, type=int)
-    parser.add_argument('-v', '--verbose', help='more chat', action='store_true')
+    group1 = parser.add_mutually_exclusive_group()
+    group1.add_argument('-v', '--verbose', help='more chat', action='store_true')
+    group1.add_argument('-d', '--debug', help='even more chat', action='store_true')
 
     args = parser.parse_args()
 
-    logging.basicConfig(format='%(message)s', level=(logging.DEBUG if args.verbose else logging.INFO))
-
+    logging.basicConfig(format='%(message)s', level=(logging.DEBUG if args.debug
+                                                     else (logging.INFO if args.verbose else logging.ERROR)))
     args.config = os.path.expanduser(args.config)
 
     settings = None
@@ -194,6 +215,7 @@ def main():
     logging.debug('DBs found from InfluxDB: %s', idb.get_list_database())
     logging.info('Following views will be synced: %s', PGO_VIEW_TO_SERIES_MAPPING.keys())
 
+    last_check_time_per_host_and_view = collections.defaultdict(dict)
     loop_counter = 0
     while True:
 
@@ -209,6 +231,7 @@ def main():
                     continue
 
             logging.info('Doing host: %s', ah['ui_shortname'])
+            host_processing_start_time = time.time()
             is_host_updated_marker = False
 
             for view_name, series_mapping_info in PGO_VIEW_TO_SERIES_MAPPING.iteritems():
@@ -225,6 +248,10 @@ def main():
                     else:
                         idb.delete_series(base_name)
 
+                last_data_pull_time_for_view = (last_check_time_per_host_and_view[ah['id']]).get(base_name)
+                if last_data_pull_time_for_view > time.time() - args.check_interval:
+                    logging.debug('Not pulling data as args.check_interval not passed yet [%s]', base_name)
+                    continue
                 logging.info('Fetching data from view "%s" into base series "%s"', view_name, base_name)
 
                 latest_timestamp_for_series = None
@@ -237,7 +264,8 @@ def main():
                                                                    view_name,
                                                                    settings['influxdb']['max_days_to_fetch'],
                                                                    latest_timestamp_for_series)
-                logging.debug('Data size: %s, columns: %s', len(data), columns)
+                logging.info('%s rows fetched [ with tz > %s]', len(data), latest_timestamp_for_series)
+                last_check_time_per_host_and_view[ah['id']][base_name] = time.time()
 
                 try:
                     if len(data) > 0:
@@ -247,7 +275,7 @@ def main():
                             expanded_column_indexes = []
                             start_index = 0
                             current_index = 0
-                            logging.debug("Columns to expand: %s", series_mapping_info['cols_to_expand'])
+                            # logging.debug("Columns to expand: %s", series_mapping_info['cols_to_expand'])
                             for col in series_mapping_info['cols_to_expand']:
                                 expanded_column_indexes.append(columns.index(col))
                             for row in data:
@@ -268,7 +296,9 @@ def main():
 
                         # insert "last update" marker into special series "hosts". useful for listing all different hosts for templated queries
                         if not is_host_updated_marker:
-                            idb_push_data(idb, 'hosts', ['host'], [(ah['ui_shortname'],)])
+                            idb_push_data(idb, HOST_UPDATE_STATUS_SERIES_NAME,
+                                          ['host', 'view', 'pgo_timestamp'],
+                                          [(ah['ui_shortname'], view_name, str(datetime.fromtimestamp(data[-1][0])))])
                             is_host_updated_marker = True
                     else:
                         logging.debug('no fresh data found on PgO')
@@ -276,13 +306,12 @@ def main():
                 except Exception as e:
                     logging.error('Could not process %s: %s', view_name, e.message)
 
-            logging.debug('finished processing %s', ah['ui_shortname'])
+            logging.info('Finished processing %s in %ss', ah['ui_shortname'], round(time.time() - host_processing_start_time))
 
         if not args.daemon:
             break
 
-        logging.debug('sleeping %ss before re-iterating hosts to look for new data',  args.check_interval)
-        time.sleep(args.check_interval)
+        time.sleep(1)
 
 
 if __name__ == '__main__':

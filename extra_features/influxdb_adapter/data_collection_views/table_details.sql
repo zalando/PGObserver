@@ -1,5 +1,6 @@
 drop view if exists monitor_data.v_influx_table_info;
 
+-- TODO fan out
 create or replace view monitor_data.v_influx_table_info
 as
   select
@@ -7,7 +8,7 @@ as
     tsd_timestamp as timestamp,
     extract(epoch from tsd_timestamp::timestamp with time zone at time zone 'utc') as time,
     t_schema||'.'||t_name as name,
-    tsd_table_size as tsize_b,  /* MB? */
+    tsd_table_size as tsize_b,
     tsd_index_size as isize_b,
     tsd_seq_scans as scans,
     tsd_tup_ins as ins,
@@ -18,7 +19,6 @@ as
     join
     monitor_data.tables on t_id = tsd_table_id
   where
-    not t_schema like any(array['pg_temp%', 'z_blocking', 'tmp%', 'temp%', E'\\_v'])
-    and tsd_timestamp <= now() - '1minute'::interval;
+    not t_schema like any(array['pg_temp%', 'z_blocking', 'tmp%', 'temp%', E'\\_v']);
 
 grant select on monitor_data.v_influx_table_info to pgobserver_frontend;

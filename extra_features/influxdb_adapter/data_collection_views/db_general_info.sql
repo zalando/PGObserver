@@ -17,8 +17,6 @@ as
     sdd_blk_read_time as blk_read_time_ms,
     sdd_blk_write_time as blk_write_time_ms
   from
-    monitor_data.stat_database_data
-  where
-    sdd_timestamp <= now() - '1minute'::interval;
+    monitor_data.stat_database_data;
 
 grant select on monitor_data.v_influx_db_info to pgobserver_frontend;
