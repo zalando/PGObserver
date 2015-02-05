@@ -1,5 +1,4 @@
 select
-  ssd_host_id as host_id,
   ssd_timestamp as "timestamp",
   extract(epoch from ssd_timestamp::timestamp with time zone at time zone 'utc') as "time",
   ((sum(total_millis) - sum(lag_total_millis)) / (sum(calls) - sum(lag_calls)))::int8 as avg_ms
@@ -9,7 +8,6 @@ from
       *
     from (
         select
-          ssd_host_id,
           ssd_timestamp,
           ssd_query,
           ssd_calls as calls,
@@ -35,7 +33,7 @@ from
 where
   ssd_timestamp > %(from_timestamp)s
 group by
-  ssd_host_id, ssd_timestamp
+  ssd_timestamp
 order by
-  ssd_host_id, ssd_timestamp
+  ssd_timestamp
 ;

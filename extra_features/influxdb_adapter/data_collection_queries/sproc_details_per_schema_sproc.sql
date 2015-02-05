@@ -1,20 +1,27 @@
 select
-  %(host_id)s as host_id,
   sp_timestamp as "timestamp",
   extract(epoch from sp_timestamp::timestamp with time zone at time zone 'utc') as "time",
   sproc_schema as "schema",
   sproc,
-  (calls_delta / ((extract (epoch from timestamp_delta)) / 3600.0))::int8 as calls_per_hour_rate,
-  (total_delta * 1000 / 3600.0)::int8 as duration_per_hour_rate,
-  (self_delta / calls_delta * 1000)::int8 as avg_self_us,
-  (total_delta / calls_delta * 1000)::int8 as avg_total_us
+  ((calls_delta / timestamp_delta_s) * 3600) ::int8 as calls_1h_rate,
+  (((total_delta * 1000) / timestamp_delta_s) * 3600) ::int8 as duration_s_1h_rate,
+  case when calls_delta > 0 then
+      (self_delta / calls_delta * 1000)::int8
+    else
+      null
+  end as avg_self_us,
+  case when calls_delta > 0 then
+      (total_delta / calls_delta * 1000)::int8
+    else
+      null
+  end as avg_total_us
 from
   (
     select
       sp_timestamp,
       sproc_schema,
       sproc,
-      sp_timestamp - timestamp_lag as timestamp_delta,
+      extract (epoch from sp_timestamp - timestamp_lag) as timestamp_delta_s,
       calls - calls_lag as calls_delta,
       total_ms - total_ms_lag as total_delta,
       self_ms - self_ms_lag as self_delta
@@ -39,6 +46,7 @@ from
         sp_timestamp > %(from_timestamp)s - '1 hour'::interval
         and sp_timestamp <= %(to_timestamp)s
         and sp_host_id = %(host_id)s
+        and sp_calls > 100
       order by
         4,2
       ) a

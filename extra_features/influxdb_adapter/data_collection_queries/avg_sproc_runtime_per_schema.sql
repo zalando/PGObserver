@@ -1,9 +1,8 @@
 select
-  %(host_id)s as host_id,
   sp_timestamp as "timestamp",
   extract(epoch from sp_timestamp::timestamp with time zone at time zone 'utc') as "time",
   sproc_schema as "schema",
-  (calls_delta / ((extract (epoch from timestamp_delta)) / 60.0))::int as calls_per_min_rate,
+  ((calls_delta / extract (epoch from timestamp_delta)) * 3600) ::int8 as calls_1h_rate,
   (self_delta / calls_delta * 1000)::int8 as avg_self_us,
   (total_delta / calls_delta * 1000)::int8 as avg_total_us
 from

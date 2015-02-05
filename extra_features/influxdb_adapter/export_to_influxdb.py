@@ -10,41 +10,35 @@ import datadb
 
 DEFAULT_CONF_FILE = './influx_config.yaml'
 PGO_DATA_SCHEMA = 'monitor_data'
-TEMPLATES_FOLDER = 'data_collection_sql_templates'
-PGO_VIEW_TO_SERIES_MAPPING = {      # Not only views but also query templates - tpl_*
-    'v_influx_load': {'base_name': 'load.{ui_shortname}'},
-    'v_influx_db_info': {'base_name': 'db_general.{ui_shortname}'},
-    'v_influx_table_info': {'base_name': 'table_details.{ui_shortname}'},
-    'v_influx_table_io_info': {'base_name': 'table_io_details.{ui_shortname}'},
-    'v_influx_index_info': {'base_name': 'index_details.{ui_shortname}'},
-    'v_influx_blocked_processes': {'base_name': 'blocked_processes.{ui_shortname}'},
-
-    # views starting with TPL are actually not views but SQL templates
-    'tpl_avg_query_runtime_per_db.sql': {'base_name': 'avg_query_runtime.{ui_shortname}'},
-    'tpl_avg_query_runtime_per_schema.sql': {'base_name': 'avg_query_runtime_schema.{ui_shortname}',
-                                             'cols_to_expand': ['schema'],
-                                             'is_fan_out': True},
-    'tpl_sproc_runtime_details_per_schema_sproc.sql': {'base_name': 'sproc_runtime_details.{ui_shortname}',
-                                             'cols_to_expand': ['schema', 'sproc'],
-                                             'is_fan_out': True},
-}
+TEMPLATES_FOLDER = 'data_collection_queries'
+DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING = [   # tpl_* files are queries with placeholders for host and time range
+    ('avg_query_runtime_per_db.sql', {'base_name': 'avg_query_runtime.{ui_shortname}'}),
+    ('avg_sproc_runtime_per_db.sql', {'base_name': 'avg_sproc_runtime.{ui_shortname}'}),
+    ('avg_sproc_runtime_per_schema.sql', {'base_name': 'avg_sproc_runtime_schema.{ui_shortname}', 'cols_to_expand': ['schema']}),
+    ('blocked_process_counts.sql', {'base_name': 'blocked_process_counts.{ui_shortname}'}),
+    ('db_general_info.sql', {'base_name': 'db_general.{ui_shortname}'}),
+    ('db_size.sql', {'base_name': 'db_size.{ui_shortname}'}),
+    ('index_details.sql', {'base_name': 'index_stats.{ui_shortname}',
+                                            'cols_to_expand': ['schema', 'index']}),
+    ('load.sql', {'base_name': 'load.{ui_shortname}'}),
+    ('scan_and_iud_rates_per_db.sql', {'base_name': 'scan_and_iud_rates.{ui_shortname}'}),
+    ('scan_and_iud_rates_per_schema.sql', {'base_name': 'scan_and_iud_rates_schema.{ui_shortname}',
+                                            'cols_to_expand': ['schema']}),
+    ('sproc_details_per_schema_sproc.sql', {'base_name': 'sproc_details.{ui_shortname}',
+                                                        'cols_to_expand': ['schema', 'sproc']}),
+    ('table_and_index_sizes_per_schema.sql', {'base_name': 'table_and_index_sizes.{ui_shortname}',
+                                            'cols_to_expand': ['schema']}),
+    ('table_details.sql', {'base_name': 'table_details.{ui_shortname}',
+                                            'cols_to_expand': ['schema', 'table']}),
+    ('table_io_details.sql', {'base_name': 'table_io_details.{ui_shortname}',
+                                            'cols_to_expand': ['schema', 'table']}),
+]
 MAX_DAYS_TO_SELECT_AT_A_TIME = 7    # chunk size for cases when we need to build up a history of many months
 SAFETY_SECONDS_FOR_LATEST_DATA = 30     # let's leave the freshest data out as the whole dataset might not be fully inserted yet
 HOST_UPDATE_STATUS_SERIES_NAME = 'host_update_status'
 
-def pgo_get_data_and_columns_from_view(host_id, view_name, max_days_to_fetch, idb_latest_timestamp=None):
-    sql = """
-        select
-          *
-        from
-          {}.{}
-        where
-          host_id = %s
-          and "timestamp" > %s
-          and "timestamp" <= %s
-        order by time
-        """.format(PGO_DATA_SCHEMA, view_name)
 
+def pgo_get_data_and_columns_from_view(host_id, view_name, max_days_to_fetch, idb_latest_timestamp=None):
     dt_now = datetime.now()
     from_timestamp = idb_latest_timestamp
     to_timestamp = dt_now
@@ -60,27 +54,23 @@ def pgo_get_data_and_columns_from_view(host_id, view_name, max_days_to_fetch, id
     if from_timestamp >= to_timestamp:
         return [], None
 
-    sql_params = (host_id, from_timestamp, to_timestamp)
-
-    if view_name.startswith('tpl_'):
-        sql = open(os.path.join(TEMPLATES_FOLDER, view_name)).read()
-        sql_params = {'host_id': host_id, 'from_timestamp': from_timestamp, 'to_timestamp': to_timestamp}
+    sql = open(os.path.join(TEMPLATES_FOLDER, view_name)).read()
+    sql_params = {'host_id': host_id, 'from_timestamp': from_timestamp, 'to_timestamp': to_timestamp}
 
     logging.debug("Executing:")
     logging.debug("%s", datadb.mogrify(sql, sql_params))
 
-    view_data, columns = datadb.executeAsDict(sql, sql_params)
+    view_data, columns = datadb.execute(sql, sql_params)
 
-    # removing timestamp + host_id, they're needed only for efficiently fetching data from the views
+    # removing timestamp, we only want to store the utc epoch "time" column
+    timestamp_index = columns.index('timestamp')
+    if timestamp_index != 0:
+        raise Exception('"timestamp" needs to be the 1st column returned!')
     columns.remove('timestamp')
-    columns.remove('host_id')
 
     ret_data = []
     for d in view_data:
-        one_row = []
-        for c in columns:
-            one_row.append(d[c])
-        ret_data.append(one_row)
+        ret_data.append(list(d[1:]))
 
     return ret_data, columns
 
@@ -213,7 +203,7 @@ def main():
     idb.switch_database(settings['influxdb']['database'])
 
     logging.debug('DBs found from InfluxDB: %s', idb.get_list_database())
-    logging.info('Following views will be synced: %s', PGO_VIEW_TO_SERIES_MAPPING.keys())
+    logging.info('Following views will be synced: %s', [x[0] for x in DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING])
 
     last_check_time_per_host_and_view = collections.defaultdict(dict)
     loop_counter = 0
@@ -232,19 +222,22 @@ def main():
 
             logging.info('Doing host: %s', ah['ui_shortname'])
             host_processing_start_time = time.time()
-            is_host_updated_marker = False
 
-            for view_name, series_mapping_info in PGO_VIEW_TO_SERIES_MAPPING.iteritems():
+            for view_name, series_mapping_info in DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING:
 
                 base_name = series_mapping_info['base_name'].format(ui_shortname=ah['ui_shortname'], id=ah['id'])
-                is_fan_out = series_mapping_info.get('is_fan_out', False)
+                is_fan_out = series_mapping_info.get('cols_to_expand', False)
                 if args.drop_series and loop_counter == 1:
                     logging.info('Dropping base series: %s ...', base_name)
                     if is_fan_out:
-                        series = [x['points'][0][1] for x in idb.query("list series /{}.*/".format(base_name))]
-                        for s in series:
-                            logging.debug('Dropping series: %s ...', s)
-                            idb.delete_series(s)
+                        data = idb.query("list series /{}.*/".format(base_name))
+                        if data[0]['points']:
+                            series = [x['points'][0][1] for x in data]
+                            for s in series:
+                                logging.debug('Dropping series: %s ...', s)
+                                idb.delete_series(s)
+                        else:
+                            logging.info('No existing series found to delete')
                     else:
                         idb.delete_series(base_name)
 
@@ -264,7 +257,7 @@ def main():
                                                                    view_name,
                                                                    settings['influxdb']['max_days_to_fetch'],
                                                                    latest_timestamp_for_series)
-                logging.info('%s rows fetched [ with tz > %s]', len(data), latest_timestamp_for_series)
+                logging.info('%s rows fetched [ latest prev. timestamp in InfluxDB : %s]', len(data), latest_timestamp_for_series)
                 last_check_time_per_host_and_view[ah['id']][base_name] = time.time()
 
                 try:
@@ -295,16 +288,14 @@ def main():
                             idb_push_data(idb, series_name, columns, data)
 
                         # insert "last update" marker into special series "hosts". useful for listing all different hosts for templated queries
-                        if not is_host_updated_marker:
-                            idb_push_data(idb, HOST_UPDATE_STATUS_SERIES_NAME,
-                                          ['host', 'view', 'pgo_timestamp'],
-                                          [(ah['ui_shortname'], view_name, str(datetime.fromtimestamp(data[-1][0])))])
-                            is_host_updated_marker = True
+                        idb_push_data(idb, HOST_UPDATE_STATUS_SERIES_NAME,
+                                      ['host', 'view', 'pgo_timestamp'],
+                                      [(ah['ui_shortname'], view_name, str(datetime.fromtimestamp(data[-1][0])))])
                     else:
                         logging.debug('no fresh data found on PgO')
 
                 except Exception as e:
-                    logging.error('Could not process %s: %s', view_name, e.message)
+                    logging.error('ERROR - Could not process %s: %s', view_name, e.message)
 
             logging.info('Finished processing %s in %ss', ah['ui_shortname'], round(time.time() - host_processing_start_time))
 
