@@ -107,14 +107,14 @@ class SprocFrontend(object):
 
     def all(self, hostId, graph=False):
         hostId, hostUiName = hosts.ensureHostIdAndUIShortname(hostId)
-        graph_list = None
+        graph_list = []
         all_sprocs = None
 
         if not graph:
            all_sprocs = sprocdata.getAllActiveSprocNames(hostId)
         else:
             sprocs = self.get_data(hostId)
-            graph_list = []
+
             i = 0
             for s in sprocs:
                 print ('s')
