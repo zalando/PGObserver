@@ -156,7 +156,7 @@ class TableFrontend(object):
         return systems
 
 
-    def alltables(self, hostId, date_from=None, date_to=None, order=None, pattern=None, **params):
+    def alltables(self, hostId, date_from=None, date_to=None, order=None, pattern="", **params):
         tpl = tplE.env.get_template('all_tables.html')
         hostUiName = hostId if not hostId.isdigit() else hosts.hostIdToUiShortname(hostId)
 

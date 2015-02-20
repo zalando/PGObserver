@@ -279,8 +279,8 @@ def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=None)
     if not order:
         order = 2   # size
 
-    if pattern!=None:
-      pattern_filter = " WHERE t_name ilike '%"+ str(adapt(pattern)) +"%' "
+    if pattern!=None and pattern!="":
+      pattern_filter = " WHERE t_name ilike '\\%"+ str(adapt(pattern)) +"\\%' "
     else:
       pattern_filter = ''
 
