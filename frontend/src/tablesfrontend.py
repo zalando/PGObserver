@@ -169,8 +169,11 @@ class TableFrontend(object):
         total_size = 0
         total_index_size = 0
         for t in top_tables:
-            total_size = t['table_size']
-            total_index_size = t['index_size']
+            total_size += t['table_size']
+            total_index_size += t['index_size']
+
+        total_size = tabledata.makePrettySize(total_size)
+        total_index_size = tabledata.makePrettySize(total_index_size)
 
         return tpl.render(hostname=hostname, hostuiname=hostUiName, order=int(order), list=top_tables,
                           date_from=date_from, date_to=date_to, pattern=pattern,total_size=total_size, total_index_size=total_index_size)

@@ -279,11 +279,6 @@ def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=None)
     if not order:
         order = 2   # size
 
-    if pattern!=None and pattern!="":
-      pattern_filter = " WHERE t_name ilike '\\%"+ str(adapt(pattern)) +"\\%' "
-    else:
-      pattern_filter = ''
-
     order_by_sql = { 1: "ORDER BY schema ASC,name ASC ",
               2: "ORDER BY table_size DESC" ,
               3: "ORDER BY table_size - min_table_size DESC",
@@ -370,9 +365,12 @@ def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=None)
           JOIN
           monitor_data.tables ON t_id = q_max_sizes.tsd_table_id
         ) t
-        """ + pattern_filter + order_by_sql + limit_sql
+         WHERE name ilike %s 
+        """ + order_by_sql + limit_sql
 
-    list = datadb.execute(sql, (hostId, hostId, date_from, date_to))
+    pattern = '%' + pattern + '%'
+
+    list = datadb.execute(sql, (hostId, hostId, date_from, date_to, pattern))
     for d in list:
 
         d['table_size_pretty'] = makePrettySize( d['table_size'] )
