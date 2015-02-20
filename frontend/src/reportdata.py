@@ -444,11 +444,19 @@ def getLocksReport(host_name, date1, date2):
     return datadb.execute(q_locks, (date1, date2, host_name, host_name))
 
 
-def getStatStatements(host_name, date1=None, date2=None, order_by='1', limit='50'):
+def getStatStatements(host_name, date1=None, date2=None, order_by='1', limit='50', no_copy_ddl=True, min_calls='3'):
     order_by = int(order_by) + 1
     sql = '''
 select
-*
+  query,
+  calls,
+  total_time,
+  blks_read,
+  blks_written,
+  temp_blks_read,
+  temp_blks_written,
+  case when calls > 0 then round(total_time / calls::numeric) else null end as avg_runtime_ms,
+  query_id
 from (
 select
   max(ssd_query) as query,
@@ -466,13 +474,16 @@ from
 where
   host_name = %s
   and ssd_timestamp >= coalesce(%s, current_date-1) and ssd_timestamp < coalesce(%s, now())
+  and case when %s then not upper(ssd_query) like any(array['COPY%%', 'CREATE%%']) else true end
 group by
   ssd_query_id
 ) a
+where
+   calls >= %s::int
 order by ''' + str(order_by) + '''
-  desc
+  desc nulls last
 limit ''' + limit
-    return datadb.execute(sql, (host_name, date1, date2))
+    return datadb.execute(sql, (host_name, date1, date2, True if no_copy_ddl else False, min_calls))
 
 
 def getStatStatementsGraph(hostid, query_id, date1, date2):

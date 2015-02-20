@@ -109,7 +109,8 @@ class PerfUnusedSchemas(object):
         if 'download' in params:
             return self.getdropschemasql(selected_hostname, from_date, to_date, filter)
         table = tplE.env.get_template('perf_schemas.html')
-        return table.render(data=data, from_date=from_date, to_date=to_date, selected_hostname=selected_hostname, host_names=host_names, filter=filter)
+        return table.render(data=data, from_date=from_date, to_date=to_date, selected_hostname=selected_hostname,
+                            host_names=host_names, filter=filter)
 
     def raw(self, hostname='all', from_date=None, to_date=None):
         span = {}
@@ -130,6 +131,7 @@ class PerfUnusedSchemas(object):
             data = reportdata.get_unused_schemas(selected_hostname, from_date, to_date, filter)
 
         host_names = hosts.getHostsWithFeature('schemaStatsGatherInterval').items()
+        host_names.sort(key=lambda x: x[1]['host_name'])
 
         return data, from_date, to_date, host_names, filter
 
@@ -205,10 +207,11 @@ class PerfLocksReport(object):
 
 class PerfStatStatementsReport(object):
     def index(self,**params):
-        hostname, host_names, hostuiname, data, from_date, to_date, order_by, limit = self.get_data(**params)
-
+        hostname, host_names, hostuiname, data, from_date, to_date, order_by, limit, no_copy_ddl, min_calls = self.get_data(**params)
         table = tplE.env.get_template('perf_stat_statements.html')
-        return table.render(hostname=hostname, hostuiname=hostuiname, host_names=host_names, data=data, from_date=from_date, to_date=to_date, order_by=order_by, limit=limit)
+        return table.render(hostname=hostname, hostuiname=hostuiname, host_names=host_names,
+                            data=data, from_date=from_date, to_date=to_date,
+                            order_by=order_by, limit=limit, no_copy_ddl=no_copy_ddl, min_calls=min_calls)
 
     index.exposed = True
 
@@ -281,15 +284,17 @@ class PerfStatStatementsReport(object):
         limit = params.get('limit', '50')
         from_date = params.get('from_date', datetime.datetime.now().strftime('%Y-%m-%d'))
         to_date = params.get('to_date', (datetime.datetime.now() + datetime.timedelta(1)).strftime('%Y-%m-%d'))
+        no_copy_ddl = params.get('no_copy_ddl', True)
+        min_calls = params.get('min_calls', '3')
 
         if 'show' in params and hostname:
-            data = reportdata.getStatStatements(hostname, from_date, to_date, order_by, limit)
+            data = reportdata.getStatStatements(hostname, from_date, to_date, order_by, limit, no_copy_ddl, min_calls)
             hostuiname = hosts.getHostUIShortnameByHostname(hostname)
         for d in data:
             d['query_short'] = d['query'][:60].replace('\n',' ').replace('\t',' ') + ('...' if len(d['query']) > 60 else '')
 
         host_names=sorted(hosts.hosts.items(), key = lambda h : h[1]['host_name'])
-        return hostname, host_names, hostuiname, data, from_date, to_date, order_by, limit
+        return hostname, host_names, hostuiname, data, from_date, to_date, order_by, limit, no_copy_ddl, min_calls
 
 
 class PerfBloat(object):
