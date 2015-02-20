@@ -281,6 +281,8 @@ def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=None)
 
     if pattern!=None:
       pattern_filter = " WHERE t_name ilike '%"+ str(adapt(pattern)) +"%' "
+    else:
+      pattern_filter = ''
 
     order_by_sql = { 1: "ORDER BY schema ASC,name ASC ",
               2: "ORDER BY table_size DESC" ,
