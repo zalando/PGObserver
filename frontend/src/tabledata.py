@@ -274,10 +274,13 @@ def getTableData(host, name, interval = None):
     return d
 
 
-def getTopTables(hostId, date_from, date_to, order=None, limit=10):
+def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=None):
     limit_sql = "" if limit is None else """ LIMIT """ + str(adapt(limit))
     if not order:
         order = 2   # size
+
+    if pattern!=None:
+      pattern_filter = " WHERE t_name ilike '%"+ str(adapt(pattern)) +"%' "
 
     order_by_sql = { 1: "ORDER BY schema ASC,name ASC ",
               2: "ORDER BY table_size DESC" ,
@@ -365,7 +368,7 @@ def getTopTables(hostId, date_from, date_to, order=None, limit=10):
           JOIN
           monitor_data.tables ON t_id = q_max_sizes.tsd_table_id
         ) t
-        """ + order_by_sql + limit_sql
+        """ + pattern_filter + order_by_sql + limit_sql
 
     list = datadb.execute(sql, (hostId, hostId, date_from, date_to))
     for d in list:

@@ -9,6 +9,7 @@
          <span class="text3">Timeframe:</span>
          <input type="text" class="datefield" name="date_from" value="{{ date_from }}">
          <input type="text" class="datefield" name="date_to" value="{{ date_to }}">
+         <input type="text" name="pattern" value="{{ pattern }}">
          <input name="show" type="submit" value="show">
          <br />
          <br />
@@ -46,6 +47,9 @@
                   <td align="right">{{ row.d_delta }}</td>
               </tr>
           {% endfor %}
+          <tr>
+            <td><td>{{ total size }}</td><td></td><td></td><td>{{ total_index_size }}</td>
+          </tr>
       </table>
 
 

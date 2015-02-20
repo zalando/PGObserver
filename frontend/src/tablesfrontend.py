@@ -156,7 +156,7 @@ class TableFrontend(object):
         return systems
 
 
-    def alltables(self, hostId, date_from=None, date_to=None, order=None, **params):
+    def alltables(self, hostId, date_from=None, date_to=None, pattern=None, **params):
         tpl = tplE.env.get_template('all_tables.html')
         hostUiName = hostId if not hostId.isdigit() else hosts.hostIdToUiShortname(hostId)
 
@@ -164,15 +164,22 @@ class TableFrontend(object):
             date_from = (datetime.datetime.now() - datetime.timedelta(days=6)).strftime('%Y-%m-%d')
         if not date_to:
             date_to = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        hostId, hostname, top_tables, order = self.get_alltables_data(hostId, date_from, date_to, order)
+        hostId, hostname, top_tables, order = self.get_alltables_data(hostId, date_from, date_to, order, pattern)
+
+        total_size = 0
+        total_index_size = 0
+        for t in top_tables:
+            total_size = t['table_size']
+            total_index_size = t['index_size']
+
         return tpl.render(hostname=hostname, hostuiname=hostUiName, order=int(order), list=top_tables,
-                          date_from=date_from, date_to=date_to)
+                          date_from=date_from, date_to=date_to, pattern=pattern,total_size=total_size, total_index_size=total_index_size)
 
     def raw_alltables(self, host, date_from, date_to, order=None):
         hostId, hostname, top_tables, order = self.get_alltables_data(host, date_from, date_to, order)
         return top_tables
 
-    def get_alltables_data(self, hostId, date_from, date_to, order=None):
+    def get_alltables_data(self, hostId, date_from, date_to, order=None, pattern=None):
         hostId = hostId if hostId.isdigit() else hosts.uiShortnameToHostId(hostId)
 
         if hostId is None:
@@ -180,7 +187,7 @@ class TableFrontend(object):
         if order==None:
             order=2
         hostname = hosts.getHostData()[int(hostId)]['uilongname']
-        top_tables = tabledata.getTopTables(hostId, date_from, date_to, order, None)
+        top_tables = tabledata.getTopTables(hostId, date_from, date_to, order, None, pattern)
         return hostId, hostname, top_tables, order
 
     def default(self):
