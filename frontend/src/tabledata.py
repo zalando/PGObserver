@@ -119,16 +119,29 @@ def getDatabaseSizes(host_id=None, days='8'):
 
     return size_data
 
+
 def makePrettySize(size):
-    mb = int(round( size / 1048576.0))
-    return str(mb) + " MB"
+    """ mimics pg_size_pretty() """
+    if size <= 1024:
+        return str(size) + ' B'
+    if size < 10 * 1024**2:
+        return str(long(round(size / float(1024)))) + ' kB'
+    if size < 10 * 1024**3:
+        return str(long(round(size / float(1024**2)))) + ' MB'
+    if size < 10 * 1024**4:
+        return str(long(round(size / float(1024**3)))) + ' GB'
+    return str(long(round(size / float(1024**4)))) + ' TB'
+
 
 def makePrettyCounter(count):
     if count <= 1000:
         return str(count)
-    if count < 1000000:
-        return str(round(count / 1000.0, 1)) + ' k'
-    return str(round(count / 1000000.0, 1)) + ' M'
+    if count < 1000**2:
+        return str(round(count / float(1000), 1)) + ' K'
+    if count < 1000**3:
+        return str(round(count / float(1000**2), 1)) + ' M'
+    return str(round(count / float(1000**3), 1)) + ' B'
+
 
 def getSingleTableSql(host, name, interval=None):
     if interval==None:
@@ -365,7 +378,7 @@ def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=None)
           JOIN
           monitor_data.tables ON t_id = q_max_sizes.tsd_table_id
         ) t
-         WHERE name ilike %s 
+         WHERE name ilike %s
         """ + order_by_sql + limit_sql
 
     pattern = '%' + pattern + '%'
