@@ -7,8 +7,7 @@ from collections import OrderedDict
 from collections import defaultdict
 
 
-
-def getLoadReportData(hostId=None):
+def getLoadReportData(hostId=None, weeks=10):
     conn = datadb.getDataConnection()
     cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
     query = """
@@ -25,7 +24,7 @@ def getLoadReportData(hostId=None):
                       , extract(week from tsd_timestamp) as week               
                       , max(tsd_timestamp)
                     from  monitor_data.table_size_data
-                    where tsd_timestamp > ('now'::timestamp - '9 weeks'::interval)
+                    where tsd_timestamp >= date_trunc('week', now()) - '""" + str(weeks) + """ weeks'::interval
                     and (%s is null or tsd_host_id = %s)
                     group by tsd_host_id, extract(week from tsd_timestamp)
                 ) a
@@ -45,7 +44,7 @@ def getLoadReportData(hostId=None):
                 , q
             where h.host_id = hl.load_host_id
               and host_enabled
-              and load_timestamp > ('now'::timestamp - '9 weeks'::interval)
+              and load_timestamp >= date_trunc('week', now()) - '""" + str(weeks) + """ weeks'::interval
               and extract(dow from load_timestamp) IN(1,2,3,4,5)                      
               and q.host_id = load_host_id
               and q.week = extract(week from load_timestamp)
@@ -101,6 +100,31 @@ def getLoadReportData(hostId=None):
     conn.close()
 
     return sorted(data.values(), key = lambda x : hosts.hosts[x[0]['id']]['uishortname'])
+
+
+def getLoadReportDataDailyAvg(hostId, weeks=10):
+    query = """
+            select
+              *
+            from (
+            select
+              load_timestamp::date::timestamp as date,
+              round(avg(load_15min_value)/100,2) AS cpu_15,
+              (max(xlog_location_mb) - min(xlog_location_mb)) * 10^6  as wal_b
+            from
+              monitor_data.host_load
+            where
+              load_host_id = %(host_id)s
+              and load_timestamp > now() - '""" + str(weeks) + """ weeks'::interval
+            group by
+              load_timestamp::date
+            having
+              max(xlog_location_mb) >= min(xlog_location_mb)
+            ) a
+            order by
+              1
+            """
+    return datadb.execute(query, {'host_id': hostId})
 
 
 def getTablePerformanceIssues(hostname, date_from, date_to):

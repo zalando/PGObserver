@@ -23,7 +23,7 @@ def execute(sql, params=None):
     conn = None
     try:
         conn = getDataConnection()
-        cur=conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
         cur.execute(sql, params)
         return cur.fetchall()
     finally:

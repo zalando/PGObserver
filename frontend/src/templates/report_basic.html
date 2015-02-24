@@ -4,7 +4,7 @@
 
 <div id="reports" class="container_12">
     <div class="grid_12">
-        <h3>Load Report</h3>
+        <h3>Load Report over {{weeks}} weeks</h3>
     </div>
     <div class="clear"></div>
     {% for d in data: %}
@@ -32,6 +32,24 @@
         </table>
     </div>
     {% endfor %}
+
+    {% if graph_load: %}
+    <div class="grid_12">
+        <h4 title="load 15">Load avg. per day</h4>
+        <div id="graph_load" class="graphc" style="width:100%;height:200px;"></div>
+        {{ graph_load }}
+    </div>
+    {% endif %}
+
+    {% if graph_wal: %}
+    <div class="grid_12">
+        <h4>WAL avg. per day</h4>
+        <div id="graph_wal" class="graphc" style="width:100%;height:200px;"></div>
+        {{ graph_wal }}
+    </div>
+    {% endif %}
+
+
 </div>
 
 {% endblock %}
