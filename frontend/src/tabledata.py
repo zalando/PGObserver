@@ -122,25 +122,29 @@ def getDatabaseSizes(host_id=None, days='8'):
 
 def makePrettySize(size):
     """ mimics pg_size_pretty() """
+    sign = '-' if size < 0 else ''
+    size = abs(size)
     if size <= 1024:
-        return str(size) + ' B'
+        return sign + str(size) + ' B'
     if size < 10 * 1024**2:
-        return str(long(round(size / float(1024)))) + ' kB'
+        return sign + str(long(round(size / float(1024)))) + ' kB'
     if size < 10 * 1024**3:
-        return str(long(round(size / float(1024**2)))) + ' MB'
+        return sign + str(long(round(size / float(1024**2)))) + ' MB'
     if size < 10 * 1024**4:
-        return str(long(round(size / float(1024**3)))) + ' GB'
-    return str(long(round(size / float(1024**4)))) + ' TB'
+        return sign + str(long(round(size / float(1024**3)))) + ' GB'
+    return sign + str(long(round(size / float(1024**4)))) + ' TB'
 
 
 def makePrettyCounter(count):
+    sign = '-' if count < 0 else ''
+    count = abs(count)
     if count <= 1000:
-        return str(count)
+        return sign + str(count)
     if count < 1000**2:
-        return str(round(count / float(1000), 1)) + ' K'
+        return sign + str(round(count / float(1000), 1)) + ' K'
     if count < 1000**3:
-        return str(round(count / float(1000**2), 1)) + ' M'
-    return str(round(count / float(1000**3), 1)) + ' B'
+        return sign + str(round(count / float(1000**2), 1)) + ' M'
+    return sign + str(round(count / float(1000**3), 1)) + ' B'
 
 
 def getSingleTableSql(host, name, interval=None):
