@@ -330,7 +330,7 @@ def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=None)
                 tsd_table_size as min_table_size,
                 tsd_index_size as min_index_size,
                 tsd_tup_ins + tsd_tup_upd + tsd_tup_del as min_iud,
-                tsd_seq_scans + tsd_index_scans as min_s,
+                tsd_seq_scans as min_s,
                 tsd_tup_ins as min_i,
                 tsd_tup_upd as min_u,
                 tsd_tup_del as min_d
@@ -347,7 +347,7 @@ def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=None)
                 tsd_table_size as max_table_size,
                 tsd_index_size as max_index_size,
                 tsd_tup_ins + tsd_tup_upd + tsd_tup_del as max_iud,
-                tsd_seq_scans + tsd_index_scans as max_s,
+                tsd_seq_scans as max_s,
                 tsd_tup_ins as max_i,
                 tsd_tup_upd as max_u,
                 tsd_tup_del as max_d
