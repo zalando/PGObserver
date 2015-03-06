@@ -5,7 +5,7 @@
 
     <groupId>de.zalando.pgobserver</groupId>
     <artifactId>pgobserver-gatherer</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <packaging>jar</packaging>
     <name>de.zalando.pgobserver.pgobserver-gatherer</name>
     <description>Console application the collects database statistics from target databases and stores these for analysis in pgobserver database.</description>
