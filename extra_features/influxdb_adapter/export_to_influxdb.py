@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import logging
 import os
 import collections
-from influxdb import client as influxdb
+from influxdb import influxdb08 as influxdb
 import yaml
 import time
 import datadb
@@ -35,7 +35,6 @@ DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING = [   # tpl_* files are queries with p
 ]
 MAX_DAYS_TO_SELECT_AT_A_TIME = 7    # chunk size for cases when we need to build up a history of many months
 SAFETY_SECONDS_FOR_LATEST_DATA = 30     # let's leave the freshest data out as the whole dataset might not be fully inserted yet
-HOST_UPDATE_STATUS_SERIES_NAME = 'host_update_status'
 
 
 def pgo_get_data_and_columns_from_view(host_id, view_name, max_days_to_fetch, idb_latest_timestamp=None):
@@ -210,7 +209,7 @@ def main():
     while True:
 
         loop_counter += 1
-        sql_active_hosts = 'select host_id as id, lower(host_ui_shortname) as ui_shortname from hosts where host_enabled order by 2'
+        sql_active_hosts = "select host_id as id, lower(host_ui_shortname).replace('-','_') as ui_shortname from hosts where host_enabled order by 2"
         active_hosts, cols = datadb.executeAsDict(sql_active_hosts)
         logging.debug('Nr of active hosts found: %s', len(active_hosts))
 
@@ -228,7 +227,7 @@ def main():
                 base_name = series_mapping_info['base_name'].format(ui_shortname=ah['ui_shortname'], id=ah['id'])
                 is_fan_out = series_mapping_info.get('cols_to_expand', False)
                 if args.drop_series and loop_counter == 1:
-                    logging.info('Dropping base series: %s ...', base_name)
+                    logging.debug('Dropping base series: %s ...', base_name)
                     if is_fan_out:
                         data = idb.query("list series /{}.*/".format(base_name))
                         if data[0]['points']:
@@ -245,7 +244,7 @@ def main():
                 if last_data_pull_time_for_view > time.time() - args.check_interval:
                     logging.debug('Not pulling data as args.check_interval not passed yet [%s]', base_name)
                     continue
-                logging.info('Fetching data from view "%s" into base series "%s"', view_name, base_name)
+                logging.debug('Fetching data from view "%s" into base series "%s"', view_name, base_name)
 
                 latest_timestamp_for_series = None
                 if not (args.drop_series and loop_counter == 1):  # no point to check if series was re-created
@@ -257,7 +256,8 @@ def main():
                                                                    view_name,
                                                                    settings['influxdb']['max_days_to_fetch'],
                                                                    latest_timestamp_for_series)
-                logging.info('%s rows fetched [ latest prev. timestamp in InfluxDB : %s]', len(data), latest_timestamp_for_series)
+                logging.info('%s rows fetched from view "%s" [ latest prev. timestamp in InfluxDB : %s]', len(data),
+                             view_name, latest_timestamp_for_series)
                 last_check_time_per_host_and_view[ah['id']][base_name] = time.time()
 
                 try:
@@ -287,10 +287,6 @@ def main():
                         else:
                             idb_push_data(idb, series_name, columns, data)
 
-                        # insert "last update" marker into special series "hosts". useful for listing all different hosts for templated queries
-                        idb_push_data(idb, HOST_UPDATE_STATUS_SERIES_NAME,
-                                      ['host', 'view', 'pgo_timestamp'],
-                                      [(ah['ui_shortname'], view_name, str(datetime.fromtimestamp(data[-1][0])))])
                     else:
                         logging.debug('no fresh data found on PgO')
 
