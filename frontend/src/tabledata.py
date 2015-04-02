@@ -291,7 +291,7 @@ def getTableData(host, name, interval = None):
     return d
 
 
-def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=None):
+def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=''):
     limit_sql = "" if limit is None else """ LIMIT """ + str(adapt(limit))
     if not order:
         order = 2   # size
