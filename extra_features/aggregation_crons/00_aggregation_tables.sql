@@ -164,7 +164,7 @@ begin
 exception
   when others then
     raise warning 'error when aggregating host_id : %', l_current_host_id;
-    raise warning '%', SQLERROR;
+    raise warning '%', SQLERRM;
 end;
 $$ language plpgsql security definer;
 
