@@ -58,5 +58,6 @@ where
   and not (tscans_delta = 0 and iscans_delta = 0 and ins_delta = 0 and upd_delta = 0 and del_delta = 0)
 --  and tsd_timestamp > %(from_timestamp)s
   and tsd_timestamp > now() - '1 hour'::interval
+  and timestamp_delta_s > 0
 order by
   tsd_timestamp

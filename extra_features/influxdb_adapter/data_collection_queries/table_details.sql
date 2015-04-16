@@ -69,5 +69,6 @@ from (
 where
   tscans_delta >= 0     -- stats reset
   and tsd_timestamp > %(from_timestamp)s
+  and timestamp_delta_s > 0
 order by
   t_schema, t_name, tsd_timestamp
