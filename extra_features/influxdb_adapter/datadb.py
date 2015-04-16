@@ -52,5 +52,15 @@ def execute(sql, params=None):
             conn.close()
 
 
+def executeUsingExistingConn(conn, sql, params=None):
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, params)
+        return cur.fetchall(), [x.name for x in cur.description]
+    finally:
+        if cur and not cur.closed:
+            cur.close()
+
+
 if __name__ == '__main__':
     print execute('select 1')
