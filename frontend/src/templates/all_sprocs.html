@@ -6,9 +6,14 @@
     <br />
     {% if all_sprocs: %}
 
-    <h4>Sprocs for: <a href="/{{hostuiname}}">{{ hostname }}</a>
-    | <a href="/sprocs/all/{{hostuiname}}/graph">show as 4day graphs</a>
+    <h4>Sprocs listing (active withing last {{active_days}} days) for: <a href="/{{hostuiname}}">{{ hostname }}</a>
+    | <a href="/sprocs/all/{{hostuiname}}/{{active_days}}/graph">show as mini-graphs</a>
     </h4>
+    <form action="/sprocs/all/{{hostuiname}}">
+        <h2>Active days: <input type="text" value="{{active_days}}" size="3" name="active_days">
+        <input type="submit" value="Update"></h2>
+    </form>
+    <br />
     <ol>
     {% for sproc in all_sprocs %}
         <li><a href="/sprocs/show/{{hostuiname}}/{{sproc}}">{{sproc}}</a></li>
@@ -17,7 +22,7 @@
 
     {% else %}
 
-    <h4>Sprocs for: <a href="/{{hostuiname}}">{{ hostname }}</a> (4 days, ordered by top runtime) | <a href="/sprocs/all/{{hostuiname}}">show as listing</a> </h4>
+    <h4>Sprocs for: <a href="/{{hostuiname}}">{{ hostname }}</a> ({{active_days}} days, ordered by total runtime descending) | <a href="/sprocs/all/{{hostuiname}}">show as listing</a> </h4>
 
     {% for g in graphs %}
    <div class="grid_3">

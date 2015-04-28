@@ -12,7 +12,8 @@
             {% if 'opengrok_baseurl' in settings and settings['opengrok_baseurl']!='' %}
              | show in <a href="https://{{ settings['opengrok_baseurl'] }}&q={{ name_wo_params }}">opengrok</a>
             {% endif %}
-            | <input id="sproc_search" name="sproc_search" placeholder="Sproc search..."><input id="search" name="search" type="submit" value="search">
+            | <input id="sproc_search" name="sproc_search" placeholder="Sproc search..." title="Lists sprocs active within last 24h">
+            <input id="search" name="search" type="submit" value="search">
             | <a href="/sprocs/show/{{hostuiname}}">show sproc listing </a>
         </h4>
 

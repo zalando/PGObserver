@@ -88,8 +88,6 @@ class SprocFrontend(object):
         list = []
         i = 0
         for s in sprocs:
-            print ('s')
-            print (s)
             d = sprocdata.getSingleSprocData(hostId, s, "('now'::timestamp - '4 days'::interval)")
             i += 1
 
@@ -105,21 +103,19 @@ class SprocFrontend(object):
                           hostname = hosts.getHostData()[int(hostId)]['uilongname'],
                           all_sprocs=None)
 
-    def all(self, hostId, graph=False):
+    def all(self, hostId, active_days=4, graph=False):
         hostId, hostUiName = hosts.ensureHostIdAndUIShortname(hostId)
         graph_list = []
         all_sprocs = None
 
         if not graph:
-           all_sprocs = sprocdata.getAllActiveSprocNames(hostId)
+           all_sprocs = sprocdata.getAllActiveSprocNames(hostId, active_days)
         else:
             sprocs = self.get_data(hostId)
 
             i = 0
             for s in sprocs:
-                print ('s')
-                print (s)
-                d = sprocdata.getSingleSprocData(hostId, s, "('now'::timestamp - '4 days'::interval)")
+                d = sprocdata.getSingleSprocData(hostId, s, "('now'::timestamp - '{} days'::interval)".format(active_days))
                 i += 1
 
                 graph= flotgraph.TimeGraph("graph"+str(i))
@@ -132,9 +128,10 @@ class SprocFrontend(object):
 
         tpl = tplE.env.get_template('all_sprocs.html')
         return tpl.render(graphs=graph_list,
-                          hostuiname = hostUiName,
-                          hostname = hosts.getHostData()[int(hostId)]['uilongname'],
-                          all_sprocs = all_sprocs)
+                          hostuiname=hostUiName,
+                          hostname=hosts.getHostData()[int(hostId)]['uilongname'],
+                          active_days=active_days,
+                          all_sprocs=all_sprocs)
 
     def __init__(self):
         self.show = Show()

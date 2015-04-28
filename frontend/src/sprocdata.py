@@ -97,20 +97,22 @@ def getSingleSprocData(hostId, name, interval=None):
     return data
 
 
-def getAllActiveSprocNames(hostId):
+def getAllActiveSprocNames(hostId, active_days=1):
+    active_days = str(adapt(active_days)) + ' days'
     sql = """
     select
-      distinct regexp_replace(sproc_name,'(\(.*\))','') as sproc_name
+      distinct regexp_replace(sproc_name, E'(\\\\(.*\\\\))', '') as sproc_name
     from
       sprocs
       join sproc_performance_data on sp_sproc_id = sproc_id
-    where sproc_host_id = %s
-      and sp_host_id = %s
-      and sp_timestamp > now() - '1 day'::interval
+    where sproc_host_id = %(host_id)s
+      and sp_host_id = %(host_id)s
+      and sp_timestamp > now() - %(active_days)s::interval
+    order by
+      1
     """
-    ret = datadb.execute(sql, (hostId, hostId))
-    ret = [ x['sproc_name'] for x in ret ]
-    ret.sort()
+    ret = datadb.execute(sql, {'host_id': hostId, 'active_days': active_days})
+    ret = [x['sproc_name'] for x in ret]
     return ret
 
 
