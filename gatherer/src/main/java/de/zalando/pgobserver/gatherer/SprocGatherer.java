@@ -56,7 +56,7 @@ public class SprocGatherer extends ADBGatherer {
                 "                             FROM pg_namespace\n" +
                 "                             WHERE " + schemaFilter + "\n" +
                 "                           ) apis ( name, rank )\n" +
-                "                      where rank <= 2 )";
+                "                      where rank <= 4 )";
 
         return sql;
     }
