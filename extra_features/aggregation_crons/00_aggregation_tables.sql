@@ -153,6 +153,7 @@ begin
                 ( PARTITION BY spd.sp_sproc_id ORDER BY spd.sp_timestamp )
 
             ) t
+       WHERE delta_self_time > 0    -- blend out pg_stat_user_functions stats resets or self_time overflows
        GROUP BY
          date_trunc('hour'::text, t.sp_timestamp) + floor(date_part('minute'::text, t.sp_timestamp) / 15::double precision) * '00:15:00'::interval
        ORDER BY
