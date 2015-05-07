@@ -46,7 +46,7 @@ from
         sp_timestamp > %(from_timestamp)s - '1 hour'::interval
         and sp_timestamp <= %(to_timestamp)s
         and sp_host_id = %(host_id)s
-        and sp_calls > 100
+        and sp_calls > 10
       order by
         4,2
       ) a

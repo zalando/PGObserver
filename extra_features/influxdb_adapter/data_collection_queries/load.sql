@@ -30,6 +30,7 @@ from (
 ) b
 where
   xlog_location_mb_delta >= 0
+  and load_timestamp > %(from_timestamp)s
 order by
   load_timestamp;
 

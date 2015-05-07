@@ -41,7 +41,7 @@ SAFETY_SECONDS_FOR_LATEST_DATA = 10     # let's leave the freshest data out as t
 settings = None   # for config file contents
 
 
-def pgo_get_data_and_columns_from_view(pgo_conn, host_id, view_name, max_days_to_fetch, idb_latest_timestamp=None):
+def pgo_get_data_and_columns_from_view(host_id, view_name, max_days_to_fetch, idb_latest_timestamp=None):
     dt_now = datetime.now()
     from_timestamp = idb_latest_timestamp
     to_timestamp = dt_now
@@ -63,7 +63,7 @@ def pgo_get_data_and_columns_from_view(pgo_conn, host_id, view_name, max_days_to
     logging.debug("Executing:")
     logging.debug("%s", datadb.mogrify(sql, sql_params))
 
-    view_data, columns = datadb.executeUsingExistingConn(pgo_conn, sql, sql_params)
+    view_data, columns = datadb.execute(sql, sql_params)
 
     # removing timestamp, we only want to store the utc epoch "time" column
     timestamp_index = columns.index('timestamp')
@@ -161,7 +161,6 @@ class WorkerThread(threading.Thread):
 
     def __init__(self, args):
         self.host_data = None
-        self.db_conn = None
         self.idb_client = None
         self.args = args
         super(WorkerThread, self).__init__()
@@ -173,18 +172,16 @@ class WorkerThread(threading.Thread):
             data = queue.get()
             logging.info('Refresh command received for %s', data['ui_shortname'])
             try:
-                if not self.db_conn or self.db_conn.closed:
-                    self.db_conn = datadb.getDataConnection()
                 self.idb_client = get_idb_client()
 
                 do_pull_push_for_one_host(data['id'], data['ui_shortname'], data['is_first_loop'],
-                                          self.args, self.db_conn, self.idb_client)
+                                          self.args, self.idb_client)
             except Exception as e:
                 logging.error('ERROR in worker thread: %s', e)
                 logging.error('%s', traceback.format_exc())
 
 
-def do_pull_push_for_one_host(host_id, ui_shortname, is_first_loop, args, pg_conn, influx_conn):
+def do_pull_push_for_one_host(host_id, ui_shortname, is_first_loop, args, influx_conn):
             try:
                 logging.info('Doing host: %s', ui_shortname)
                 host_processing_start_time = time.time()
@@ -218,8 +215,7 @@ def do_pull_push_for_one_host(host_id, ui_shortname, is_first_loop, args, pg_con
                                                                                                           base_name,
                                                                                                           is_fan_out)
                         logging.debug('Latest_timestamp_for_series: %s', latest_timestamp_for_series)
-                    data, columns = pgo_get_data_and_columns_from_view(pg_conn,
-                                                                       host_id,
+                    data, columns = pgo_get_data_and_columns_from_view(host_id,
                                                                        view_name,
                                                                        settings['influxdb']['max_days_to_fetch'],
                                                                        latest_timestamp_for_series)
@@ -308,7 +304,7 @@ def main():
         'port=' + str(settings['database']['port']),
     ))
 
-    datadb.setConnectionString(conn_string)
+    datadb.set_connection_string(conn_string)
 
     idb = influxdb.InfluxDBClient(settings['influxdb']['host'],
                                  settings['influxdb']['port'],

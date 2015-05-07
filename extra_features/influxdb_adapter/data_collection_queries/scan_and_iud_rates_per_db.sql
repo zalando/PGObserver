@@ -41,11 +41,9 @@ from (
     join
     monitor_data.tables on t_id = tsd_table_id
   where
---    tsd_timestamp > %(from_timestamp)s - '1 hour'::interval
---    and tsd_timestamp <= %(to_timestamp)s
---    and tsd_host_id = %(host_id)s
-    tsd_timestamp > now() - '1 hour'::interval
-    and tsd_host_id = 2
+    tsd_timestamp > %(from_timestamp)s - '1 hour'::interval
+    and tsd_timestamp <= %(to_timestamp)s
+    and tsd_host_id = %(host_id)s
   group by
     tsd_timestamp
 ) a
@@ -56,8 +54,7 @@ from (
 where
   tscans_delta >= 0
   and not (tscans_delta = 0 and iscans_delta = 0 and ins_delta = 0 and upd_delta = 0 and del_delta = 0)
---  and tsd_timestamp > %(from_timestamp)s
-  and tsd_timestamp > now() - '1 hour'::interval
+  and tsd_timestamp > %(from_timestamp)s
   and timestamp_delta_s > 0
 order by
   tsd_timestamp
