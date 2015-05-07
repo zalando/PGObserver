@@ -17,3 +17,21 @@ influxdb:
   password: root
   database: pgobserver
   max_days_to_fetch: 1      # how much old data to fetch when starting up
+
+max_worker_threads: 5
+
+data_collection_queries_to_process:
+    - avg_query_runtime_per_db
+    - avg_sproc_runtime_per_db
+    - avg_sproc_runtime_per_schema
+    - blocked_process_counts
+    - db_general_info
+    - db_size
+    - index_details
+    - load
+    - scan_and_iud_rates_per_db
+    - scan_and_iud_rates_per_schema
+    - sproc_details_per_schema_sproc
+    - table_and_index_sizes_per_schema
+    - table_details
+    - table_io_details
