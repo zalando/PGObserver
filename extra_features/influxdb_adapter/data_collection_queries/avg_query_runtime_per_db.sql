@@ -20,7 +20,7 @@ from
           ssd_host_id = %(host_id)s
           and ssd_timestamp > %(from_timestamp)s - '1hour'::interval    -- 1h should be enough to get a "lag" value
           and ssd_timestamp <= %(to_timestamp)s
-          and ssd_calls > 100   -- mininum amount of calls for the sproc to be considered as a "regular"
+          and ssd_calls > 10   -- mininum amount of calls for the statement to be considered as a "regular"
           and lower(ssd_query) not like 'copy%%'
         order by
           ssd_timestamp
