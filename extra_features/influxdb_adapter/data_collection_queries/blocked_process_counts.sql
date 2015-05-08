@@ -9,8 +9,6 @@ where
   and bp_timestamp > %(from_timestamp)s
   and bp_timestamp <= %(to_timestamp)s
   and bp_host_id = %(host_id)s
---    and bp_timestamp > now() - '1 hour'::interval
---    and bp_host_id = 3
 group by
   bp_timestamp
 order by

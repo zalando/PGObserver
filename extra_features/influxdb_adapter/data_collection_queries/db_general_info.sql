@@ -66,9 +66,6 @@ from (
           sdd_timestamp > %(from_timestamp)s - '1 hour'::interval
           and sdd_timestamp <= %(to_timestamp)s
           and sdd_host_id = %(host_id)s
---          sdd_timestamp > now() - '1 hour'::interval
---          and sdd_timestamp <= now()
---          and sdd_host_id = 3
     ) a
 
 ) b

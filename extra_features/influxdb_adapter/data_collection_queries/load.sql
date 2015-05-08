@@ -24,8 +24,6 @@ from (
     load_timestamp > %(from_timestamp)s - '1 hour'::interval
     and load_timestamp <= %(to_timestamp)s
     and load_host_id = %(host_id)s
---    load_timestamp > now() - '1 hour'::interval
---    and load_host_id = 3
   ) a
 ) b
 where

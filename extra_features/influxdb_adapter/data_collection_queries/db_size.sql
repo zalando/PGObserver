@@ -17,8 +17,6 @@ from (
     tsd_timestamp > %(from_timestamp)s
     and tsd_timestamp <= %(to_timestamp)s
     and tsd_host_id = %(host_id)s
---    tsd_timestamp > now() - interval '1h'
---    and tsd_host_id = 3
   group by
     tsd_timestamp
 ) a

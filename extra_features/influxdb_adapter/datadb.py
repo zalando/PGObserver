@@ -19,17 +19,21 @@ def get_conn(pool):
             pool.putconn(conn)
 
 
-def get_cursor(conn, cursor_factory=psycopg2.extras.RealDictCursor):
-    cur = conn.cursor(cursor_factory=cursor_factory)
+def get_cursor(conn, cursor_factory=None):
+    cur = None
+    if cursor_factory:
+        cur = conn.cursor(cursor_factory=cursor_factory)
+    else:
+        cur = conn.cursor()
     cur.execute("SET work_mem TO '256MB';")
     return cur
 
 
-def set_connection_string(conn_string):
+def set_connection_string_and_pool_size(conn_string, pool_size=5):
     global connection_string
     connection_string = conn_string
     global connection_pool
-    connection_pool = psycopg2.pool.ThreadedConnectionPool(0, 5, conn_string)
+    connection_pool = psycopg2.pool.ThreadedConnectionPool(0, pool_size, conn_string)
 
 
 def mogrify(sql, params=None):
@@ -46,14 +50,13 @@ def executeAsDict(sql, params=None):
 
 
 def execute(sql, params=None):
-    conn = None
     with get_conn(connection_pool) as conn:
-        cur = get_cursor(conn, cursor_factory=None)
+        cur = get_cursor(conn)
         cur.execute(sql, params)
         return cur.fetchall(), [x.name for x in cur.description]
 
 
 if __name__ == '__main__':
-    set_connection_string(connection_string)
+    set_connection_string_and_pool_size(connection_string)
     print execute('select 1 as a')
     print executeAsDict('select 1 as a')

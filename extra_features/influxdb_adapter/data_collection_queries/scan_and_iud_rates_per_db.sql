@@ -53,6 +53,7 @@ from (
 ) c
 where
   tscans_delta >= 0
+  and iscans_delta >= 0
   and not (tscans_delta = 0 and iscans_delta = 0 and ins_delta = 0 and upd_delta = 0 and del_delta = 0)
   and tsd_timestamp > %(from_timestamp)s
   and timestamp_delta_s > 0

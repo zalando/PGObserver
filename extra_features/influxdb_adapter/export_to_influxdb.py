@@ -14,28 +14,28 @@ import traceback
 DEFAULT_CONF_FILE = './influx_config.yaml'
 PGO_DATA_SCHEMA = 'monitor_data'
 TEMPLATES_FOLDER = 'data_collection_queries'
-DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING = [   # tpl_* files are queries with placeholders for host and time range
-    ('avg_query_runtime_per_db', {'base_name': 'avg_query_runtime.{ui_shortname}'}),
-    ('avg_sproc_runtime_per_db', {'base_name': 'avg_sproc_runtime.{ui_shortname}'}),
-    ('avg_sproc_runtime_per_schema', {'base_name': 'avg_sproc_runtime_schema.{ui_shortname}', 'cols_to_expand': ['schema']}),
-    ('blocked_process_counts', {'base_name': 'blocked_process_counts.{ui_shortname}'}),
-    ('db_general_info', {'base_name': 'db_general.{ui_shortname}'}),
-    ('db_size', {'base_name': 'db_size.{ui_shortname}'}),
-    ('index_details', {'base_name': 'index_stats.{ui_shortname}',
-                                            'cols_to_expand': ['schema', 'index']}),
-    ('load', {'base_name': 'load.{ui_shortname}'}),
-    ('scan_and_iud_rates_per_db', {'base_name': 'scan_and_iud_rates.{ui_shortname}'}),
-    ('scan_and_iud_rates_per_schema', {'base_name': 'scan_and_iud_rates_schema.{ui_shortname}',
-                                            'cols_to_expand': ['schema']}),
-    ('sproc_details_per_schema_sproc', {'base_name': 'sproc_details.{ui_shortname}',
-                                                        'cols_to_expand': ['schema', 'sproc']}),
-    ('table_and_index_sizes_per_schema', {'base_name': 'table_and_index_sizes.{ui_shortname}',
-                                            'cols_to_expand': ['schema']}),
-    ('table_details', {'base_name': 'table_details.{ui_shortname}',
-                                            'cols_to_expand': ['schema', 'table']}),
-    ('table_io_details', {'base_name': 'table_io_details.{ui_shortname}',
-                                            'cols_to_expand': ['schema', 'table']}),
-]
+DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING = {       # queries are located in the "data_collection_queries" folder
+    'avg_query_runtime_per_db': {'base_name': 'avg_query_runtime.{ui_shortname}'},
+    'avg_sproc_runtime_per_db': {'base_name': 'avg_sproc_runtime.{ui_shortname}'},
+    'avg_sproc_runtime_per_schema': {'base_name': 'avg_sproc_runtime_schema.{ui_shortname}', 'cols_to_expand': ['schema']},
+    'blocked_process_counts': {'base_name': 'blocked_process_counts.{ui_shortname}'},
+    'db_general_info': {'base_name': 'db_general.{ui_shortname}'},
+    'db_size': {'base_name': 'db_size.{ui_shortname}'},
+    'index_details': {'base_name': 'index_stats.{ui_shortname}',
+                                            'cols_to_expand': ['schema', 'index']},
+    'load': {'base_name': 'load.{ui_shortname}'},
+    'scan_and_iud_rates_per_db': {'base_name': 'scan_and_iud_rates.{ui_shortname}'},
+    'scan_and_iud_rates_per_schema': {'base_name': 'scan_and_iud_rates_schema.{ui_shortname}',
+                                            'cols_to_expand': ['schema']},
+    'sproc_details_per_schema_sproc': {'base_name': 'sproc_details.{ui_shortname}',
+                                                        'cols_to_expand': ['schema', 'sproc']},
+    'table_and_index_sizes_per_schema': {'base_name': 'table_and_index_sizes.{ui_shortname}',
+                                            'cols_to_expand': ['schema']},
+    'table_details': {'base_name': 'table_details.{ui_shortname}',
+                                            'cols_to_expand': ['schema', 'table']},
+    'table_io_details': {'base_name': 'table_io_details.{ui_shortname}',
+                                            'cols_to_expand': ['schema', 'table']},
+    }
 MAX_DAYS_TO_SELECT_AT_A_TIME = 7    # chunk size for cases when we need to build up a history of many months
 SAFETY_SECONDS_FOR_LATEST_DATA = 10     # let's leave the freshest data out as the whole dataset might not be fully inserted yet
 settings = None   # for config file contents
@@ -88,7 +88,7 @@ def get_idb_client():
     return idb_client
 
 
-def idb_write_points(db, name, columns, datapoints):
+def idb_write_points(name, columns, datapoints):
     if len(columns) != len(datapoints[0]):
         raise Exception('Inequal inputs')
     data = [{
@@ -96,7 +96,8 @@ def idb_write_points(db, name, columns, datapoints):
         "columns": columns,
         "points": datapoints
     }]
-    db.write_points(data, time_precision='s', batch_size=1000)
+    db = get_idb_client()
+    db.write_points(data, time_precision='s')
 
 
 def idb_ensure_database(db, dbname, recreate=None):
@@ -108,7 +109,7 @@ def idb_ensure_database(db, dbname, recreate=None):
         db.create_database(dbname)
 
 
-def idb_get_last_timestamp_for_series_as_local_datetime(db, series_name, is_fan_out=False):
+def idb_get_last_timestamp_for_series_as_local_datetime(series_name, is_fan_out=False):
     """ Influx times are UTC, convert to local """
     max_as_datetime = None
     sql = 'select * from {} limit 1'.format(series_name)
@@ -116,6 +117,7 @@ def idb_get_last_timestamp_for_series_as_local_datetime(db, series_name, is_fan_
         sql = 'select * from /{}.*/ limit 1'.format(series_name)
 
     try:
+        db = get_idb_client()
         logging.debug('Executing "%s" on InfluxDB', sql)
         data = db.query(sql, time_precision='s')
         if data:
@@ -131,7 +133,7 @@ def idb_get_last_timestamp_for_series_as_local_datetime(db, series_name, is_fan_
     return max_as_datetime
 
 
-def idb_push_data(idb, name, columns, load_data, column_indexes_to_skip=[]):
+def idb_push_data(name, columns, load_data, column_indexes_to_skip=[]):
     if not load_data:
         return
     data_len = len(load_data)
@@ -150,7 +152,7 @@ def idb_push_data(idb, name, columns, load_data, column_indexes_to_skip=[]):
 
     logging.debug('Pushing %s data points to InfluxDB for series %s...', data_len, name)
     start_time = time.time()
-    idb_write_points(db=idb, name=name, columns=columns_filtered, datapoints=load_data)
+    idb_write_points(name=name, columns=columns_filtered, datapoints=load_data)
     logging.debug('Done in %s seconds', round(time.time() - start_time))
 
 queue = Queue()
@@ -160,8 +162,6 @@ class WorkerThread(threading.Thread):
     """ Waits to fetch the next host to be synced from the que and then pulls data from PgO and pushes it to InfluxDB"""
 
     def __init__(self, args):
-        self.host_data = None
-        self.idb_client = None
         self.args = args
         super(WorkerThread, self).__init__()
         self.daemon = True
@@ -170,30 +170,36 @@ class WorkerThread(threading.Thread):
         logging.info('Starting thread')
         while True:
             data = queue.get()
-            logging.info('Refresh command received for %s', data['ui_shortname'])
-            try:
-                self.idb_client = get_idb_client()
 
+            if time.time() - data['queued_on'] > 60:
+                logging.debug('Skipping refresh for %s due to lag', data['ui_shortname'])
+                continue
+            logging.info('Refresh command received for %s', data['ui_shortname'])
+
+            try:
                 do_pull_push_for_one_host(data['id'], data['ui_shortname'], data['is_first_loop'],
-                                          self.args, self.idb_client)
+                                          self.args)
             except Exception as e:
                 logging.error('ERROR in worker thread: %s', e)
                 logging.error('%s', traceback.format_exc())
 
 
-def do_pull_push_for_one_host(host_id, ui_shortname, is_first_loop, args, influx_conn):
+def do_pull_push_for_one_host(host_id, ui_shortname, is_first_loop, args):
             try:
                 logging.info('Doing host: %s', ui_shortname)
                 host_processing_start_time = time.time()
 
-                for view_name, series_mapping_info in DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING:
-                    if view_name not in settings['data_collection_queries_to_process']:
+                for view_name in settings['data_collection_queries_to_process']:
+                    series_mapping_info = DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING.get(view_name)
+                    if not series_mapping_info:
+                        logging.error('Unknown query %s, mapping to series not found. skipping...', view_name)
                         continue
 
                     base_name = series_mapping_info['base_name'].format(ui_shortname=ui_shortname, id=host_id)
                     is_fan_out = series_mapping_info.get('cols_to_expand', None)
 
                     if args.drop_series and is_first_loop:
+                        influx_conn = get_idb_client()
                         logging.debug('Dropping base series: %s ...', base_name)
                         if is_fan_out:
                             data = influx_conn.query("list series /{}.*/".format(base_name))
@@ -207,20 +213,19 @@ def do_pull_push_for_one_host(host_id, ui_shortname, is_first_loop, args, influx
                         else:
                             influx_conn.delete_series(base_name)
 
-                    logging.debug('Fetching data from view "%s" into base series "%s"', view_name, base_name)
+                    logging.debug('Fetching data from query "%s" into base series "%s"', view_name, base_name)
 
                     latest_timestamp_for_series = None
                     if not (args.drop_series and is_first_loop):  # no point to check if series was re-created
-                        latest_timestamp_for_series = idb_get_last_timestamp_for_series_as_local_datetime(influx_conn,
-                                                                                                          base_name,
+                        latest_timestamp_for_series = idb_get_last_timestamp_for_series_as_local_datetime(base_name,
                                                                                                           is_fan_out)
                         logging.debug('Latest_timestamp_for_series: %s', latest_timestamp_for_series)
                     data, columns = pgo_get_data_and_columns_from_view(host_id,
                                                                        view_name,
                                                                        settings['influxdb']['max_days_to_fetch'],
                                                                        latest_timestamp_for_series)
-                    logging.info('%s rows fetched from view "%s" [ latest prev. timestamp in InfluxDB : %s]', len(data),
-                                 view_name, latest_timestamp_for_series)
+                    logging.info('[Host "%s"] %s rows fetched from view "%s" [ latest prev. timestamp in InfluxDB : %s]',
+                                 ui_shortname, len(data), view_name, latest_timestamp_for_series)
 
                     if len(data) > 0:
                         series_name = base_name
@@ -237,24 +242,25 @@ def do_pull_push_for_one_host(host_id, ui_shortname, is_first_loop, args, influx
                                 for ci in expanded_column_indexes:
                                     series_name += '.' + str(row[ci])
                                 if series_name != prev_row_series_name and prev_row_series_name:
-                                    idb_push_data(influx_conn, prev_row_series_name, columns, data[start_index:current_index],
+                                    idb_push_data(prev_row_series_name, columns, data[start_index:current_index],
                                                   expanded_column_indexes)  # expanded_columns_will be removed from the dataset
                                     start_index = current_index
                                 current_index += 1
                                 prev_row_series_name = series_name
 
-                            idb_push_data(influx_conn, series_name, columns, data[start_index:current_index],
+                            idb_push_data(series_name, columns, data[start_index:current_index],
                                                   expanded_column_indexes)
                         else:
-                            idb_push_data(influx_conn, series_name, columns, data)
+                            idb_push_data(series_name, columns, data)
 
                     else:
                         logging.debug('no fresh data found on PgO')
 
             except Exception as e:
-                logging.error('ERROR - Could not process %s: %s', view_name, e.message)
+                logging.error('[Host "%s"] ERROR - Could not process %s: %s', ui_shortname, view_name, e.message)
+                raise
 
-            logging.info('Finished processing %s in %ss', ui_shortname, round(time.time() - host_processing_start_time))
+            logging.info('[Host "%s"] Finished processing in %ss', ui_shortname, round(time.time() - host_processing_start_time))
 
 
 def main():
@@ -304,7 +310,7 @@ def main():
         'port=' + str(settings['database']['port']),
     ))
 
-    datadb.set_connection_string(conn_string)
+    datadb.set_connection_string_and_pool_size(conn_string, int(settings['max_worker_threads']) + 1)
 
     idb = influxdb.InfluxDBClient(settings['influxdb']['host'],
                                  settings['influxdb']['port'],
@@ -317,7 +323,7 @@ def main():
 
     idb.switch_database(settings['influxdb']['database'])
 
-    logging.info('Following views will be synced: %s', [x[0] for x in DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING])
+    logging.info('Following views will be synced: %s', settings['data_collection_queries_to_process'])
 
     hosts_to_sync = []
     if args.hosts_to_sync:
@@ -326,7 +332,7 @@ def main():
         logging.debug('Syncing only hosts: %s', hosts_to_sync)
 
     last_queued_time_for_host = collections.defaultdict(dict)
-    loop_counter = 0
+    is_first_loop = True
     workers = []
     active_hosts = []
     active_hosts_refresh_time = 0
@@ -339,7 +345,7 @@ def main():
             active_hosts, cols = datadb.executeAsDict(sql_active_hosts, (hosts_to_sync, hosts_to_sync))
             active_hosts_refresh_time = time.time()
 
-        if loop_counter == 0:   # setup
+        if is_first_loop:   # setup
             workers_to_spawn = min(min(len(hosts_to_sync) if hosts_to_sync else settings['max_worker_threads'], settings['max_worker_threads']), len(sql_active_hosts))
             logging.debug('Nr of monitored hosts: %s', len(active_hosts))
             logging.info('Creating %s worker threads...', workers_to_spawn)
@@ -356,12 +362,16 @@ def main():
                 continue
 
             logging.info('Putting %s to queue...', ah['ui_shortname'])
-            queue.put({'id': ah['id'], 'ui_shortname': ah['ui_shortname'], 'is_first_loop': loop_counter == 0})
+            queue.put({'id': ah['id'], 'ui_shortname': ah['ui_shortname'],
+                       'is_first_loop': is_first_loop, 'queued_on': time.time()})
             last_queued_time_for_host[ah['id']] = time.time()
+
+        if is_first_loop:
+            is_first_loop = False
 
         logging.debug('Main thread sleeps...')
         time.sleep(5)
-        loop_counter += 1
+
 
 if __name__ == '__main__':
     main()
