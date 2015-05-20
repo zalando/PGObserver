@@ -37,7 +37,7 @@ DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING = {       # queries are located in the
                                             'cols_to_expand': ['schema', 'table']},
     }
 MAX_DAYS_TO_SELECT_AT_A_TIME = 7    # chunk size for cases when we need to build up a history of many months
-SAFETY_SECONDS_FOR_LATEST_DATA = 10     # let's leave the freshest data out as the whole dataset might not be fully inserted yet
+SAFETY_SECONDS_FOR_LATEST_DATA = 5  # let's leave the freshest data out as the whole dataset might not be fully inserted yet
 settings = None   # for config file contents
 
 
@@ -171,9 +171,6 @@ class WorkerThread(threading.Thread):
         while True:
             data = queue.get()
 
-            if time.time() - data['queued_on'] > 60:
-                logging.debug('Skipping refresh for %s due to lag', data['ui_shortname'])
-                continue
             logging.info('Refresh command received for %s', data['ui_shortname'])
 
             try:
@@ -336,7 +333,7 @@ def main():
     workers = []
     active_hosts = []
     active_hosts_refresh_time = 0
-    sql_active_hosts = "select host_id as id, replace(lower(host_ui_shortname), '-','_') as ui_shortname from monitor_data.hosts " \
+    sql_active_hosts = "select host_id as id, replace(lower(host_ui_shortname), '-','') as ui_shortname from monitor_data.hosts " \
                        "where host_enabled and (%s = '{}' or host_id = any(%s)) order by 2"
 
     while True:
@@ -354,20 +351,22 @@ def main():
                 wt.start()
                 workers.append(wt)
 
-        for ah in active_hosts:
+        if queue.qsize() <= len(active_hosts) * 2:
 
-            last_data_pull_time_for_view = last_queued_time_for_host.get(ah['id'], 0)
-            if time.time() - last_data_pull_time_for_view < args.check_interval:
-                # logging.debug('Not pulling data as args.check_interval not passed yet [host_id %s]', ah['id'])
-                continue
+            for ah in active_hosts:
 
-            logging.info('Putting %s to queue...', ah['ui_shortname'])
-            queue.put({'id': ah['id'], 'ui_shortname': ah['ui_shortname'],
-                       'is_first_loop': is_first_loop, 'queued_on': time.time()})
-            last_queued_time_for_host[ah['id']] = time.time()
+                last_data_pull_time_for_view = last_queued_time_for_host.get(ah['id'], 0)
+                if time.time() - last_data_pull_time_for_view < args.check_interval:
+                    # logging.debug('Not pulling data as args.check_interval not passed yet [host_id %s]', ah['id'])
+                    continue
 
-        if is_first_loop:
-            is_first_loop = False
+                logging.info('Putting %s to queue...', ah['ui_shortname'])
+                queue.put({'id': ah['id'], 'ui_shortname': ah['ui_shortname'],
+                           'is_first_loop': is_first_loop, 'queued_on': time.time()})
+                last_queued_time_for_host[ah['id']] = time.time()
+
+            if is_first_loop:
+                is_first_loop = False
 
         logging.debug('Main thread sleeps...')
         time.sleep(5)
