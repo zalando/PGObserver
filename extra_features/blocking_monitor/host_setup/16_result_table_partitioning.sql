@@ -7,12 +7,12 @@ DECLARE
     c record;
 BEGIN
     l_table_to_drop := format('%s_%s', p_table_base_name, l_week_to_drop);
-    l_sql := format('select table_name from information_schema.tables where table_schema = ''%s'' and table_name <= ''%s'' and table_name like ''%s\_%%''',
+    l_sql := format('select table_name from information_schema.tables where table_schema = ''%s'' and table_name <= ''%s'' and table_name like E''%s\\_%%''',
             'z_blocking', l_table_to_drop, p_table_base_name);
     FOR c in EXECUTE l_sql
     LOOP
-      l_sql := 'drop table if exists '|| c.table_name;
-      RAISE WARNING 'dropping %', c.table_name;
+      l_sql := 'drop table if exists z_blocking.'|| c.table_name;
+      RAISE WARNING 'dropping z_blocking.%', c.table_name;
       EXECUTE l_sql;
     END LOOP;
 END;
