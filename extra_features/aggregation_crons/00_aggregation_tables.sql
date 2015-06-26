@@ -27,7 +27,7 @@ create index on table_size_data_agg (tsda_timestamp);
 create table sproc_load_agg(
     sla_timestamp timestamp without time zone NOT NULL,
     sla_host_id int not null,
-    sla_load_15min numeric(4,2) not null
+    sla_load_15min numeric(8,2) not null
 );
 create unique index on sproc_load_agg (sla_host_id, sla_timestamp);
 create index on sproc_load_agg (sla_timestamp);

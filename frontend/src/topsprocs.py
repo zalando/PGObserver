@@ -105,7 +105,7 @@ def getLoad(hostId, days='8'):
             UNION ALL
               SELECT
                 xaxis,
-                (sum(d_self_time) OVER (ORDER BY xaxis ASC ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) / (1*15*60*1000))::numeric(6,2) AS load_15min
+                (sum(d_self_time) OVER (ORDER BY xaxis ASC ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) / (1*15*60*1000))::numeric(8,2) AS load_15min
               FROM
                 ( SELECT
                     date_trunc('hour'::text, t.sp_timestamp) + floor(date_part('minute'::text, t.sp_timestamp) / 15::double precision) * '00:15:00'::interval AS xaxis,
@@ -140,7 +140,7 @@ def getLoad(hostId, days='8'):
             FROM (
                   SELECT
                     xaxis,
-                    (sum(d_self_time) OVER (ORDER BY xaxis ASC ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) / (1*15*60*1000))::numeric(6,2) AS load_15min
+                    (sum(d_self_time) OVER (ORDER BY xaxis ASC ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) / (1*15*60*1000))::numeric(8,2) AS load_15min
                   FROM
                     ( SELECT
                         date_trunc('hour'::text, t.sp_timestamp) + floor(date_part('minute'::text, t.sp_timestamp) / 15::double precision) * '00:15:00'::interval AS xaxis,
