@@ -31,7 +31,7 @@ DECLARE
         SELECT current_database(), schemaname, tblname, bs*tblpages AS real_size,
         (tblpages-est_num_pages)*bs AS bloat_size,
         CASE WHEN tblpages - est_num_pages > 0
-        THEN 100 * (tblpages - est_num_pages)/tblpages::float
+        THEN round((100 * (tblpages - est_num_pages)/tblpages::float)::numeric, 1)
         ELSE 0
         END AS bloat_ratio
         FROM (
@@ -120,7 +120,7 @@ DECLARE
       schemaname::text,
       tblname::text,
       idxname::text,
-      bloat_ratio::numeric,
+      round(bloat_ratio::numeric, 1),
       bloat_size::numeric,
       pg_size_pretty(bloat_size::int8)
     FROM (
