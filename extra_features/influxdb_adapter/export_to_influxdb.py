@@ -339,8 +339,13 @@ def main():
     while True:
 
         if time.time() - active_hosts_refresh_time > 180:  # checking for hosts changes every 3 minutes
-            active_hosts, cols = datadb.executeAsDict(sql_active_hosts, (hosts_to_sync, hosts_to_sync))
-            active_hosts_refresh_time = time.time()
+            try:
+                active_hosts, cols = datadb.executeAsDict(sql_active_hosts, (hosts_to_sync, hosts_to_sync))
+                active_hosts_refresh_time = time.time()
+            except Exception as e:
+                if is_first_loop:   # ignore otherwise, db could be down for maintenance
+                    raise e
+                logging.error('Could not refresh active host info: %s', e)
 
         if is_first_loop:   # setup
             workers_to_spawn = min(min(len(hosts_to_sync) if hosts_to_sync else settings['max_worker_threads'], settings['max_worker_threads']), len(sql_active_hosts))
