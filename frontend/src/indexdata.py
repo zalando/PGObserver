@@ -22,9 +22,9 @@ def getIndexesDataForTable(host, full_name, date_from, date_to):
     last_tup_read = None
 #    last_tup_fetch = None
     last_name = None
-    last_index_size = None
-    last_total_end_size = None
-    last_pct_of_total_end_size = None
+    last_index_size = 0
+    last_total_end_size = 0
+    last_pct_of_total_end_size = 0
 
     for r in data:
         if last_name != None:
@@ -46,7 +46,7 @@ def getIndexesDataForTable(host, full_name, date_from, date_to):
         last_total_end_size = r['total_end_size']
         last_pct_of_total_end_size = r['pct_of_total_end_size']
 
-    if len(d) > 0:
+    if len(data) > 0:
         all_data.append({'index_name':last_name, 'data':d, 'last_index_size': round(last_index_size / 1024**2), 'total_end_size': round(last_total_end_size / 1024**2), 'pct_of_total_end_size':last_pct_of_total_end_size})
 
     return all_data
