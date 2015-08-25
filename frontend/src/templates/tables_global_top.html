@@ -35,7 +35,7 @@
           </thead>
           {% for row in list: %}
               <tr>
-                 <td><a href="/{{ hosts[row.host_id]['host_ui_shortname'] }}">{{ hosts[row.host_id]['host_ui_longname'] }}</a></td>
+                 <td><a href="/{{ hosts[row.host_id]['uishortname'] }}">{{ hosts[row.host_id]['host_ui_longname'] }}</a></td>
                   <td><a target="_new" href="/tables/show/{{hosts[row.host_id]['uishortname']}}/{{row.schema}}.{{row.name}}">{{ row.schema }}.{{ row.name }}</a></td>
                   <td align="right">{{ row.table_size_pretty }}</td>
                   <td align="right">{{ row.table_size_delta }}</td>
