@@ -10,7 +10,7 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", path: "bootstrap.sh"
 
   # Grafana Web UI
-  config.vm.network "forwarded_port", guest: 80, host: 8082
+  config.vm.network "forwarded_port", guest: 3000, host: 3000
 
   # Influx Web UI
   config.vm.network "forwarded_port", guest: 8083, host: 8083

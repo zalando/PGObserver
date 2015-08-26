@@ -5,7 +5,8 @@ import logging
 import os
 import collections
 import threading
-from influxdb import influxdb08 as influxdb
+import influxdb
+import itertools
 import yaml
 import time
 import datadb
@@ -36,8 +37,8 @@ DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING = {       # queries are located in the
     'table_io_details': {'base_name': 'table_io_details.{ui_shortname}',
                                             'cols_to_expand': ['schema', 'table']},
     }
-MAX_DAYS_TO_SELECT_AT_A_TIME = 7    # chunk size for cases when we need to build up a history of many months
-SAFETY_SECONDS_FOR_LATEST_DATA = 5  # let's leave the freshest data out as the whole dataset might not be fully inserted yet
+MAX_DAYS_TO_SELECT_AT_A_TIME = 7        # chunk size for cases when we need to build up a history of many months
+SAFETY_SECONDS_FOR_LATEST_DATA = 10     # let's leave the freshest data out as the whole dataset might not be fully inserted yet
 settings = None   # for config file contents
 
 
@@ -63,19 +64,9 @@ def pgo_get_data_and_columns_from_view(host_id, view_name, max_days_to_fetch, id
     logging.debug("Executing:")
     logging.debug("%s", datadb.mogrify(sql, sql_params))
 
-    view_data, columns = datadb.execute(sql, sql_params)
+    view_data, columns = datadb.executeAsDict(sql, sql_params)
 
-    # removing timestamp, we only want to store the utc epoch "time" column
-    timestamp_index = columns.index('timestamp')
-    if timestamp_index != 0:
-        raise Exception('"timestamp" needs to be the 1st column returned!')
-    columns.remove('timestamp')
-
-    ret_data = []
-    for d in view_data:
-        ret_data.append(list(d[1:]))
-
-    return ret_data, columns
+    return view_data, columns
 
 
 def get_idb_client():
@@ -88,72 +79,131 @@ def get_idb_client():
     return idb_client
 
 
-def idb_write_points(name, columns, datapoints):
-    if len(columns) != len(datapoints[0]):
-        raise Exception('Inequal inputs')
-    data = [{
-        "name": name,
-        "columns": columns,
-        "points": datapoints
-    }]
+def idb_write_points(ui_shortname, measurement, column_names, tag_names, data_by_tags):
+    dataset_tag_mode = []
+    dataset_pure_mode = []
+    tag_mode_enabled = settings['influxdb']['data_model_tag']
+    pure_mode_enabled = settings['influxdb']['data_model_pure']
+
+    if 'timestamp' in column_names:     # not storing human readable timestamp, useful for debugging only
+        column_names.remove('timestamp')
+    column_names.remove('time')
+
+    for tag_dict, data in data_by_tags:
+        if set(column_names) - set(data[0].keys()):
+            logging.error('columns: %s', column_names)
+            logging.error('data[0]: %s', data[0])
+            raise Exception('Some required columns missing!')
+
+        for d in data:
+            field_data = dict((x[0], x[1]) for x in d.iteritems() if x[0] in column_names)
+            if tag_mode_enabled:
+                dataset_tag_mode.append({
+                    "measurement": settings['influxdb']['tag_mode_series_prefix'] + measurement,
+                    "time": d['time'],  # epoch_seconds
+                    "tags": tag_dict,
+                    "fields": field_data
+                })
+            if pure_mode_enabled:
+                series_name = measurement + '.' + ui_shortname
+                for tag in tag_names:
+                    series_name += '.' + tag_dict[tag]
+                dataset_pure_mode.append({
+                    "measurement": series_name,
+                    "time": d['time'],  # epoch_seconds
+                    "fields": field_data
+                })
+
     db = get_idb_client()
-    db.write_points(data, time_precision='s')
+    if pure_mode_enabled:
+        logging.debug('[%s] pushing %s data points to InfluxDB in "pure mode" for measurement "%s" ...', ui_shortname,
+                      len(dataset_pure_mode), measurement)
+        start_time = time.time()
+        db.write_points(dataset_pure_mode, time_precision='s')
+        logging.debug('[%s] done in %s seconds', ui_shortname, round(time.time() - start_time))
+    if tag_mode_enabled:
+        logging.debug('[%s] pushing %s data points to InfluxDB in "tag mode" for measurement "%s" ...', ui_shortname,
+                      len(dataset_tag_mode), measurement)
+        start_time = time.time()
+        db.write_points(dataset_tag_mode, time_precision='s')
+        logging.debug('[%s] done in %s seconds', ui_shortname, round(time.time() - start_time))
 
 
 def idb_ensure_database(db, dbname, recreate=None):
     db_names = [x['name'] for x in db.get_list_database()]
     if recreate and dbname in db_names:
         logging.info('Recreating DB %s on InfluxDB...', dbname)
-        db.delete_database(dbname)
-    if dbname not in [x['name'] for x in db.get_list_database()]:
+        db.drop_database(dbname)
+        db.create_database(dbname)
+    elif dbname not in db_names:
         db.create_database(dbname)
 
+    ret_policies = [x['name'] for x in db.get_list_retention_policies(dbname)]
+    if 'ret30d' not in ret_policies:
+        db.create_retention_policy('ret30d', '30d', '1', dbname, default=True)
 
-def idb_get_last_timestamp_for_series_as_local_datetime(series_name, is_fan_out=False):
+
+def idb_get_last_timestamp_for_series_as_local_datetime(series_name, ui_shortname):
     """ Influx times are UTC, convert to local """
     max_as_datetime = None
-    sql = 'select * from {} limit 1'.format(series_name)
-    if is_fan_out:  # need to loop over all hosts to find the max_timestamp
-        sql = 'select * from /{}.*/ limit 1'.format(series_name)
+    max_days_to_fetch = settings['influxdb']['max_days_to_fetch']
+
+     # TODO too wasteful, need to start keeping one host on one thread
+    sql = '''select * from /^{}.{}.*/ where time > now() - {}d'''.format(series_name, ui_shortname, max_days_to_fetch)
+    if settings['influxdb']['data_model_tag']:
+        # TODO workaround for the non-existing "order by desc" - read all points and take the last. fix in 0.9.4 ?
+        sql = "select * from {}{} where time > now() - {}d and dbname = '{}' order by time asc".format(settings['influxdb']['tag_mode_series_prefix'],
+                                                                                                       series_name, max_days_to_fetch, ui_shortname)
 
     try:
         db = get_idb_client()
-        logging.debug('Executing "%s" on InfluxDB', sql)
-        data = db.query(sql, time_precision='s')
-        if data:
-            # logging.debug('Latest data for series %s: %s', series_name, data)
-            max_timestamp = None
-            for x in data:
-                if x['points'][0][0] > max_timestamp:
-                    max_timestamp = x['points'][0][0]
-            max_as_datetime = datetime.fromtimestamp(max_timestamp + 1)     # adding 1s to safeguard against epoch to datetime conversion jitter
+        logging.info('[%s] executing "%s" on InfluxDB', ui_shortname, sql)
+        rs = db.query(sql)    # params={'precision': 's'} doesn't seem to have any effect on reading ?
+        if rs:
+            max_timestamp = ((list(rs))[0][-1])['time']    # 2015-08-20T17:22:21Z
+            # conversion to local datetime as assuming Postgres DB operates on local tz
+            dt = datetime.strptime(max_timestamp, '%Y-%m-%dT%H:%M:%SZ')
+            local_tz_str = time.strftime("%z")     # +0200
+            hours = int(local_tz_str[0:3])
+            minutes = int(local_tz_str[3:5])        # TODO brr, need to find some proper datelib
+            max_as_datetime = dt + timedelta(hours=hours, minutes=minutes, seconds=1)
     except Exception as e:
         logging.warning("Exception while getting latest timestamp: %s", e.message)
+        raise e
 
     return max_as_datetime
 
 
-def idb_push_data(name, columns, load_data, column_indexes_to_skip=[]):
-    if not load_data:
+def split_by_tags_if_needed_and_push_to_influx(measurement, ui_shortname, data, column_names, tags=[]):
+    if not data:
         return
-    data_len = len(load_data)
-    columns_filtered = list(columns)
+    for col in column_names + tags:
+        if col not in data[0]:  # checking only 1st row should be enough
+            raise Exception('Required columns not existing in data set!')
 
-    if column_indexes_to_skip:
-        for d in load_data:
-            skip_counter = 0
-            for i_skip in column_indexes_to_skip:
-                d.pop(i_skip - skip_counter)
-                skip_counter += 1
-        skip_counter = 0
-        for i_skip in column_indexes_to_skip:
-            columns_filtered.pop(i_skip - skip_counter)
-            skip_counter += 1
+    mandatory_tag = {'dbname': ui_shortname}     # only mandatory tag
+    data_by_tags = []
 
-    logging.debug('Pushing %s data points to InfluxDB for series %s...', data_len, name)
-    start_time = time.time()
-    idb_write_points(name=name, columns=columns_filtered, datapoints=load_data)
-    logging.debug('Done in %s seconds', round(time.time() - start_time))
+    if tags:    # creating groups for different tag value sets
+        if len(tags) == 1:
+            groups = itertools.groupby(data, lambda x: x[tags[0]])
+        elif len(tags) == 2:    # TODO is there a nicer dynamic way?
+            groups = itertools.groupby(data, lambda x: (x[tags[0]], x[tags[1]]))
+        else:
+            raise Exception('Max 2 fan-out columns supported currently')
+
+        for group, group_data in groups:
+            tags_dict = dict(mandatory_tag)
+            # print 'group', group
+            for i, tag in enumerate(tags):
+                tags_dict[tag] = group[i]
+            data_by_tags.append((tags_dict, list(group_data)))
+    else:   # no tags
+        data_by_tags = [(mandatory_tag, data)]
+
+    idb_write_points(ui_shortname, measurement=measurement, column_names=column_names, tag_names=tags, data_by_tags=data_by_tags)
+
+
 
 queue = Queue()
 
@@ -189,75 +239,46 @@ def do_pull_push_for_one_host(host_id, ui_shortname, is_first_loop, args):
                 for view_name in settings['data_collection_queries_to_process']:
                     series_mapping_info = DATA_COLLECTION_QUERIES_TO_SERIES_MAPPING.get(view_name)
                     if not series_mapping_info:
-                        logging.error('Unknown query %s, mapping to series not found. skipping...', view_name)
-                        continue
+                        raise Exception('Unknown query "{}", mapping to series not found!'.format(view_name))
 
-                    base_name = series_mapping_info['base_name'].format(ui_shortname=ui_shortname, id=host_id)
-                    is_fan_out = series_mapping_info.get('cols_to_expand', None)
+                    measurement_name = view_name
+                    tags = series_mapping_info.get('cols_to_expand', [])
 
-                    if args.drop_series and is_first_loop:
-                        influx_conn = get_idb_client()
-                        logging.debug('Dropping base series: %s ...', base_name)
-                        if is_fan_out:
-                            data = influx_conn.query("list series /{}.*/".format(base_name))
-                            if data[0]['points']:
-                                series = [x['points'][0][1] for x in data]
-                                for s in series:
-                                    logging.debug('Dropping series: %s ...', s)
-                                    influx_conn.delete_series(s)
-                            else:
-                                logging.info('No existing series found to delete')
-                        else:
-                            influx_conn.delete_series(base_name)
-
-                    logging.debug('Fetching data from query "%s" into base series "%s"', view_name, base_name)
+                    logging.debug('[%s] fetching data from query "%s" into base series "%s"', view_name, measurement_name)
 
                     latest_timestamp_for_series = None
-                    if not (args.drop_series and is_first_loop):  # no point to check if series was re-created
-                        latest_timestamp_for_series = idb_get_last_timestamp_for_series_as_local_datetime(base_name,
-                                                                                                          is_fan_out)
-                        logging.debug('Latest_timestamp_for_series: %s', latest_timestamp_for_series)
-                    data, columns = pgo_get_data_and_columns_from_view(host_id,
+                    existing_series = []
+                    if is_first_loop:
+                        idb = get_idb_client()
+                        existing_series = [x['name'] for x in idb.get_list_series()]
+
+                    if not is_first_loop or measurement_name in existing_series:
+                        logging.debug('[%s] trying to fetch latest timestamp from existing series "%s" ...', ui_shortname, measurement_name)
+                        latest_timestamp_for_series = idb_get_last_timestamp_for_series_as_local_datetime(measurement_name,
+                                                                                                          ui_shortname)
+                        logging.debug('[%s] latest_timestamp_for_series: %s', latest_timestamp_for_series, ui_shortname)
+                    data, column_names_from_query = pgo_get_data_and_columns_from_view(host_id,
                                                                        view_name,
                                                                        settings['influxdb']['max_days_to_fetch'],
                                                                        latest_timestamp_for_series)
-                    logging.info('[Host "%s"] %s rows fetched from view "%s" [ latest prev. timestamp in InfluxDB : %s]',
+                    logging.info('[%s] %s rows fetched from view "%s" [ latest prev. timestamp in InfluxDB : %s]',
                                  ui_shortname, len(data), view_name, latest_timestamp_for_series)
+                    for col in column_names_from_query:
+                        if col[0].isdigit():
+                            raise Exception('Columns should not start with numbers! col={}'.format(col))
 
                     if len(data) > 0:
-                        series_name = base_name
-                        if is_fan_out:          # could leave it to continuous queries also but it would mean data duplication
-                            prev_row_series_name = None
-                            expanded_column_indexes = []
-                            start_index = 0
-                            current_index = 0
-                            # logging.debug("Columns to expand: %s", series_mapping_info['cols_to_expand'])
-                            for col in series_mapping_info['cols_to_expand']:
-                                expanded_column_indexes.append(columns.index(col))
-                            for row in data:
-                                series_name = base_name
-                                for ci in expanded_column_indexes:
-                                    series_name += '.' + str(row[ci])
-                                if series_name != prev_row_series_name and prev_row_series_name:
-                                    idb_push_data(prev_row_series_name, columns, data[start_index:current_index],
-                                                  expanded_column_indexes)  # expanded_columns_will be removed from the dataset
-                                    start_index = current_index
-                                current_index += 1
-                                prev_row_series_name = series_name
-
-                            idb_push_data(series_name, columns, data[start_index:current_index],
-                                                  expanded_column_indexes)
-                        else:
-                            idb_push_data(series_name, columns, data)
-
+                        split_by_tags_if_needed_and_push_to_influx(measurement_name, ui_shortname, data,
+                                                                   column_names_from_query, tags)
+                        logging.info('[%s] %s rows pushed to Influx series "%s"', ui_shortname, len(data), view_name)
                     else:
-                        logging.debug('no fresh data found on PgO')
+                        logging.debug('[%s] no fresh data found on PgO', ui_shortname)
 
             except Exception as e:
-                logging.error('[Host "%s"] ERROR - Could not process %s: %s', ui_shortname, view_name, e.message)
+                logging.error('[%s] ERROR - Could not process %s: %s', ui_shortname, view_name, e.message)
                 raise
 
-            logging.info('[Host "%s"] Finished processing in %ss', ui_shortname, round(time.time() - host_processing_start_time))
+            logging.info('[%s] finished processing in %ss', ui_shortname, round(time.time() - host_processing_start_time))
 
 
 def main():
@@ -266,7 +287,6 @@ def main():
                         default=DEFAULT_CONF_FILE)
     parser.add_argument('--hosts-to-sync', help='only given host_ids (comma separated) will be pushed to Influx')
     parser.add_argument('--drop-db', action='store_true', help='start with a fresh InfluxDB. Needs root login i.e. meant for testing purposes')
-    parser.add_argument('--drop-series', action='store_true', help='drop single series')
     parser.add_argument('--check-interval', help='min. seconds between checking for fresh data on PgO for host/view',
                         default=30, type=int)
     group1 = parser.add_mutually_exclusive_group()

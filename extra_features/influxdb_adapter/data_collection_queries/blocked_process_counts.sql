@@ -1,6 +1,6 @@
 select
   bp_timestamp as "timestamp",
-  extract(epoch from bp_timestamp::timestamp with time zone at time zone 'utc') as "time",
+  extract(epoch from bp_timestamp::timestamp with time zone at time zone 'utc')::int as "time",
   count(1)
 from
   monitor_data.blocking_processes

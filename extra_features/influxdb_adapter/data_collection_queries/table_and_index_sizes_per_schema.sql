@@ -1,6 +1,6 @@
 select
     tsd_timestamp as "timestamp",
-    extract(epoch from tsd_timestamp::timestamp with time zone at time zone 'utc') as "time",
+    extract(epoch from tsd_timestamp::timestamp with time zone at time zone 'utc')::int as "time",
     t_schema as "schema",
     tsize_b,
     isize_b

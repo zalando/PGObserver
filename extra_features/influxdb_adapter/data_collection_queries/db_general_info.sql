@@ -1,6 +1,6 @@
 select
   sdd_timestamp as "timestamp",
-  extract(epoch from sdd_timestamp::timestamp with time zone at time zone 'utc') as "time",
+  extract(epoch from sdd_timestamp::timestamp with time zone at time zone 'utc')::int as "time",
   conns,
   ((commits_delta / timestamp_delta_s) * 3600) ::int8 as commits_1h_rate,
   ((rollbacks_delta / timestamp_delta_s) * 3600) ::int8 as rollbacks_1h_rate,

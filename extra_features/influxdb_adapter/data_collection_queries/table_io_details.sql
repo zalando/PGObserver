@@ -1,6 +1,6 @@
 select
     tio_timestamp as "timestamp",
-    extract(epoch from tio_timestamp::timestamp with time zone at time zone 'utc') as "time",
+    extract(epoch from tio_timestamp::timestamp with time zone at time zone 'utc')::int as "time",
     t_schema as "schema",
     t_name as "table",
     ((h_read_delta / timestamp_delta_s) * 3600) ::int8 as heap_read_1h_rate,

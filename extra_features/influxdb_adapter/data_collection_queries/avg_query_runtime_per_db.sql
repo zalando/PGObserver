@@ -1,6 +1,6 @@
 select
   ssd_timestamp as "timestamp",
-  extract(epoch from ssd_timestamp::timestamp with time zone at time zone 'utc') as "time",
+  extract(epoch from ssd_timestamp::timestamp with time zone at time zone 'utc')::int as "time",
   ((sum(total_millis) - sum(lag_total_millis)) / (sum(calls) - sum(lag_calls)) * 1000)::int8 as avg_us
 from
  (

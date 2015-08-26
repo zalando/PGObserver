@@ -1,6 +1,6 @@
 select
   iud_timestamp as "timestamp",
-  extract(epoch from iud_timestamp::timestamp with time zone at time zone 'utc') as "time",
+  extract(epoch from iud_timestamp::timestamp with time zone at time zone 'utc')::int as "time",
   i_schema as "schema",
   i_name as "index",
   ((scans_delta / extract (epoch from timestamp_delta)) * 3600) ::int8 as scans_1h_rate,

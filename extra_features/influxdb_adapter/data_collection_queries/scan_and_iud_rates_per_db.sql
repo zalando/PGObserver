@@ -1,6 +1,6 @@
 select
     tsd_timestamp as "timestamp",
-    extract(epoch from tsd_timestamp::timestamp with time zone at time zone 'utc') as "time",
+    extract(epoch from tsd_timestamp::timestamp with time zone at time zone 'utc')::int as "time",
     ((tscans_delta / timestamp_delta_s) * 3600) ::int8 as tscans_1h_rate,
     ((iscans_delta / timestamp_delta_s) * 3600) ::int8 as iscans_1h_rate,
     ((ins_delta / timestamp_delta_s) * 3600) ::int8 as ins_1h_rate,

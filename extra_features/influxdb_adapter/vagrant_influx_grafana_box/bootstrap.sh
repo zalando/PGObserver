@@ -5,49 +5,63 @@ echo "starting InfluxDB + Grafana setup..."
 export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
+echo "Installing Packages ..."
+echo "apt-get install -y jq vim"
+apt-get install -y jq vim libfontconfig1-dev
+
+echo ""
+echo ""
 
 echo "Downloading Influxdb ..."
-wget -q http://s3.amazonaws.com/influxdb/influxdb_latest_amd64.deb
-dpkg -i influxdb_latest_amd64.deb
+echo "Determining the latest version from Github..."
+echo "curl -Gsq 'https://api.github.com/repos/influxdb/influxdb/tags'"
+curl -Gsq 'https://api.github.com/repos/influxdb/influxdb/tags' > influxdb_tags.json
+INFLUX_VER=$( jq .[0].name influxdb_tags.json | grep -o '[0-9].*[0-9]' )
+#INFLUX_VER="0.9.2"
+echo "Found ver. ${INFLUX_VER} ..."
+INFLUX_PKG=influxdb_${INFLUX_VER}_amd64.deb
+INFLUX_URL=https://s3.amazonaws.com/influxdb/$INFLUX_PKG
+wget -nc -q $INFLUX_URL
+dpkg -i $INFLUX_PKG
 echo "Starting Influxdb ..."
-/etc/init.d/influxdb start
+service influxdb start
 sleep 10
 echo "OK!"
 
+echo ""
+echo ""
+
 echo "Creating 'pgobserver' database on Influxdb..."
-# curl -iG 'http://localhost:8086/db/mydb/series?u=root&p=root&pretty=true' --data-urlencode "q=select * from log_lines"
-curl -i -X POST -d '{\"name\": \"pgobserver\"}' 'http://localhost:8086/db?u=root&p=root'
-
-echo "Installing Packages ..."
-echo "apt-get install -y python-pip jq nginx-full"
-apt-get install -y jq nginx-full vim
-# apt-get install -y python-pip
-# echo "pip install influxdb"
-# pip install influxdb
-
+curl -Gq http://localhost:8086/query --data-urlencode "q=create database pgobserver"
+curl -Gq http://localhost:8086/query --data-urlencode "q=show databases"
+echo ""
+echo "Creating our 30d retention policy - needs explicit specification when writing data points!"
+curl -Gq http://localhost:8086/query --data-urlencode "q=create retention policy \"30d\" on pgobserver duration 30d replication 1 default"
+curl -Gq http://localhost:8086/query --data-urlencode "q=show retention policies on pgobserver"
+echo ""
+echo ""
+echo ""
 
 echo "Downloading Grafana..."
 echo "Determining the latest version from Github..."
-echo "curl -Gs 'https://api.github.com/repos/grafana/grafana/tags'"
-curl -Gs 'https://api.github.com/repos/grafana/grafana/tags' > grafana_tags.json
+echo "curl -Gsq 'https://api.github.com/repos/grafana/grafana/tags'"
+curl -Gsq 'https://api.github.com/repos/grafana/grafana/tags' > grafana_tags.json
 GRAFANA_VER=$( jq .[0].name grafana_tags.json | grep -o '[0-9].*[0-9]' )
-GRAFANA_PKG=grafana-${GRAFANA_VER}.tar.gz
-GRAFANA_URL=http://grafanarel.s3.amazonaws.com/$GRAFANA_PKG
-echo "Downloading Grafana from $GRAFANA_URL..."
-wget -nc $GRAFANA_URL
-tar xvfz $GRAFANA_PKG
-GRAFANA_FOLDER=grafana-${GRAFANA_VER}
-
-cp /vagrant/grafana.config.js $GRAFANA_FOLDER/config.js
-
-sed -i "s|/usr/share/nginx/html|/home/vagrant/$GRAFANA_FOLDER|g" /etc/nginx/sites-available/default
-service nginx restart
+echo "Found ver. ${GRAFANA_VER} ..."
+GRAFANA_PKG=grafana_${GRAFANA_VER}_amd64.deb
+GRAFANA_URL=http://grafanarel.s3.amazonaws.com/builds/$GRAFANA_PKG
+echo "Downloading Grafana from $GRAFANA_URL ..."
+wget -nc -q $GRAFANA_URL
+dpkg -i $GRAFANA_PKG
+# apt-get -f install -y  # fixes some strange dependecy issues with libfontconfig1
+update-rc.d grafana-server defaults 95 10   # auto start
+service grafana-server start
 
 echo ""
 echo ""
-echo "Grafana URL - http://0.0.0.0:8082"
+echo "Grafana URL - http://0.0.0.0:3000 admin/admin"
 echo "InfluxDB Frontend URL - http://0.0.0.0:8083"
-echo "InfluxDB API URL - http://0.0.0.0:8086"
+echo "InfluxDB API URL - http://0.0.0.0:8086 root/root"
 echo ""
 echo ""
 echo "Finished!"
