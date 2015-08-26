@@ -6,8 +6,8 @@ export DEBIAN_FRONTEND=noninteractive
 
 apt-get update
 echo "Installing Packages ..."
-echo "apt-get install -y jq vim"
-apt-get install -y jq vim libfontconfig1-dev
+echo "apt-get install -y jq vim libfontconfig1-dev sqlite3"
+apt-get install -y jq vim libfontconfig1-dev sqlite3
 
 echo ""
 echo ""
@@ -57,13 +57,21 @@ dpkg -i $GRAFANA_PKG
 update-rc.d grafana-server defaults 95 10   # auto start
 service grafana-server start
 
+sleep 5
+echo "Creating the documentation dashboard in Grafana..."
+cp /vagrant/create_documentation_dashboard.sql .
+sqlite3 /var/lib/grafana/grafana.db ".read create_documentation_dashboard.sql"
+echo ""
+echo "Finished!"
 echo ""
 echo ""
 echo "Grafana URL - http://0.0.0.0:3000 admin/admin"
 echo "InfluxDB Frontend URL - http://0.0.0.0:8083"
-echo "InfluxDB API URL - http://0.0.0.0:8086 root/root"
+echo "InfluxDB API URL - http://0.0.0.0:8086 root/root, db=pgobserver"
 echo ""
+echo "To get going:"
 echo ""
-echo "Finished!"
-
-
+echo "   1.) Create in Grafana a 'Data Source' for InfluxDB 0.9.x with aforementioned InfluxDB API connect data"
+echo "   2.) Review and change the influx_config.yaml according to your environment"
+echo "   3.) Start the python export_to_influxdb.py daemon, pointing your influx_config.yaml to it"
+echo "   4.) Have fun graphing!"

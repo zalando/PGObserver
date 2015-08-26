@@ -16,11 +16,12 @@ influxdb:
   username: root
   password: root
   database: pgobserver
-  max_days_to_fetch: 1      # how much old data to fetch when starting up
+  max_days_to_fetch: 7      # how much old data to fetch when starting up
   data_model_pure: True     # Influx 0.8 default, e.g. load.db1
-  data_model_tag: True      # Influx 0.9 default e.g. load, dbname=db1 (dbname is a tag)
-                            # if both are chosen data is duplicated. 0.8 way is mostly a lot faster but Grafana doesn't support it anymore
-  tag_mode_series_prefix:   ''
+  data_model_tag: False     # Influx 0.9 default e.g. load, dbname=db1 (dbname is a tag)
+                            # if both are chosen data is duplicated. 0.8 way is mostly a lot faster but
+                            # Grafana editor doesn't support it anymore so one needs to handwrite queries
+  tag_mode_series_prefix:   tag_
 
 max_worker_threads: 5
 
@@ -31,11 +32,11 @@ data_collection_queries_to_process:
     - blocked_process_counts
     - db_general_info
     - db_size
-    - index_details
+    #- index_details  # leaving out by default, very rarely needed
     - load
     - scan_and_iud_rates_per_db
     - scan_and_iud_rates_per_schema
     - sproc_details_per_schema_sproc
     - table_and_index_sizes_per_schema
     - table_details
-    - table_io_details
+    #- table_io_details # leaving out by default, very rarely needed

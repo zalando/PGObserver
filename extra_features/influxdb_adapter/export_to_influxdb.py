@@ -96,7 +96,7 @@ def idb_write_points(ui_shortname, measurement, column_names, tag_names, data_by
             raise Exception('Some required columns missing!')
 
         for d in data:
-            field_data = dict((x[0], x[1]) for x in d.iteritems() if x[0] in column_names)
+            field_data = dict((x[0], x[1]) for x in d.iteritems() if x[0] in column_names and x[0] not in tag_names)
             if tag_mode_enabled:
                 dataset_tag_mode.append({
                     "measurement": settings['influxdb']['tag_mode_series_prefix'] + measurement,
@@ -145,33 +145,43 @@ def idb_ensure_database(db, dbname, recreate=None):
 
 def idb_get_last_timestamp_for_series_as_local_datetime(series_name, ui_shortname):
     """ Influx times are UTC, convert to local """
-    max_as_datetime = None
     max_days_to_fetch = settings['influxdb']['max_days_to_fetch']
 
-     # TODO too wasteful, need to start keeping one host on one thread
-    sql = '''select * from /^{}.{}.*/ where time > now() - {}d'''.format(series_name, ui_shortname, max_days_to_fetch)
+    last_tz_gmt, last_tz_local = last_tz_from_influx.get(series_name+ui_shortname, (None, None))
+    sql = '''select * from /^{}.{}.*/ where time > {}'''.format(series_name, ui_shortname,
+                                                                "'{}'".format(last_tz_gmt) if last_tz_gmt else 'now() - {}d'.format(max_days_to_fetch))
     if settings['influxdb']['data_model_tag']:
         # TODO workaround for the non-existing "order by desc" - read all points and take the last. fix in 0.9.4 ?
-        sql = "select * from {}{} where time > now() - {}d and dbname = '{}' order by time asc".format(settings['influxdb']['tag_mode_series_prefix'],
-                                                                                                       series_name, max_days_to_fetch, ui_shortname)
+        sql = "select * from {}{} where dbname = '{}' and time > {} order by time asc".format(settings['influxdb']['tag_mode_series_prefix'],
+                                                   series_name, ui_shortname, "'{}'".format(last_tz_gmt) if last_tz_gmt else 'now() - {}d'.format(max_days_to_fetch))
 
     try:
         db = get_idb_client()
         logging.info('[%s] executing "%s" on InfluxDB', ui_shortname, sql)
         rs = db.query(sql)    # params={'precision': 's'} doesn't seem to have any effect on reading ?
         if rs:
-            max_timestamp = ((list(rs))[0][-1])['time']    # 2015-08-20T17:22:21Z
+            max_timestamp_gmt = None
+            for r in rs:
+                series_max = (list(r)[-1])['time']    # 2015-08-20T17:22:21Z
+                if series_max > max_timestamp_gmt:
+                    max_timestamp_gmt = series_max
+
             # conversion to local datetime as assuming Postgres DB operates on local tz
-            dt = datetime.strptime(max_timestamp, '%Y-%m-%dT%H:%M:%SZ')
+            dt = datetime.strptime(max_timestamp_gmt, '%Y-%m-%dT%H:%M:%SZ')
             local_tz_str = time.strftime("%z")     # +0200
             hours = int(local_tz_str[0:3])
             minutes = int(local_tz_str[3:5])        # TODO brr, need to find some proper datelib
             max_as_datetime = dt + timedelta(hours=hours, minutes=minutes, seconds=1)
+            last_tz_from_influx[series_name+ui_shortname] = (max_timestamp_gmt, max_as_datetime)
+            return max_as_datetime
+        elif last_tz_gmt:
+            return last_tz_local
+
     except Exception as e:
         logging.warning("Exception while getting latest timestamp: %s", e.message)
         raise e
 
-    return max_as_datetime
+    return None
 
 
 def split_by_tags_if_needed_and_push_to_influx(measurement, ui_shortname, data, column_names, tags=[]):
@@ -195,17 +205,20 @@ def split_by_tags_if_needed_and_push_to_influx(measurement, ui_shortname, data, 
         for group, group_data in groups:
             tags_dict = dict(mandatory_tag)
             # print 'group', group
-            for i, tag in enumerate(tags):
-                tags_dict[tag] = group[i]
+            if len(tags) == 1:
+                tags_dict[tags[0]] = group
+            elif len(tags) == 2:
+                tags_dict[tags[0]] = group[0]
+                tags_dict[tags[1]] = group[1]
             data_by_tags.append((tags_dict, list(group_data)))
     else:   # no tags
         data_by_tags = [(mandatory_tag, data)]
-
     idb_write_points(ui_shortname, measurement=measurement, column_names=column_names, tag_names=tags, data_by_tags=data_by_tags)
 
 
 
 queue = Queue()
+last_tz_from_influx = {}    # {'db1series1'=tz,...} max timestamps read back from Influx to only query newer data from Postgres
 
 
 class WorkerThread(threading.Thread):
@@ -246,17 +259,10 @@ def do_pull_push_for_one_host(host_id, ui_shortname, is_first_loop, args):
 
                     logging.debug('[%s] fetching data from query "%s" into base series "%s"', view_name, measurement_name)
 
-                    latest_timestamp_for_series = None
-                    existing_series = []
-                    if is_first_loop:
-                        idb = get_idb_client()
-                        existing_series = [x['name'] for x in idb.get_list_series()]
-
-                    if not is_first_loop or measurement_name in existing_series:
-                        logging.debug('[%s] trying to fetch latest timestamp from existing series "%s" ...', ui_shortname, measurement_name)
-                        latest_timestamp_for_series = idb_get_last_timestamp_for_series_as_local_datetime(measurement_name,
-                                                                                                          ui_shortname)
-                        logging.debug('[%s] latest_timestamp_for_series: %s', latest_timestamp_for_series, ui_shortname)
+                    logging.debug('[%s] trying to fetch latest timestamp from existing series "%s" ...', ui_shortname, measurement_name)
+                    latest_timestamp_for_series = idb_get_last_timestamp_for_series_as_local_datetime(measurement_name,
+                                                                                                      ui_shortname)
+                    logging.debug('[%s] latest_timestamp_for_series: %s', latest_timestamp_for_series, ui_shortname)
                     data, column_names_from_query = pgo_get_data_and_columns_from_view(host_id,
                                                                        view_name,
                                                                        settings['influxdb']['max_days_to_fetch'],
