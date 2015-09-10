@@ -90,7 +90,6 @@ DECLARE
     $SQL$;
 BEGIN
     EXECUTE l_sproc_text;
-    EXECUTE 'ALTER FUNCTION zz_utils.get_bloated_tables(boolean, int) OWNER TO postgres';
     EXECUTE 'GRANT EXECUTE ON FUNCTION zz_utils.get_bloated_tables(boolean, int) TO public';
 END;
 $OUTER$;
@@ -191,7 +190,6 @@ DECLARE
     $SQL$;
 BEGIN
     EXECUTE l_sproc_text;
-    EXECUTE 'ALTER FUNCTION zz_utils.get_bloated_indexes(boolean, int) OWNER TO postgres';
     EXECUTE 'GRANT EXECUTE ON FUNCTION zz_utils.get_bloated_indexes(boolean, int) TO public';
 END;
 $OUTER$;

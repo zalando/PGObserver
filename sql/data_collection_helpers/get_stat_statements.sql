@@ -27,7 +27,7 @@ BEGIN
   IF FOUND AND string_to_array( split_part(version(), ' ', 2), '.' )::int[] > ARRAY[9,1] THEN   --parameters normalized only from 9.2
     --RAISE WARNING '%', format(l_sproc_text, l_current_db);
     EXECUTE format(l_sproc_text, l_current_db);
-    EXECUTE 'ALTER FUNCTION zz_utils.get_stat_statements() OWNER TO postgres';
+    EXECUTE 'REVOKE EXECUTE ON FUNCTION zz_utils.get_stat_statements() FROM PUBLIC;';
     EXECUTE 'GRANT EXECUTE ON FUNCTION zz_utils.get_stat_statements() TO pgobserver_gatherer';
   END IF;
 END;

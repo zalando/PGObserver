@@ -4,24 +4,32 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
+RESET ROLE;
+
+/* NB! Passwords should be changed! */
 CREATE ROLE pgobserver_frontend WITH LOGIN PASSWORD 'pgobserver_frontend';
 CREATE ROLE pgobserver_gatherer WITH LOGIN PASSWORD 'pgobserver_gatherer';
 
 
-CREATE SCHEMA monitor_data AUTHORIZATION pgobserver_gatherer;
-
-DO $$
-BEGIN
-  EXECUTE 'ALTER DATABASE ' || current_database() || ' SET search_path = monitor_data, public';
-END;
-$$;
+CREATE SCHEMA monitor_data;
+ALTER SCHEMA monitor_data OWNER TO pgobserver_gatherer;
 
 GRANT USAGE ON SCHEMA monitor_data TO pgobserver_frontend;
 ALTER DEFAULT PRIVILEGES FOR ROLE pgobserver_gatherer IN SCHEMA monitor_data GRANT SELECT ON TABLES to pgobserver_frontend;
 
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS btree_gist;
 
-create extension if not exists pg_trgm;
-create extension if not exists btree_gist;
+DO $$
+BEGIN
+  EXECUTE 'ALTER DATABASE ' || current_database() || ' SET search_path = monitor_data, public';
+  PERFORM 1 FROM pg_settings WHERE name = 'rds.extensions'; /* It is assumed that execuring user is rds_superuser */
+  IF FOUND THEN
+    RAISE WARNING '%', format('NB! Granting pgobserver_gatherer TO %s. Should be revoked after bootstrapping by the user', current_user);
+    EXECUTE 'GRANT pgobserver_gatherer TO ' || current_user;
+  END IF;
+END;
+$$;
 
 SET ROLE TO pgobserver_gatherer;
 
