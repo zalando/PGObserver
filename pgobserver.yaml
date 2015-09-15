@@ -19,6 +19,14 @@ database:
 frontend:
   port: 8080
 
+oauth2:
+  #switch: on    #comment this out if oauth is not desired
+  client_id: 'client_id'
+  client_secret: 'client_secret'
+  access_token_url: 'access_token_url'
+  authorize_url: 'authorize_url'
+  redirect_url: 'redirect_url'
+
 features:
   run_aggregations: false
   show_load: true
