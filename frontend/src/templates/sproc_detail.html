@@ -9,7 +9,7 @@
     <div class="grid_12">
         <form method="GET" action="/sprocs/show/{{hostuiname}}/{{name_wo_params}}">
         <h4>Sproc details for: {{ name_wo_params }} on <a href="/{{hostuiname}}">{{ hostname }}</a>
-            {% if 'opengrok_baseurl' in settings and settings['opengrok_baseurl']!='' %}
+            {% if settings.get('opengrok_baseurl', '') != '' %}
              | show in <a href="https://{{ settings['opengrok_baseurl'] }}&q={{ name_wo_params }}">opengrok</a>
             {% endif %}
             | <input id="sproc_search" name="sproc_search" placeholder="Sproc search..." title="Lists sprocs active within last 24h">

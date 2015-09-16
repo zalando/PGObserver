@@ -16,4 +16,4 @@ ADD src /app/src
 
 EXPOSE 8080
 
-CMD ["python","/app/src/web.py", "-c", "/app/pgobserver.yaml"]
+ENTRYPOINT ["python", "/app/src/web.py"]

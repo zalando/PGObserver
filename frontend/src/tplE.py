@@ -11,10 +11,7 @@ def setup(settings = None):
     global env, _settings
     hosts.resetHostsAndGroups()
 
-    if settings == None:
-        _settings = {"show_load":True, "show_wal":True, "show_top_sprocs":True, "show_db_size":True, "show_db_stats":True}
-    else:
-        _settings = settings['features']
+    _settings = settings.get('features', {})
 
     if env is None:
         env = Environment(loader=FileSystemLoader(os.path.join(os.path.dirname(__file__), 'templates')))
@@ -22,7 +19,7 @@ def setup(settings = None):
     env.globals['hosts'] = hosts.getHostData()
     env.globals['hosts_json'] = json.dumps(env.globals['hosts'])
     env.globals['settings'] = _settings
-    hl = sorted( env.globals['hosts'].values() , key = lambda h : h['uishortname'] )
+    hl = sorted(env.globals['hosts'].values(), key=lambda h: h['uishortname'])
 
     gs = {}
     hlf = []

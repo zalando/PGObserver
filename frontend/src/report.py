@@ -17,11 +17,8 @@ class Report(object):
         graph_load = []
         graph_wal = []
 
-        print ('hostId')
-        print (hostId)
         if hostId:
             graph_data = reportdata.getLoadReportDataDailyAvg(hostId, weeks-1)
-            print (graph_data)
 
             graph_load = flotgraph.Graph('graph_load', 'left', 30)
             graph_load.addSeries('CPU Load daily avg.', 'cpu')

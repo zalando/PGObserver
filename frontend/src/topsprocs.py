@@ -132,7 +132,7 @@ def getLoad(hostId, days='8'):
             ORDER BY
               xaxis
     """
-    if not tplE._settings['run_aggregations']:
+    if not tplE._settings.get('run_aggregations'):
         sql = """
             SELECT
               xaxis,

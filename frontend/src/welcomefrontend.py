@@ -75,7 +75,7 @@ class WelcomeFrontend(object):
               case when hg.group_id = 0 then 0 else 1 end, hg.group_name nulls first, h.host_ui_longname
         """
 
-        if tplE._settings['run_aggregations']:
+        if tplE._settings.get('run_aggregations'):
             return datadb.execute(sql)
         else:
             return datadb.execute(sql_no_aggr) # no "last db size"

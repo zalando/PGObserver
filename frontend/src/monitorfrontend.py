@@ -27,9 +27,10 @@ class MonitorFrontend(object):
         graph_size = None
         graph_dbstats = None
         top_sprocs = None
+        graph_checkpoint = None
         global_announcement = reportdata.getGetActiveFrontendAnnouncementIfAny()    # fyi - no escaping is performed deliberately
 
-        if tplE._settings['show_load']:
+        if tplE._settings.get('show_load', True):
             graph_load = flotgraph.Graph('graph_load', 'left', 30)
             graph_load.addSeries('CPU Load 15min avg', 'acpu_15min_avg', '#FF0000')
             cpuload = topsprocs.getCpuLoad(hostId, days)
@@ -42,7 +43,7 @@ class MonitorFrontend(object):
                 graph_load.addPoint('load_15min', int(time.mktime(p[0].timetuple()) * 1000), p[1])
             graph_load = graph_load.render()
 
-        if tplE._settings['show_wal']:
+        if tplE._settings.get('show_wal', True):
             graph_wal = flotgraph.Graph('graph_wal', 'left', 30)
             graph_wal.addSeries('WAL vol. 15 min (in MB)', 'wal_15min')
             walvolumes = topsprocs.getWalVolumes(hostId, days)
@@ -58,14 +59,14 @@ class MonitorFrontend(object):
                         graph_wal.addPoint('blocked_processes', int(time.mktime(p[0].timetuple()) * 1000), p[1])
             graph_wal = graph_wal.render()
 
-        if tplE._settings['show_db_size']:
+        if tplE._settings.get('show_db_size', True):
             graph_size = flotgraph.SizeGraph('graph_size')
             sizes = tabledata.getDatabaseSizes(hostId, days)
             if hostId in sizes:
                 tabledata.fillGraph(graph_size, sizes[hostId])
             graph_size = graph_size.render()
 
-        if tplE._settings['show_db_stats']:
+        if tplE._settings.get('show_db_stats', True):
             dbstats = reportdata.getDatabaseStatistics(hostId, days)
             if len(dbstats) > 0:
                 graph_dbstats = flotgraph.SizeGraph('graph_dbstats')
@@ -81,7 +82,7 @@ class MonitorFrontend(object):
                     graph_dbstats.addPoint('rollbacks', timestamp, d['rollbacks'])
                 graph_dbstats = graph_dbstats.render()
 
-        if tplE._settings['show_top_sprocs']:
+        if tplE._settings.get('show_top_sprocs', True):
             top_sprocs = {}
             top_sprocs['hours1avg'] = self.renderTop10LastHours(topsprocs.avgRuntimeOrder, 1, hostId, sprocs_to_show)
             top_sprocs['hours3avg'] = self.renderTop10LastHours(topsprocs.avgRuntimeOrder, 3, hostId, sprocs_to_show)
@@ -94,6 +95,9 @@ class MonitorFrontend(object):
             top_sprocs['hours1calls'] = self.renderTop10LastHours(topsprocs.totalCallsOrder, 1, hostId, sprocs_to_show)
             top_sprocs['hours3calls'] = self.renderTop10LastHours(topsprocs.totalCallsOrder, 3, hostId, sprocs_to_show)
 
+        if tplE._settings.get('show_bgwriter_stats', True):
+            graph_checkpoint = self.get_rendered_bgwriter_graph(int(days))
+
         tmpl = tplE.env.get_template('index.html')
         return tmpl.render(
             hostid=hostId,
@@ -103,7 +107,7 @@ class MonitorFrontend(object):
             graph_wal=graph_wal,
             graph_size=graph_size,
             graph_dbstats=graph_dbstats,
-            graph_checkpoint=self.get_rendered_bgwriter_graph(int(days)),
+            graph_checkpoint=graph_checkpoint,
             top_sprocs=top_sprocs,
             limit=sprocs_to_show,
             features=hosts.getActiveFeatures(hostId),

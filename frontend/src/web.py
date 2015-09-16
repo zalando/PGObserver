@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import cherrypy
-import os.path
 import os
+import collections
 import api
 import monitorfrontend
 import tablesfrontend
@@ -21,50 +21,55 @@ import yaml
 
 from argparse import ArgumentParser
 
-DEFAULT_CONF_FILE = '~/.pgobserver.yaml'
 
 def main():
     parser = ArgumentParser(description='PGObserver Frontend')
-    parser.add_argument('-c', '--config', help='Path to config file. (default: %s)'.format(DEFAULT_CONF_FILE), dest='config',
-                        default=DEFAULT_CONF_FILE)
-    parser.add_argument('-p', '--port', help='server port', dest='port', type=int)
+    parser.add_argument('-c', '--config', help='Path to yaml config file with datastore connect details. \
+        If not specified ENV vars DS_HOST, DS_DBNAME, DS_USER, DS_PASSWORD [, DS_PORT]  will be used')
+    parser.add_argument('-p', '--port', help='Web server port. Overrides value from config file', dest='port', type=int)
 
     args = parser.parse_args()
 
-    args.config = os.path.expanduser(args.config)
+    settings = collections.defaultdict(dict)
 
-    settings = None
-    if os.path.exists(args.config):
+    if args.config:
+        args.config = os.path.expanduser(args.config)
+
+        if not os.path.exists(args.config):
+            print 'Config file {} not found! exiting...'.format(args.config)
+            return
         print "trying to read config file from {}".format(args.config)
         with open(args.config, 'rb') as fd:
             settings = yaml.load(fd)
 
-    if settings is None:
-        print 'Config file missing - Yaml file could not be found'
+    # Make env vars overwrite yaml file, to run via docker without changing config file
+    settings['database']['host'] = (os.getenv('DS_HOST') or settings['database'].get('host'))
+    settings['database']['port'] = (os.getenv('DS_PORT') or settings['database'].get('port') or 5432)
+    settings['database']['dbname'] = (os.getenv('DS_DBNAME') or settings['database'].get('dbname'))
+    settings['database']['user'] = (os.getenv('DS_USER') or settings['database'].get('user'))
+    settings['database']['password'] = (os.getenv('DS_PASSWORD') or settings['database'].get('password'))
+
+    if not (settings['database'].get('host') and settings['database'].get('dbname') and settings['database'].get('user') and settings['database'].get('password')):
+        print 'Mandatory datastore connect details missing!'
+        print 'Check --config input or environment variables: DS_HOST, DS_DBNAME, DS_USER, DS_PASSWORD [, DS_PORT]'
+        print ''
         parser.print_help()
         return
 
-    # Make env vars overwrite yaml file, to run via docker without changing config file
-    settings['database']['host'] = os.getenv('PGOBS_HOST', settings['database']['host'])
-    settings['database']['port'] = os.getenv('PGOBS_PORT', settings['database']['port'])
-    settings['database']['name'] = os.getenv('PGOBS_DATABASE', settings['database']['name'])
-    settings['database']['frontend_user'] = os.getenv('PGOBS_USER', settings['database']['frontend_user'])
-    settings['database']['frontend_password'] = os.getenv('PGOBS_PASSWORD', settings['database']['frontend_password'])
-
     conn_string = ' '.join((
-        'dbname=' + settings['database']['name'],
+        'dbname=' + settings['database']['dbname'],
         'host=' + settings['database']['host'],
-        'user=' + settings['database']['frontend_user'],
+        'user=' + settings['database']['user'],
         'port=' + str(settings['database']['port']),
     ))
 
     print 'Setting connection string to ... ' + conn_string
 
     conn_string = ' '.join((
-        'dbname=' + settings['database']['name'],
+        'dbname=' + settings['database']['dbname'],
         'host=' + settings['database']['host'],
-        'user=' + settings['database']['frontend_user'],
-        'password=' + settings['database']['frontend_password'],
+        'user=' + settings['database']['user'],
+        'password=' + settings['database']['password'],
         'port=' + str(settings['database']['port']),
     ))
 

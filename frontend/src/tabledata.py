@@ -47,7 +47,7 @@ def getSizeTrendSQL(host_id=None, days='8'):
               tsd_host_id, tsd_timestamp
           ) a
         """
-    if not tplE._settings['run_aggregations']:
+    if not tplE._settings.get('run_aggregations'):
         sql = """SELECT
                     tsd_timestamp,
                     tsd_host_id,
