@@ -26,4 +26,5 @@ features:
   show_top_sprocs: true
   show_db_size: true
   show_db_stats: true
+  show_bgwriter_stats: true
   opengrok_baseurl: ""
