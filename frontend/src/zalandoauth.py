@@ -30,12 +30,13 @@ class ZalandOauth(cherrypy.Tool):
         raise cherrypy.HTTPRedirect('/')
 
     def zalandoauthtool(self):
-        # the following are used to identify currently flow
+        # the following are used to identify current state
         auth_code = cherrypy.request.params.get('code')
         target_url = cherrypy.request.params.get('state')
         scope = cherrypy.request.params.get('scope')
         error = cherrypy.request.params.get('error')
         error_description = cherrypy.request.params.get('error_description')
+        # user has been redirected back by self.authorize_url
         if auth_code and scope and target_url:
             # get access token
             data = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': self.redirect_url}
@@ -53,15 +54,17 @@ class ZalandOauth(cherrypy.Tool):
                 print response.json()
                 response.close()
                 raise Exception('Failed to retrieved access-token from server!')
+        # this can occur when, for example, user denies access at self.authorize_url
+        # in case of error e.g. access-denied we keep the target_url state intact
         elif error and error_description:
             print cherrypy.url(qs=cherrypy.request.query_string)
+        # clean url; no special oauth parameters
+        # remember endpoint where user attempt to access; may be passed to self.authorize_url
         else:
-            # in case of error e.g. access-denied we keep the target_url intact
-            # initial case: remember endpoint where user attempted to access
             target_url = cherrypy.url(qs=cherrypy.request.query_string)
 
+        # main gate: user must have an access_token to proceed to application
         if not cherrypy.session.get(FLAG_access_token):
-            target_url = cherrypy.url(qs=cherrypy.request.query_string)
             params = {
                 'response_type': 'code',
                 'redirect_uri': self.redirect_url,
