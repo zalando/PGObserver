@@ -1,18 +1,15 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import cherrypy
 import requests
 import os
 from urllib import urlencode
 
-
 FLAG_access_token = 'access_token'
 
-cherrypy.config.update({
-    'tools.zalandoauthtool.on': True,
-    'tools.sessions.on': True,
-    'tools.sessions.timeout': 30,
-})
+cherrypy.config.update({'tools.zalandoauthtool.on': True, 'tools.sessions.on': True, 'tools.sessions.timeout': 30})
+
 
 class ZalandOauth(cherrypy.Tool):
 
@@ -41,11 +38,8 @@ class ZalandOauth(cherrypy.Tool):
         error_description = cherrypy.request.params.get('error_description')
         if auth_code and scope and target_url:
             # get access token
-            data = {'grant_type': 'authorization_code', 'code': auth_code
-                    , 'redirect_uri': self.redirect_url}
-            response = requests.post(self.access_token_url
-                                , data=data
-                                , auth=(self.client_id, self.client_secret))
+            data = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': self.redirect_url}
+            response = requests.post(self.access_token_url, data=data, auth=(self.client_id, self.client_secret))
             if response.json().get('access_token'):
                 access_token = response.json()['access_token']
                 cherrypy.session[FLAG_access_token] = access_token
@@ -61,20 +55,25 @@ class ZalandOauth(cherrypy.Tool):
                 raise Exception('Failed to retrieved access-token from server!')
         elif error and error_description:
             print cherrypy.url(qs=cherrypy.request.query_string)
-            # in case of error e.g. access-denied we keep the target_url intact
         else:
+            # in case of error e.g. access-denied we keep the target_url intact
             # initial case: remember endpoint where user attempted to access
             target_url = cherrypy.url(qs=cherrypy.request.query_string)
 
         if not cherrypy.session.get(FLAG_access_token):
             target_url = cherrypy.url(qs=cherrypy.request.query_string)
-            params = {'response_type':'code', 'redirect_uri': self.redirect_url
-                        , 'client_id': self.client_id, 'state': target_url}
-            raise cherrypy.HTTPRedirect("%s&%s" % (self.authorize_url, urlencode(params)))
+            params = {
+                'response_type': 'code',
+                'redirect_uri': self.redirect_url,
+                'client_id': self.client_id,
+                'state': target_url,
+            }
+            raise cherrypy.HTTPRedirect('%s&%s' % (self.authorize_url, urlencode(params)))
         # prevent session regeneration
         # http://docs.cherrypy.org/en/latest/pkg/cherrypy.lib.html?#session-fixation-protection
         cherrypy.session['flag'] = os.urandom(24)
 
     def callable(self):
         self.zalandoauthtool()
+
 
