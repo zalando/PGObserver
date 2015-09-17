@@ -54,7 +54,7 @@ def main():
 
     if not (settings['database'].get('host') and settings['database'].get('dbname') and settings['database'].get('user') and settings['database'].get('password')):
         print 'Mandatory datastore connect details missing!'
-        print 'Check --config input or environment variables: PGOBS_HOST, PGOBS_DBNAME, PGOBS_USER, PGOBS_PASSWORD [, PGOBS_PORT]'
+        print 'Check --config input or environment variables: PGOBS_HOST, PGOBS_DATABASE, PGOBS_USER, PGOBS_PASSWORD [, PGOBS_PORT]'
         print ''
         parser.print_help()
         return
