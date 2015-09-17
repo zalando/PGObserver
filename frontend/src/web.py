@@ -80,30 +80,16 @@ def main():
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    conf = {'global':
-                {
-                    'server.socket_host': '0.0.0.0',
-                    'server.socket_port': args.port or settings.get('frontend', {}).get('port') or 8080
-                },
-            '/':
-                {
-                    'tools.staticdir.root': current_dir
-                },
-            '/static':
-                {
-                    'tools.staticdir.dir': 'static',
-                    'tools.staticdir.on': True
-                },
-            '/manifest.info':
-                {
-                    'tools.staticfile.on': True,
-                    'tools.staticfile.filename': os.path.join(current_dir, '..', 'MANIFEST.MF'),
-                    'tools.auth_basic.on': False
-                }
+    conf = {
+        'global': {'server.socket_host': '0.0.0.0', 'server.socket_port': args.port or settings.get('frontend',
+                   {}).get('port') or 8080},
+        '/': {'tools.staticdir.root': current_dir},
+        '/static': {'tools.staticdir.dir': 'static', 'tools.staticdir.on': True},
+        '/manifest.info': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(current_dir, '..',
+                           'MANIFEST.MF'), 'tools.auth_basic.on': False},
+    }
 
-            }
-
-    tplE.setup(settings)    # setup of global variables and host data for usage in views
+    tplE.setup(settings)  # setup of global variables and host data for usage in views
 
     root = welcomefrontend.WelcomeFrontend()
 
@@ -111,7 +97,7 @@ def main():
         mf = monitorfrontend.MonitorFrontend(h['host_id'])
 
         setattr(root, h['uishortname'], mf)
-        setattr(root, str(h['host_id']), mf) # allowing host_id's for backwards comp
+        setattr(root, str(h['host_id']), mf)  # allowing host_id's for backwards comp
 
     root.report = report.Report()
     root.export = export.Export()
@@ -126,9 +112,9 @@ def main():
     root.tables = tablesfrontend.TableFrontend()
     root.indexes = indexesfrontend.IndexesFrontend()
     root.hosts = hostsfrontend.HostsFrontend()
-    root.api = api.Root(root)   # JSON api exposure, enabling integration with other monitoring tools
+    root.api = api.Root(root)  # JSON api exposure, enabling integration with other monitoring tools
 
-    if settings.get('oauth2',{}).get('redirect_url'):
+    if settings.get('oauth2', {}).get('redirect_url'):
         print 'switching on oauth2 ...'
         import zalandoauth
         root.zalandoauth = zalandoauth.ZalandOauth(settings['oauth2'])
