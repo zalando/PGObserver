@@ -55,13 +55,13 @@ class ZalandOauth(cherrypy.Tool):
                 print response.json()
                 response.close()
                 raise Exception('Failed to retrieved access-token from server!')
-        # this can occur when, for example, user denies access at self.authorize_url
-        # in case of error e.g. access-denied we keep the target_url state intact
         elif error and error_description:
+            # this can occur when, for example, user denies access at self.authorize_url
+            # in case of error e.g. access-denied we keep the target_url state intact
             print cherrypy.url(qs=cherrypy.request.query_string)
-        # clean url; no special oauth parameters
-        # remember endpoint where user attempt to access; may be passed to self.authorize_url
         else:
+            # clean url; no special oauth parameters
+            # remember endpoint where user attempts to access; may be passed to self.authorize_url
             target_url = cherrypy.url(qs=cherrypy.request.query_string)
 
         # main gate: user must have an access_token to proceed to application
