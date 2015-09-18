@@ -107,7 +107,6 @@ def main():
         print 'switching on oauth2 ...'
         import zalandoauth
         root.zalandoauth = zalandoauth.ZalandOauth(settings['oauth2'])
-        cherrypy.tools.zalandoauthtool = root.zalandoauth
 
     cherrypy.quickstart(root, config=conf)
 

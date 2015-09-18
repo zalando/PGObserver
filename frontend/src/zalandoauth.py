@@ -23,6 +23,7 @@ class ZalandOauth(cherrypy.Tool):
         self.access_token_url = oauth2_settings['access_token_url']
         self.authorize_url = oauth2_settings['authorize_url']
         self.redirect_url = oauth2_settings['redirect_url']
+        cherrypy.tools.zalandoauthtool = self
 
     @cherrypy.expose
     def logout(self):
