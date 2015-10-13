@@ -8,29 +8,29 @@ from urllib import urlencode
 
 FLAG_access_token = 'access_token'
 
-cherrypy.config.update({'tools.zalandoauthtool.on': True, 'tools.sessions.on': True, 'tools.sessions.timeout': 30})
+cherrypy.config.update({'tools.oauthtool.on': True, 'tools.sessions.on': True, 'tools.sessions.timeout': 30})
 
 
-class ZalandOauth(cherrypy.Tool):
+class Oauth(cherrypy.Tool):
 
-    def __init__(self, oauth2_settings):
+    def __init__(self, oauth_settings):
         # cherrypy.session is not available before this _point
         self._point = 'before_handler'
         self._name = None
         self._priority = 0
-        self.client_id = oauth2_settings['client_id']
-        self.client_secret = oauth2_settings['client_secret']
-        self.access_token_url = oauth2_settings['access_token_url']
-        self.authorize_url = oauth2_settings['authorize_url']
-        self.redirect_url = oauth2_settings['redirect_url']
-        cherrypy.tools.zalandoauthtool = self
+        self.client_id = oauth_settings['client_id']
+        self.client_secret = oauth_settings['client_secret']
+        self.access_token_url = oauth_settings['access_token_url']
+        self.authorize_url = oauth_settings['authorize_url']
+        self.redirect_url = oauth_settings['redirect_url']
+        cherrypy.tools.oauthtool = self
 
     @cherrypy.expose
     def logout(self):
         cherrypy.lib.sessions.expire()
         raise cherrypy.HTTPRedirect('/')
 
-    def zalandoauthtool(self):
+    def oauthtool(self):
         # the following are used to identify current state
         auth_code = cherrypy.request.params.get('code')
         target_url = cherrypy.request.params.get('state')
@@ -78,6 +78,6 @@ class ZalandOauth(cherrypy.Tool):
         cherrypy.session['flag'] = os.urandom(24)
 
     def callable(self):
-        self.zalandoauthtool()
+        self.oauthtool()
 
 

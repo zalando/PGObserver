@@ -103,10 +103,10 @@ def main():
     root.hosts = hostsfrontend.HostsFrontend()
     root.api = api.Root(root)  # JSON api exposure, enabling integration with other monitoring tools
 
-    if settings.get('oauth2', {}).get('redirect_url'):
-        print 'switching on oauth2 ...'
-        import zalandoauth
-        root.zalandoauth = zalandoauth.ZalandOauth(settings['oauth2'])
+    if settings.get('oauth', {}).get('enable_oauth', False):
+        print 'switching on oauth ...'
+        import oauth
+        root.oauth = oauth.Oauth(settings['oauth'])
 
     cherrypy.quickstart(root, config=conf)
 
