@@ -13,7 +13,7 @@ frontend:
   port: 8080
 
 oauth:
-  enable_oauth: False
+  enable_oauth: false
   client_id: 'client_id'
   client_secret: 'client_secret'
   access_token_url: 'access_token_url'
