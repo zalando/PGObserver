@@ -2,3 +2,4 @@ CherryPy==3.2.4
 Jinja2==2.7
 psycopg2>=2.4
 pyyaml>=3.10
+requests
