@@ -30,6 +30,9 @@ class Oauth(cherrypy.Tool):
         raise cherrypy.HTTPRedirect('/')
 
     def oauthtool(self):
+        if not cherrypy.__dict__.get('config', {}).get('tools.sessions.on'):    # to enable skipping /static etc
+            return
+
         # the following are used to identify current state
         auth_code = cherrypy.request.params.get('code')
         target_url = cherrypy.request.params.get('state')
