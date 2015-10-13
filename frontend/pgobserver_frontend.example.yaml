@@ -19,6 +19,10 @@ oauth:
   access_token_url: ''
   authorize_url: ''
   redirect_url: ''
+  # 0 = browser close
+  session_timeout: 0
+  # set to true when https is provided by a load balancer and app is http
+  rewrite_http_to_https: true
 
 features:
   run_aggregations: false
