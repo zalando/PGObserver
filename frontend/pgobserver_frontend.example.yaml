@@ -1,15 +1,24 @@
 ---
 database:
-  # Connect details to PGObserver metrics datastore. NB! Can be overridden with environment variables for Docker usage, see --help
+  # PGObserver database
+  name: local_pgobserver_db
   host: localhost
   port: 5432
-  name: local_pgobserver_db
 
-  frontend_user: pgobserver_frontend   # Can be a readonly user if one doesn't plan to change host data (/hosts page)
+  # frontend credentials for PGObserver database
+  frontend_user: pgobserver_frontend
   frontend_password: pgobserver_frontend
 
 frontend:
-  port: 8080  # can be overridden with -p param on startup
+  port: 8080
+
+oauth:
+  enable_oauth: false
+  client_id: ''
+  client_secret: ''
+  access_token_url: ''
+  authorize_url: ''
+  redirect_url: ''
 
 features:
   run_aggregations: false
@@ -18,5 +27,4 @@ features:
   show_top_sprocs: true
   show_db_size: true
   show_db_stats: true
-  show_bgwriter_stats: true
   opengrok_baseurl: ""

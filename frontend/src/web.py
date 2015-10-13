@@ -48,11 +48,11 @@ def main():
     # Make env vars overwrite yaml file, to run via docker without changing config file
     settings['database']['host'] = (os.getenv('PGOBS_HOST') or settings['database'].get('host'))
     settings['database']['port'] = (os.getenv('PGOBS_PORT') or settings['database'].get('port') or 5432)
-    settings['database']['dbname'] = (os.getenv('PGOBS_DATABASE') or settings['database'].get('name'))
-    settings['database']['user'] = (os.getenv('PGOBS_USER') or settings['database'].get('user'))
+    settings['database']['name'] = (os.getenv('PGOBS_DATABASE') or settings['database'].get('name'))
+    settings['database']['frontend_user'] = (os.getenv('PGOBS_USER') or settings['database'].get('user'))
     settings['database']['password'] = (os.getenv('PGOBS_PASSWORD') or settings['database'].get('password'))
 
-    if not (settings['database'].get('host') and settings['database'].get('dbname') and settings['database'].get('user') and settings['database'].get('password')):
+    if not (settings['database'].get('host') and settings['database'].get('name') and settings['database'].get('frontend_user')):
         print 'Mandatory datastore connect details missing!'
         print 'Check --config input or environment variables: PGOBS_HOST, PGOBS_DATABASE, PGOBS_USER, PGOBS_PASSWORD [, PGOBS_PORT]'
         print ''
@@ -60,50 +60,29 @@ def main():
         return
 
     conn_string = ' '.join((
-        'dbname=' + settings['database']['dbname'],
+        'dbname=' + settings['database']['name'],
         'host=' + settings['database']['host'],
-        'user=' + settings['database']['user'],
+        'user=' + settings['database']['frontend_user'],
         'port=' + str(settings['database']['port']),
     ))
-
     print 'Setting connection string to ... ' + conn_string
-
-    conn_string = ' '.join((
-        'dbname=' + settings['database']['dbname'],
-        'host=' + settings['database']['host'],
-        'user=' + settings['database']['user'],
-        'password=' + settings['database']['password'],
-        'port=' + str(settings['database']['port']),
-    ))
+    # finished print conn_string to the world, password can be added
+    conn_string = conn_string + ' password=' + settings['database']['frontend_password']
 
     datadb.setConnectionString(conn_string)
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
 
-    conf = {'global':
-                {
-                    'server.socket_host': '0.0.0.0',
-                    'server.socket_port': args.port or settings.get('frontend', {}).get('port') or 8080
-                },
-            '/':
-                {
-                    'tools.staticdir.root': current_dir
-                },
-            '/static':
-                {
-                    'tools.staticdir.dir': 'static',
-                    'tools.staticdir.on': True
-                },
-            '/manifest.info':
-                {
-                    'tools.staticfile.on': True,
-                    'tools.staticfile.filename': os.path.join(current_dir, '..', 'MANIFEST.MF'),
-                    'tools.auth_basic.on': False
-                }
+    conf = {
+        'global': {'server.socket_host': '0.0.0.0', 'server.socket_port': args.port or settings.get('frontend',
+                   {}).get('port') or 8080},
+        '/': {'tools.staticdir.root': current_dir},
+        '/static': {'tools.staticdir.dir': 'static', 'tools.staticdir.on': True},
+        '/manifest.info': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(current_dir, '..',
+                           'MANIFEST.MF'), 'tools.auth_basic.on': False},
+    }
 
-            }
-
-    tplE.setup(settings)    # setup of global variables and host data for usage in views
+    tplE.setup(settings)  # setup of global variables and host data for usage in views
 
     root = welcomefrontend.WelcomeFrontend()
 
@@ -111,7 +90,7 @@ def main():
         mf = monitorfrontend.MonitorFrontend(h['host_id'])
 
         setattr(root, h['uishortname'], mf)
-        setattr(root, str(h['host_id']), mf) # allowing host_id's for backwards comp
+        setattr(root, str(h['host_id']), mf)  # allowing host_id's for backwards comp
 
     root.report = report.Report()
     root.export = export.Export()
@@ -126,7 +105,12 @@ def main():
     root.tables = tablesfrontend.TableFrontend()
     root.indexes = indexesfrontend.IndexesFrontend()
     root.hosts = hostsfrontend.HostsFrontend()
-    root.api = api.Root(root)   # JSON api exposure, enabling integration with other monitoring tools
+    root.api = api.Root(root)  # JSON api exposure, enabling integration with other monitoring tools
+
+    if settings.get('oauth', {}).get('enable_oauth', False):
+        print 'switching on oauth ...'
+        import oauth
+        root.oauth = oauth.Oauth(settings['oauth'])
 
     cherrypy.quickstart(root, config=conf)
 
