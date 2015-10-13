@@ -52,7 +52,7 @@ def main():
     settings['database']['user'] = (os.getenv('PGOBS_USER') or settings['database'].get('user'))
     settings['database']['password'] = (os.getenv('PGOBS_PASSWORD') or settings['database'].get('password'))
 
-    if not (settings['database'].get('host') and settings['database'].get('dbname') and settings['database'].get('user') and settings['database'].get('password')):
+    if not (settings['database'].get('host') and settings['database'].get('name') and settings['database'].get('frontend_user')):
         print 'Mandatory datastore connect details missing!'
         print 'Check --config input or environment variables: PGOBS_HOST, PGOBS_DATABASE, PGOBS_USER, PGOBS_PASSWORD [, PGOBS_PORT]'
         print ''
@@ -60,21 +60,14 @@ def main():
         return
 
     conn_string = ' '.join((
-        'dbname=' + settings['database']['dbname'],
+        'dbname=' + settings['database']['name'],
         'host=' + settings['database']['host'],
-        'user=' + settings['database']['user'],
+        'user=' + settings['database']['frontend_user'],
         'port=' + str(settings['database']['port']),
     ))
-
     print 'Setting connection string to ... ' + conn_string
-
-    conn_string = ' '.join((
-        'dbname=' + settings['database']['dbname'],
-        'host=' + settings['database']['host'],
-        'user=' + settings['database']['user'],
-        'password=' + settings['database']['password'],
-        'port=' + str(settings['database']['port']),
-    ))
+    # finished print conn_string to the world, password can be added
+    conn_string = conn_string + ' password=' + settings['database']['frontend_password']
 
     datadb.setConnectionString(conn_string)
 

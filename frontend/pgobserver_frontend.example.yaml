@@ -14,11 +14,11 @@ frontend:
 
 oauth:
   enable_oauth: false
-  client_id: 'client_id'
-  client_secret: 'client_secret'
-  access_token_url: 'access_token_url'
-  authorize_url: 'authorize_url'
-  redirect_url: 'redirect_url'
+  client_id: ''
+  client_secret: ''
+  access_token_url: ''
+  authorize_url: ''
+  redirect_url: ''
 
 features:
   run_aggregations: false
