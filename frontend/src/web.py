@@ -77,9 +77,9 @@ def main():
         'global': {'server.socket_host': '0.0.0.0', 'server.socket_port': args.port or settings.get('frontend',
                    {}).get('port') or 8080},
         '/': {'tools.staticdir.root': current_dir},
-        '/static': {'tools.staticdir.dir': 'static', 'tools.staticdir.on': True},
+        '/static': {'tools.staticdir.dir': 'static', 'tools.staticdir.on': True, 'tools.sessions.on': False},
         '/manifest.info': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(current_dir, '..',
-                           'MANIFEST.MF'), 'tools.auth_basic.on': False},
+                           'MANIFEST.MF'), 'tools.auth_basic.on': False, 'tools.sessions.on': False},
     }
 
     tplE.setup(settings)  # setup of global variables and host data for usage in views
