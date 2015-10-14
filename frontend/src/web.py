@@ -111,8 +111,8 @@ def main():
         print 'switching on oauth ...'
         import oauth
         root.oauth = oauth.Oauth(settings['oauth'])
-        cherrypy.config.update({'/': {'tools.oauthtool.on': True, 'tools.sessions.on': True,
-                                      'tools.sessions.timeout': settings['oauth'].get('session_timeout', 43200)}})
+        cherrypy.config.update({'tools.oauthtool.on': True, 'tools.sessions.on': True,
+                                      'tools.sessions.timeout': settings['oauth'].get('session_timeout', 43200)})
 
     cherrypy.quickstart(root, config=conf)
 

@@ -30,7 +30,7 @@ class Oauth(cherrypy.Tool):
         raise cherrypy.HTTPRedirect('/')
 
     def oauthtool(self):
-        if not cherrypy.__dict__.get('config', {}).get('tools.sessions.on'):    # to enable skipping /static etc
+        if cherrypy.request.config.get('tools.sessions.on') == False:    # to enable skipping /static etc
             return
 
         # the following are used to identify current state
@@ -39,6 +39,7 @@ class Oauth(cherrypy.Tool):
         scope = cherrypy.request.params.get('scope')
         error = cherrypy.request.params.get('error')
         error_description = cherrypy.request.params.get('error_description')
+
         # user has been redirected back by self.authorize_url
         if auth_code and scope and target_url:
             # get access token
@@ -49,10 +50,7 @@ class Oauth(cherrypy.Tool):
                 cherrypy.session[FLAG_access_token] = access_token
                 response.close()
                 # redirect to endpoint where user attempted to access
-                if target_url:
-                    raise cherrypy.HTTPRedirect(target_url)
-                else:
-                    raise cherrypy.HTTPRedirect('/')
+                raise cherrypy.HTTPRedirect(target_url)
             else:
                 print response.json()
                 response.close()
@@ -64,11 +62,7 @@ class Oauth(cherrypy.Tool):
         else:
             # clean url; no special oauth parameters
             # remember endpoint where user attempts to access; may be passed to self.authorize_url
-            if self.rewrite_http_to_https:
-                target_url = cherrypy.url(qs=cherrypy.request.query_string)
-                target_url = target_url.replace('http://', 'https://')
-            else:
-                target_url = cherrypy.url(qs=cherrypy.request.query_string)
+            target_url = cherrypy.url(base=self.redirect_url, path=cherrypy.request.path_info)
 
         # main gate: user must have an access_token to proceed to application
         if not cherrypy.session.get(FLAG_access_token):
@@ -79,6 +73,8 @@ class Oauth(cherrypy.Tool):
                 'state': target_url,
             }
             raise cherrypy.HTTPRedirect('%s&%s' % (self.authorize_url, urlencode(params)))
+
+        # If here, means user is logged in via oauth
         # prevent session regeneration
         # http://docs.cherrypy.org/en/latest/pkg/cherrypy.lib.html?#session-fixation-protection
         cherrypy.session['flag'] = os.urandom(24)

@@ -21,8 +21,6 @@ oauth:
   redirect_url: ''
   # 43200 min = 1 month
   session_timeout: 43200
-  # set to true when https is provided by a load balancer and app is http
-  rewrite_http_to_https: true
 
 features:
   run_aggregations: false
