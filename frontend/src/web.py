@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import re
+from StringIO import StringIO
+import boto
 
 import cherrypy
 import os
@@ -24,12 +27,43 @@ from argparse import ArgumentParser
 DEFAULT_CONF_FILE = '~/.pgobserver.yaml'
 
 
+def get_s3_key_as_string(s3_url):
+    """ Returns a file from S3 as string. Machine should have access to S3
+
+    Args:
+        s3_url (str): in form of 'https://s3-eu-west-1.amazonaws.com/x/y/file.yaml'
+    Returns:
+        str: content of given s3 bucket as string
+    """
+    m = re.match('https?://s3-(.*)\.amazonaws.com/(.*)', s3_url)
+    if not m:
+        raise Exception('Invalid S3 url: {}'.format(s3_url))
+    region_name, bucket_path_with_key_name = m.groups()
+    splits = bucket_path_with_key_name.split('/')
+    conn = boto.s3.connect_to_region(region_name)
+    bucket = conn.get_bucket(bucket_name=splits[0])
+    if not bucket:
+        raise Exception('S3 bucket not found: {}'.format(splits[0]))
+    keys = list(bucket.list(prefix='/'.join(splits[1:])))
+    if len(keys) != 1:
+        raise Exception('S3 key not found: {}'.format('/'.join(splits[1:])))
+    return keys[0].get_contents_as_string()
+
+
+def get_config_as_dict_from_s3_file(s3_path):
+    file_as_str = get_s3_key_as_string(s3_path)
+    return yaml.load(StringIO(file_as_str))
+
+
 def main():
     parser = ArgumentParser(description='PGObserver Frontend')
-    parser.add_argument('-c', '--config', help='Path to yaml config file with datastore connect details. Default location - {} \
-        If not found then ENV vars PGOBS_HOST, PGOBS_DBNAME, PGOBS_USER, PGOBS_PASSWORD [, PGOBS_PORT]  will be used'.format(DEFAULT_CONF_FILE),
-                        default=DEFAULT_CONF_FILE)
-    parser.add_argument('-p', '--port', help='Web server port. Overrides value from config file', dest='port', type=int)
+    config_input = parser.add_mutually_exclusive_group()
+    config_input.add_argument('-c', '--config', help='Path to yaml config file with datastore connect details. See pgobserver_frontend.example.yaml for a sample file. \
+        Certain values can be overridden by ENV vars PGOBS_HOST, PGOBS_DBNAME, PGOBS_USER, PGOBS_PASSWORD [, PGOBS_PORT]')
+    config_input.add_argument('--s3-config-path', help='Path style S3 URL to a key that holds the config file. Or PGOBS_CONFIG_S3_BUCKET env. var',
+                              metavar='https://s3-region.amazonaws.com/x/y/file.yaml',
+                              default=os.getenv('PGOBS_CONFIG_S3_BUCKET'))
+    parser.add_argument('-p', '--port', help='Web server port. Overrides value from config file', type=int)
 
     args = parser.parse_args()
 
@@ -44,6 +78,8 @@ def main():
         print "trying to read config file from {}".format(args.config)
         with open(args.config, 'rb') as fd:
             settings = yaml.load(fd)
+    elif args.s3_config_path:
+        settings = get_config_as_dict_from_s3_file(args.s3_config_path)
 
     # Make env vars overwrite yaml file, to run via docker without changing config file
     settings['database']['host'] = (os.getenv('PGOBS_HOST') or settings['database'].get('host'))
