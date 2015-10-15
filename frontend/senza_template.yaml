@@ -1,0 +1,110 @@
+# Only relevant for AWS STUPS setups
+# See http://stups.readthedocs.org/en/latest/index.html for help on Senza
+
+# basic information for generating and executing this definition
+SenzaInfo:
+  StackName: pgobserver-frontend
+  Parameters:
+    - ImageVersion:
+        Description: "Docker image version of pgobserver-frontend."
+    - HostedZone:
+        Description: "Route53 domain e.g. 'acid.zalan.do'"
+    - LbSecurityGroupId:
+        Description: "Security Group ID of frontend load balancer. Should allow https when oauth is enabled"
+    - ConfigFileS3Bucket:
+        Description: "The yaml config file with datastore connect strings and oauth info"
+    - ScalyrAccountKey:
+        Description: "Scalyr account key"
+
+
+# a list of senza components to apply to the definition
+SenzaComponents:
+
+  # this basic configuration is required for the other components
+  - Configuration:
+      Type: Senza::StupsAutoConfiguration # auto-detect network setup
+
+  # will create a launch configuration and auto scaling group with scaling triggers
+  - AppServer:
+      Type: Senza::TaupageAutoScalingGroup
+      AutoScaling:
+        Minimum: 1
+        Maximum: 1
+        MetricType: CPU
+      InstanceType: t2.micro
+      SecurityGroups:
+        - app-pgobserver-frontend
+      IamRoles:
+        - Ref: PgobserverFrontendS3AccessRole
+      ElasticLoadBalancer: PgobserverFrontendLoadBalancer
+      LoadBalancerNames:
+        - Ref: PgobserverFrontendLoadBalancer
+      AssociatePublicIpAddress: false # change for standalone deployment in default VPC
+      TaupageConfig:
+        application_version: "{{Arguments.ImageVersion}}"
+        runtime: Docker
+        source: "registry.opensource.zalan.do/acid/pgobserver-frontend:{{Arguments.ImageVersion}}"
+        health_check_path: /
+        ports:
+          8080: 8080
+        scalyr_account_key: "{{Arguments.ScalyrAccountKey}}"
+        environment:
+          PGOBS_CONFIG_S3_BUCKET: "{{Arguments.ConfigFileS3Bucket}}"
+
+Resources:
+  PgobserverFrontendRoute53Record:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Type: CNAME
+      TTL: 20
+      HostedZoneName: "{{Arguments.HostedZone}}."
+      Name: "pgobserver.{{Arguments.HostedZone}}."
+      ResourceRecords:
+        - Fn::GetAtt:
+           - PgobserverFrontendLoadBalancer
+           - DNSName
+  PgobserverFrontendLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      CrossZone: true
+      HealthCheck:
+        HealthyThreshold: 2
+        Interval: 30
+        Target: HTTP:8080/healthcheck
+        Timeout: 5
+        UnhealthyThreshold: 2
+      Listeners:
+        - InstancePort: 8080
+          LoadBalancerPort: 80
+          Protocol: TCP
+      LoadBalancerName: "pgobserver-frontend-{{Arguments.version}}"
+      SecurityGroups:
+        - "{{Arguments.LbSecurityGroupId}}"
+      Scheme: internet-facing
+      Subnets:
+        Fn::FindInMap:
+          - LoadBalancerSubnets
+          - Ref: AWS::Region
+          - Subnets
+  PgobserverFrontendS3AccessRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: ec2.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: PgobserverFrontendS3AccessPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+            - Effect: Allow
+              Action:
+               - "s3:Get*"
+               - "s3:List*"
+              Resource:
+                - "*"

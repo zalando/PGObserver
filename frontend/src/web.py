@@ -55,12 +55,17 @@ def get_config_as_dict_from_s3_file(s3_path):
     return yaml.load(StringIO(file_as_str))
 
 
+class Healthcheck(object):
+    def default(self, *args, **kwargs):
+        return {}
+    default.exposed = True
+
+
 def main():
     parser = ArgumentParser(description='PGObserver Frontend')
-    config_input = parser.add_mutually_exclusive_group()
-    config_input.add_argument('-c', '--config', help='Path to yaml config file with datastore connect details. See pgobserver_frontend.example.yaml for a sample file. \
+    parser.add_argument('-c', '--config', help='Path to yaml config file with datastore connect details. See pgobserver_frontend.example.yaml for a sample file. \
         Certain values can be overridden by ENV vars PGOBS_HOST, PGOBS_DBNAME, PGOBS_USER, PGOBS_PASSWORD [, PGOBS_PORT]')
-    config_input.add_argument('--s3-config-path', help='Path style S3 URL to a key that holds the config file. Or PGOBS_CONFIG_S3_BUCKET env. var',
+    parser.add_argument('--s3-config-path', help='Path style S3 URL to a key that holds the config file. Or PGOBS_CONFIG_S3_BUCKET env. var',
                               metavar='https://s3-region.amazonaws.com/x/y/file.yaml',
                               default=os.getenv('PGOBS_CONFIG_S3_BUCKET'))
     parser.add_argument('-p', '--port', help='Web server port. Overrides value from config file', type=int)
@@ -69,7 +74,9 @@ def main():
 
     settings = collections.defaultdict(dict)
 
-    if args.config:
+    if args.s3_config_path:         # S3 has precedence if specified
+        settings = get_config_as_dict_from_s3_file(args.s3_config_path)
+    elif args.config:
         args.config = os.path.expanduser(args.config)
 
         if not os.path.exists(args.config):
@@ -78,8 +85,6 @@ def main():
         print "trying to read config file from {}".format(args.config)
         with open(args.config, 'rb') as fd:
             settings = yaml.load(fd)
-    elif args.s3_config_path:
-        settings = get_config_as_dict_from_s3_file(args.s3_config_path)
 
     # Make env vars overwrite yaml file, to run via docker without changing config file
     settings['database']['host'] = (os.getenv('PGOBS_HOST') or settings['database'].get('host'))
@@ -113,6 +118,7 @@ def main():
         'global': {'server.socket_host': '0.0.0.0', 'server.socket_port': args.port or settings.get('frontend',
                    {}).get('port') or 8080},
         '/': {'tools.staticdir.root': current_dir},
+        '/healthcheck': {'tools.sessions.on': False},
         '/static': {'tools.staticdir.dir': 'static', 'tools.staticdir.on': True, 'tools.sessions.on': False},
         '/manifest.info': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(current_dir, '..',
                            'MANIFEST.MF'), 'tools.auth_basic.on': False, 'tools.sessions.on': False},
@@ -142,6 +148,7 @@ def main():
     root.indexes = indexesfrontend.IndexesFrontend()
     root.hosts = hostsfrontend.HostsFrontend()
     root.api = api.Root(root)  # JSON api exposure, enabling integration with other monitoring tools
+    root.healthcheck = Healthcheck()
 
     if settings.get('oauth', {}).get('enable_oauth', False):
         print 'switching on oauth ...'
