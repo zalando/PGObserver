@@ -12,16 +12,6 @@ database:
 frontend:
   port: 8080
 
-oauth:
-  enable_oauth: false
-  client_id: ''
-  client_secret: ''
-  access_token_url: ''
-  authorize_url: ''
-  redirect_url: ''
-  # 43200 min = 1 month
-  session_timeout: 43200
-
 features:
   run_aggregations: false
   show_load: true
@@ -31,3 +21,15 @@ features:
   show_db_stats: true
   show_bgwriter_stats: true
   opengrok_baseurl: ""
+
+oauth:
+  enable_oauth: false
+  client_id: ''
+  client_secret: ''
+  access_token_url: ''
+  authorize_url: ''
+  redirect_url: ''
+  # 43200 min = 1 month
+  session_timeout: 43200
+  client_details_s3_refresh_url: ''   # s3 url to a json file containing client_id and client_secret keys
+                                      # for cases where client_id/client_secret change periodically (e.g. in a STUPS env)
