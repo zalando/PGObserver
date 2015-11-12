@@ -1,5 +1,10 @@
 import psycopg2
 import psycopg2.extras
+import psycopg2.extensions
+
+
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
+psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 
 
 connection_string = "dbname=local_pgobserver_db host=localhost user=postgres password=postgres connect_timeout='3'"

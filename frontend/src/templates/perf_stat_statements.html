@@ -71,7 +71,7 @@
             </tr>
             {% for d in data: %}
             <tr>
-                <td><a class="query_text" href="">{{ d['query_short'] }}</a></td>
+                <td><a class="query_text" href="">{{ d['query_short']|e }}</a></td>
                 <td>{{ d['calls'] }}</td>
                 <td>{{ d['total_time'] }}</td>
                 <td>{{ d['blks_read'] }}</td>
@@ -81,7 +81,7 @@
                 <td>{{ d['avg_runtime_ms'] }}</td>
                 <td><a href="/perfstatstatements/graph/{{ hostuiname }}/{{ d['query_id'] }}" target="_blank">show</a></td>
             </tr>
-            <tr class="hiddenrow" style="display:none" ><td colspan="8"><textarea readonly>{{ d['query'] }}</textarea></td>
+            <tr class="hiddenrow" style="display:none" ><td colspan="8"><textarea readonly>{{ d['query']|e }}</textarea></td>
             </tr>
             {% endfor %}
         </table>

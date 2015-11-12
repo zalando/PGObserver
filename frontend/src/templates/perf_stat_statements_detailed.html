@@ -5,7 +5,7 @@
 <div id="reports" class="container_12">
     <div class="grid_12">
         <h3>Pg_stat_statements values over time <a href="/{{hostuiname}}">[Back to host overview]</a></h3>
-        <textarea class="sqlreadonly" readonly>{{ query }}</textarea>
+        <textarea class="sqlreadonly" readonly>{{ query|e }}</textarea>
         <form method="GET" action="/perfstatstatements/graph/{{hostuiname}}/{{query_id}}">
             <br />
             <span class="text3">Timeframe:</span>
