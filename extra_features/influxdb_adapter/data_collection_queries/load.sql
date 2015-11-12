@@ -21,13 +21,14 @@ from (
   from
     monitor_data.host_load
   where
-    load_timestamp > %(from_timestamp)s - '1 hour'::interval
+    load_timestamp > %(from_timestamp)s - %(lag_interval)s::interval
     and load_timestamp <= %(to_timestamp)s
     and load_host_id = %(host_id)s
   ) a
 ) b
 where
   xlog_location_mb_delta >= 0
+  and load_timestamp_delta > '1s'::interval -- filter against "funny" data
   and load_timestamp > %(from_timestamp)s
 order by
   load_timestamp;

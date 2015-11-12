@@ -23,7 +23,7 @@ from (
 
 select
   sdd_timestamp,
-  extract (epoch from (sdd_timestamp - timestamp_lag)) as timestamp_delta_s,
+  extract (epoch from (sdd_timestamp - timestamp_lag))::numeric as timestamp_delta_s,
   conns,
   commits - commits_lag as commits_delta,
   rollbacks - rollbacks_lag as rollbacks_delta,
@@ -63,7 +63,7 @@ from (
         from
           monitor_data.stat_database_data
         where
-          sdd_timestamp > %(from_timestamp)s - '1 hour'::interval
+          sdd_timestamp > %(from_timestamp)s - %(lag_interval)s::interval
           and sdd_timestamp <= %(to_timestamp)s
           and sdd_host_id = %(host_id)s
     ) a

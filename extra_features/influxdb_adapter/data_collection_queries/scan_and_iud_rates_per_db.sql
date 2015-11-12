@@ -11,7 +11,7 @@ from
 
 select
     tsd_timestamp,
-    extract (epoch from (tsd_timestamp - timestamp_lag)) as timestamp_delta_s,
+    extract (epoch from (tsd_timestamp - timestamp_lag))::numeric as timestamp_delta_s,
     tscans - tscans_lag as tscans_delta,
     iscans - iscans_lag as iscans_delta,
     ins - ins_lag as ins_delta,
@@ -41,7 +41,7 @@ from (
     join
     monitor_data.tables on t_id = tsd_table_id
   where
-    tsd_timestamp > %(from_timestamp)s - '1 hour'::interval
+    tsd_timestamp > %(from_timestamp)s - %(lag_interval)s::interval
     and tsd_timestamp <= %(to_timestamp)s
     and tsd_host_id = %(host_id)s
   group by

@@ -20,7 +20,7 @@ select
     t_schema,
     t_name,
     tio_timestamp,
-    extract (epoch from (tio_timestamp - timestamp_lag)) as timestamp_delta_s,
+    extract (epoch from (tio_timestamp - timestamp_lag))::numeric as timestamp_delta_s,
     h_read_lag - h_read_lag as h_read_delta,
     h_hit - h_hit_lag as h_hit_delta,
     i_read - i_read_lag as i_read_delta,
@@ -51,7 +51,7 @@ from
         monitor_data.tables on t_id = tio_table_id
       where
         not t_schema like any(array['pg_temp%%', 'z_blocking', 'tmp%%', 'temp%%', E'\\_v'])
-        and tio_timestamp > %(from_timestamp)s - '1 hour'::interval
+        and tio_timestamp > %(from_timestamp)s - %(lag_interval)s::interval
         and tio_timestamp <= %(to_timestamp)s
         and tio_host_id = %(host_id)s
 

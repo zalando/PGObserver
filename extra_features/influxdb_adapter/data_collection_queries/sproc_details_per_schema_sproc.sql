@@ -3,28 +3,19 @@ select
   extract(epoch from sp_timestamp::timestamp with time zone at time zone 'utc')::int as "time",
   sproc_schema as "schema",
   sproc,
-  ((calls_delta / timestamp_delta_s) * 3600) ::int8 as calls_1h_rate,
   (((total_delta * 1000) / timestamp_delta_s) * 3600) ::int8 as duration_s_1h_rate,
-  case when calls_delta > 0 then
-      (self_delta / calls_delta * 1000)::int8
-    else
-      null
-  end as avg_self_us,
-  case when calls_delta > 0 then
-      (total_delta / calls_delta * 1000)::int8
-    else
-      null
-  end as avg_total_us
+  ((self_delta * 1000) / calls_delta)::int8 as avg_self_us,
+  ((total_delta * 1000) / calls_delta)::int8 as avg_total_us
 from
   (
     select
       sp_timestamp,
       sproc_schema,
       sproc,
-      extract (epoch from sp_timestamp - timestamp_lag) as timestamp_delta_s,
-      calls - calls_lag as calls_delta,
-      total_ms - total_ms_lag as total_delta,
-      self_ms - self_ms_lag as self_delta
+      extract (epoch from sp_timestamp - timestamp_lag)::numeric as timestamp_delta_s,
+      (calls - calls_lag)::numeric as calls_delta,
+      (total_ms - total_ms_lag)::numeric as total_delta,
+      (self_ms - self_ms_lag)::numeric as self_delta
     from
       (
       select
@@ -43,7 +34,7 @@ from
         join
         monitor_data.sprocs on sproc_id = sp_sproc_id
       where
-        sp_timestamp > %(from_timestamp)s - '1 hour'::interval
+        sp_timestamp > %(from_timestamp)s - %(lag_interval)s::interval -- sprocs called less than 1x per lag_interval will not add to stats
         and sp_timestamp <= %(to_timestamp)s
         and sp_host_id = %(host_id)s
         and sp_calls > 10
@@ -57,6 +48,7 @@ from
 ) b
 where
   sp_timestamp > %(from_timestamp)s
+  and timestamp_delta_s > 0
 order by
  "schema", sproc, sp_timestamp
 ;

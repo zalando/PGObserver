@@ -16,14 +16,23 @@ influxdb:
   username: root
   password: root
   database: pgobserver
-  max_days_to_fetch: 7      # how much old data to fetch when starting up
+  retention_period_days: 30 # keeping only 30d of data by default to keep things snappy. NB! the given retentinon policy
+                            # will be created only when there are already no policies called "pgobserver"
+  max_days_to_fetch: 7      # how many days of history should be fetched
   data_model_pure: True     # Influx 0.8 default, e.g. load.db1
   data_model_tag: False     # Influx 0.9 default e.g. load, dbname=db1 (dbname is a tag)
                             # if both are chosen data is duplicated. 0.8 way is mostly a lot faster but
-                            # Grafana editor doesn't support it anymore so one needs to handwrite queries
+                            # Grafana visual editor doesn't support it anymore so one needs to handwrite queries
   tag_mode_series_prefix:   tag_
 
-max_worker_threads: 5
+max_worker_threads: 5               # max_worker_threads+1 will be also the connection pool size. set this number considering
+                                    # performance of your Postgres DB
+max_days_to_select_at_a_time: 3     # "chunk size" for selects from Postgres. for cases when we need to build up a long history
+min_check_interval_for_host: 30     # min. seconds between checking for fresh metrics data for a specific host
+safety_seconds_for_latest_data: 10  # let's leave the freshest data out as the whole dataset might not be fully inserted yet
+lag_interval: 12hours               # how far back to look to create comparisons. e.g. only sprocs that are called and also
+                                    # gathered (by the PgObserver gatherer process) at least once per lag_interval are included in the stats
+                                    # one could adjust also the data collection queries individually in case of slow queries
 
 data_collection_queries_to_process:
     - avg_query_runtime_per_db

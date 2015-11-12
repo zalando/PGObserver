@@ -1,2 +1,4 @@
 influxdb>=1.0
 psycopg2>=2.6
+pyyaml
+boto

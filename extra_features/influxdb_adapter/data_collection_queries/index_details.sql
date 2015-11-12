@@ -3,13 +3,13 @@ select
   extract(epoch from iud_timestamp::timestamp with time zone at time zone 'utc')::int as "time",
   i_schema as "schema",
   i_name as "index",
-  ((scans_delta / extract (epoch from timestamp_delta)) * 3600) ::int8 as scans_1h_rate,
+  ((scans_delta / timestamp_delta_s) * 3600) ::int8 as scans_1h_rate,
   size_b
 from
 (
 select
   *,
-  iud_timestamp - timestamp_lag as timestamp_delta,
+  extract (epoch from (iud_timestamp - timestamp_lag))::numeric as timestamp_delta_s,
   scans - scans_lag as scans_delta
 from
   (
@@ -32,7 +32,7 @@ from (
     monitor_data.indexes on i_id = iud_index_id
   where
     not i_schema like any(array['pg_temp%%', 'z_blocking', 'tmp%%', 'temp%%', E'\\_v'])
-    and iud_timestamp > %(from_timestamp)s - '1 day'::interval
+    and iud_timestamp > %(from_timestamp)s - %(lag_interval)s::interval
     and iud_timestamp <= %(to_timestamp)s
     and iud_host_id = %(host_id)s
   group by
@@ -46,5 +46,7 @@ where
   and size_b >= 10 * 10^6    -- 10 MB min
   and iud_timestamp > %(from_timestamp)s
 ) c
+where
+  timestamp_delta_s > 1
 order by
   i_schema, i_name, iud_timestamp

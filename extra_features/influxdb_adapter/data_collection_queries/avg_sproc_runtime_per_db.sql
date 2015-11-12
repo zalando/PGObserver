@@ -1,9 +1,9 @@
 select
   sp_timestamp as "timestamp",
   extract(epoch from sp_timestamp::timestamp with time zone at time zone 'utc')::int as "time",
-  ((calls_delta / extract (epoch from timestamp_delta)) * 60)::int8 as calls_1m_rate,
-  (self_delta / calls_delta * 1000)::int8 as avg_self_us,
-  (total_delta / calls_delta * 1000)::int8 as avg_total_us
+  ((calls_delta::numeric / extract (epoch from timestamp_delta)) * 60)::int8 as calls_1m_rate,
+  (self_delta::numeric / calls_delta * 1000)::int8 as avg_self_us,
+  (total_delta::numeric / calls_delta * 1000)::int8 as avg_total_us
 from
   (
 
@@ -34,7 +34,7 @@ from
         monitor_data.sprocs on sproc_id = sp_sproc_id
       where
         sp_calls > 10
-        and sp_timestamp > %(from_timestamp)s - '1 hour'::interval
+        and sp_timestamp > %(from_timestamp)s - %(lag_interval)s::interval
         and sp_timestamp <= %(to_timestamp)s
         and sp_host_id = %(host_id)s
       group by

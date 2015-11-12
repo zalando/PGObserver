@@ -33,7 +33,7 @@ def set_connection_string_and_pool_size(conn_string, pool_size=5):
     global connection_string
     connection_string = conn_string
     global connection_pool
-    connection_pool = psycopg2.pool.ThreadedConnectionPool(0, pool_size, conn_string)
+    connection_pool = psycopg2.pool.ThreadedConnectionPool(pool_size, pool_size, conn_string)
 
 
 def mogrify(sql, params=None):
