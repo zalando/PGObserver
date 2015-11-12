@@ -1,0 +1,99 @@
+# See http://stups.readthedocs.org/en/latest/components/senza.html for help on Senza
+
+# basic information for generating and executing this definition
+SenzaInfo:
+  StackName: grafana
+  Parameters:
+    - ImageVersion:
+        Description: "Docker image version of registry.opensource.zalan.do/acid/grafana"
+    - HostedZoneName:
+        Description: "Teams DNS zone e.g. 'acid.zalan.do'"
+    - LbSecurityGroupId:
+        Description: "AWS Loadbalancer Security group ID. TODO Can one take it from LB name?"
+    - ConfDbProvider:
+        Description: "postgres | mysql"
+    - ConfDbHost:
+        Description: "Config DB host address"
+    - ConfDbPort:
+        Description: "Config DB port"
+    - ConfDbName:
+        Description: "Config DB name"
+    - ConfDbUser:
+        Description: "Config DB user. should have r/w on the DB"
+    - ConfDbPassword:
+        Description: "Config DB pass"
+
+
+# a list of senza components to apply to the definition
+SenzaComponents:
+
+  # this basic configuration is required for the other components
+  - Configuration:
+      Type: Senza::StupsAutoConfiguration # auto-detect network setup
+
+  # will create a launch configuration and auto scaling group with scaling triggers
+  - AppServer:
+      Type: Senza::TaupageAutoScalingGroup
+      AutoScaling:
+        Minimum: 1
+        Maximum: 1
+        MetricType: CPU
+      InstanceType: t2.micro
+      SecurityGroups:
+        - app-grafana
+      IamRoles:
+        - app-grafana
+      ElasticLoadBalancer: GrafanaLoadBalancer
+      LoadBalancerNames:
+        - Ref: GrafanaLoadBalancer
+      AssociatePublicIpAddress: false # change for standalone deployment in default VPC
+      TaupageConfig:
+        application_version: "{{Arguments.ImageVersion}}"
+        runtime: Docker
+        source: "registry.opensource.zalan.do/acid/grafana:{{Arguments.ImageVersion}}"
+        health_check_path: /
+        ports:
+          8080: 3000
+        environment:
+          CONFDB_PROVIDER: "{{Arguments.ConfDbProvider}}"
+          CONFDB_HOST: "{{Arguments.ConfDbHost}}"
+          CONFDB_PORT: "{{Arguments.ConfDbPort}}"
+          CONFDB_DBNAME: "{{Arguments.ConfDbName}}"
+          CONFDB_USER: "{{Arguments.ConfDbUser}}"
+          CONFDB_PASSWORD: "{{Arguments.ConfDbPassword}}"
+
+Resources:
+  GrafanaRoute53Record:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Type: CNAME
+      TTL: 20
+      HostedZoneName: "{{Arguments.HostedZoneName}}."
+      Name: "{{Arguments.version}}.{{Arguments.HostedZoneName}}."
+      ResourceRecords:
+        - Fn::GetAtt:
+           - GrafanaLoadBalancer
+           - DNSName
+  GrafanaLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      CrossZone: true
+      HealthCheck:
+        HealthyThreshold: 2
+        Interval: 30
+        Target: HTTP:8080/login
+        Timeout: 5
+        UnhealthyThreshold: 2
+      Listeners:
+        - InstancePort: 8080
+          LoadBalancerPort: 80
+          Protocol: TCP
+      LoadBalancerName: "grafana-{{Arguments.version}}"
+      SecurityGroups:
+        - "{{Arguments.LbSecurityGroupId}}"
+      Scheme: internal
+      Subnets:
+        Fn::FindInMap:
+          - LoadBalancerSubnets
+          - Ref: AWS::Region
+          - Subnets

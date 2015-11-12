@@ -1,0 +1,94 @@
+# *** NB! *** Appliance uses currently only local storage (5 GB for data on t2.micro) and is not clustered
+
+# See http://stups.readthedocs.org/en/latest/components/senza.html for help on Senza
+
+# basic information for generating and executing this definition
+SenzaInfo:
+  StackName: influxdb
+  Parameters:
+    - ImageVersion:
+        Description: "Docker image version of influxdb. e.g. registry.opensource.zalan.do/acid/influxdb:0.9-SNAPSHOT"
+    - HostedZoneName:
+        Description: "e.g. acid.zalan.do"
+    - LbSecurityGroupId:
+        Description: "SG needs to be created manually first"
+
+
+# a list of senza components to apply to the definition
+SenzaComponents:
+
+  # this basic configuration is required for the other components
+  - Configuration:
+      Type: Senza::StupsAutoConfiguration # auto-detect network setup
+
+  # will create a launch configuration and auto scaling group with scaling triggers
+  - AppServer:
+      Type: Senza::TaupageAutoScalingGroup
+      AutoScaling:
+        Minimum: 1
+        Maximum: 1
+        MetricType: CPU
+      InstanceType: t2.micro
+#      BlockDeviceMappings:
+#        - DeviceName: /dev/xvdk
+#          Ebs:
+#            VolumeSize: 10
+#            VolumeType: gp2
+      SecurityGroups:
+        - app-influxdb
+      ElasticLoadBalancer: InfluxdbLoadBalancer
+      LoadBalancerNames:
+        - Ref: InfluxdbLoadBalancer
+      AssociatePublicIpAddress: false # change for standalone deployment in default VPC
+      TaupageConfig:
+        runtime: Docker
+        health_check_port: 8083
+        health_check_path: /
+        ports:
+          8083: 8083
+          8086: 8086
+          8088: 8088
+        source: "registry.opensource.zalan.do/acid/influxdb:{{Arguments.ImageVersion}}"
+#        mounts:
+#          /home/influxdb/data:
+#            partition: /dev/xvdk
+#            filesystem: ext4
+#            # erase_on_boot should be false ?
+#            erase_on_boot: true
+#            options: noatime,nodiratime,nobarrier
+
+Resources:
+  InfluxdbRoute53Record:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      Type: CNAME
+      TTL: 20
+      HostedZoneName: "{{Arguments.HostedZoneName}}."
+      Name: "{{Arguments.version}}.{{Arguments.HostedZoneName}}."
+      ResourceRecords:
+        - Fn::GetAtt:
+           - InfluxdbLoadBalancer
+           - DNSName
+  InfluxdbLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      CrossZone: true
+      HealthCheck:
+        HealthyThreshold: 2
+        Interval: 30
+        Target: HTTP:8083/
+        Timeout: 5
+        UnhealthyThreshold: 2
+      Listeners:
+        - InstancePort: 8086
+          LoadBalancerPort: 8086
+          Protocol: TCP
+      LoadBalancerName: "influxdb-{{Arguments.version}}"
+      SecurityGroups:
+        - "{{Arguments.LbSecurityGroupId}}"
+      Scheme: internal
+      Subnets:
+        Fn::FindInMap:
+          - LoadBalancerSubnets
+          - Ref: AWS::Region
+          - Subnets
