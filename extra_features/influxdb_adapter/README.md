@@ -7,10 +7,10 @@ chose InfluxDB as it seems to be the most light-weight from these.
 
 ### Local setup (for live you probably want a dedicated server)
 
- - Fire up the vagrant box with "vagrant up" ( requires Vagrant and Virtualbox)
- - Edit the influx_config.yaml to reflect your existing PgObserver setup
+ - Fire up the vagrant box (from "vagrant_influx_grafana_box") with "vagrant up" ( requires Vagrant and Virtualbox)
+ - Edit the influx_config.yaml to reflect your existing PgObserver setup (DB connection strings info + )
  - Start the "export_to_influxdb.py" script in daemon mode
- - Create and use your dashboards at http://0.0.0.0:8082
+ - Create and use your dashboards at http://0.0.0.0:3000
 
 ### Vagrant box connect details
 
