@@ -23,7 +23,7 @@ influxdb:
   data_model_tag: False     # Influx 0.9 default e.g. load, dbname=db1 (dbname is a tag)
                             # if both are chosen data is duplicated. 0.8 way is mostly a lot faster but
                             # Grafana visual editor doesn't support it anymore so one needs to handwrite queries
-  tag_mode_series_prefix:   tag_
+  tag_mode_series_prefix:   ''      # useful to set, when storing data into both models
 
 max_worker_threads: 5               # max_worker_threads+1 will be also the connection pool size. set this number considering
                                     # performance of your Postgres DB
