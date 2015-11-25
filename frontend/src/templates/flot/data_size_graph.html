@@ -32,6 +32,15 @@ $(function () {
          return val.toFixed(axis.tickDecimals) + " B";
      }
 
+    function humanReadableFormatter(val, axis) {
+       if (val > 1000*1000)
+         return (val / 1000*1000.0).toFixed(axis.tickDecimals) + " M";
+       else if (val > 1000)
+         return (val / 1000.0).toFixed(axis.tickDecimals) + " k";
+       else
+         return val.toFixed(axis.tickDecimals) + "";
+    }
+
      $("#{{ graphContainer }}").bind("plotselected", function (event, ranges, rec , recD ) {
            from = new Date(Math.floor(ranges.xaxis.from.toFixed(1)));
            to = new Date(Math.ceil(ranges.xaxis.to.toFixed(1)));
@@ -58,7 +67,7 @@ $(function () {
                 selection : { mode : "x" },
                 grid : { clickable: true },
                    yaxes: [ { autoscale: true, position: "right", color: "#9A6C3D" , tickFormatter: suffixFormatter, tickDecimals: 2, reserveSpace: true, labelWidth: defaultLabelWidth },
-                          { autoscale: true, position: "left", color: "#9A6C3D", reserveSpace: true, labelWidth: defaultLabelWidth } ] ,
+                          { autoscale: true, position: "left", color: "#9A6C3D", tickFormatter: humanReadableFormatter, tickDecimals: 0, reserveSpace: true, labelWidth: defaultLabelWidth } ] ,
                    xaxes: [ { min: xmin, max: xmax, mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  } ]
           });
 
@@ -87,7 +96,7 @@ $flots[{{ graphContainer }}] = $.plot($("#{{ graphContainer }}"), datasets, {
              selection : { mode : "x" },
              grid : { clickable: true },
                 yaxes: [ { autoscale: true, position: "right", color: "#9A6C3D" , tickFormatter: suffixFormatter, tickDecimals: 2, reserveSpace: true, labelWidth: defaultLabelWidth },
-                       { autoscale: true, position: "left", color: "#9A6C3D", reserveSpace: true, labelWidth: defaultLabelWidth }] ,
+                       { autoscale: true, position: "left", color: "#9A6C3D", tickFormatter: humanReadableFormatter, tickDecimals: 0, reserveSpace: true, labelWidth: defaultLabelWidth }] ,
                 xaxes: [ { mode: "time", timeformat: "%d.%m. %H:%M" , timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  } ]
     });
 });

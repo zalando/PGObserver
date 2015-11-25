@@ -22,10 +22,13 @@ $(function () {
 
     function suffixFormatter( val, axis) {
      if ( val > 300000 ) {
-        return (val / (60 * 1000) ).toFixed(2) + "m";
+        return (val / (60 * 1000) ).toFixed(0) + "m";
+     }
+     else if (val > 1000) {
+        return (val/1000).toFixed(0) + "s";
      }
      else {
-        return (val/1000).toFixed(2) + "s";
+        return val.toFixed(0) + "ms";
      }
     }
 

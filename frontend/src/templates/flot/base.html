@@ -20,6 +20,15 @@ $(function () {
        {% endfor %}
     ];
 
+    function humanReadableFormatter(val, axis) {
+       if (val > 1000*1000)
+         return (val / 1000*1000.0).toFixed(axis.tickDecimals) + " Mio";
+       else if (val > 1000)
+         return (val / 1000.0).toFixed(axis.tickDecimals) + " k";
+       else
+         return val.toFixed(axis.tickDecimals) + "";
+    }
+
        $("#{{ graphContainer }}").bind("plotselected", function (event, ranges, rec , recD ) {
            from = new Date(Math.floor(ranges.xaxis.from.toFixed(1)));
            to = new Date(Math.ceil(ranges.xaxis.to.toFixed(1)));
@@ -45,8 +54,8 @@ $(function () {
                  legend : { position: "nw" },
                 selection : { mode : "x" },
                 grid : { clickable: true },
-                   yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth , position: "{{ legendPosition }}" },
-                       { position: "{% if legendPosition=="left" %}right{% else %}left{% endif %}", reserveSpace: true, labelWidth: defaultLabelWidth }],
+                   yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , tickFormatter: humanReadableFormatter, reserveSpace: true, labelWidth: defaultLabelWidth , position: "{{ legendPosition }}" },
+                       { position: "{% if legendPosition=="left" %}right{% else %}left{% endif %}", tickFormatter: humanReadableFormatter, tickDecimals: 0, reserveSpace: true, labelWidth: defaultLabelWidth }],
                    xaxis: { min: xmin, max: xmax, mode: "time", timezone: "browser", timeformat: "%d.%m. %H:%M", tickDecimals: 0, color: "#9A6C3D"  }
           });
 
@@ -74,8 +83,8 @@ $flots[{{ graphContainer }}] = $.plot($("#{{ graphContainer }}"), datasets, {
                  legend : { position: "nw" },
                 selection : { mode : "x" },
                 grid : { clickable: true },
-                   yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , reserveSpace: true, labelWidth: defaultLabelWidth , position: "{{ legendPosition }}" },
-                       { position: "{% if legendPosition=="left" %}right{% else %}left{% endif %}", reserveSpace: true, labelWidth: defaultLabelWidth }],
+                   yaxes: [{ autoscale: true, min: 0, color: "#9A6C3D" , tickFormatter: humanReadableFormatter, tickDecimals: 0, reserveSpace: true, labelWidth: defaultLabelWidth , position: "{{ legendPosition }}" },
+                       { position: "{% if legendPosition=="left" %}right{% else %}left{% endif %}", tickFormatter: humanReadableFormatter, tickDecimals: 0, reserveSpace: true, labelWidth: defaultLabelWidth }],
                    xaxis: { mode: "time", timeformat: "%d.%m. %H:%M", timezone: "browser", tickDecimals: 0, color: "#9A6C3D"  }
     });
 });
