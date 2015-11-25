@@ -31,6 +31,7 @@ from
           ssd_host_id = %(host_id)s
           and ssd_timestamp > %(from_timestamp)s - %(lag_interval)s::interval   -- should be enough to get a "lag" value
                                                                                 -- statements called less than 1x per 4h will not add to stats
+          and ssd_timestamp <= %(to_timestamp)s
           and ssd_calls > 10   -- minimum amount of calls for the statement to be considered as a "regular"
           and lower(ssd_query) not like 'copy%%'
         order by

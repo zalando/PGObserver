@@ -42,7 +42,8 @@ BEGIN
 		objsubid
 	   from 
 		pg_catalog.pg_locks
-	  where NOT granted;
+	  where NOT granted
+	    and database = (select oid from pg_database where datname = current_database());
 
 	else   
 
@@ -58,7 +59,8 @@ BEGIN
 		objsubid
 	   from 
 		pg_catalog.pg_locks
-	  where NOT granted;
+	  where NOT granted
+	    and database = (select oid from pg_database where datname = current_database());
 	end if;
 
 	-- find presistant lock
@@ -94,14 +96,16 @@ BEGIN
 	-- keep record of the blocking !
 	if (l_cnt3 > 0) then
 	  insert into z_blocking.blocking_locks
-	  select 0, l_curr_timestamp, *
+	  select 0, l_curr_timestamp, locktype, database, relation, page, tuple, virtualxid, transactionid, classid,
+            objid, objsubid, virtualtransaction, pid, mode, granted, fastpath
 	    from pg_catalog.pg_locks
-	   where exists (select 1 from z_blocking.blocking_monitor_tmp3 where pg_locks.pid = blocking_monitor_tmp3.pid);
+	   where exists (select 1 from z_blocking.blocking_monitor_tmp3 where pg_locks.pid = blocking_monitor_tmp3.pid limit 1);
 
 	  insert into z_blocking.blocking_processes
-	  select 0, l_curr_timestamp, *
+	  select 0, l_curr_timestamp, datid, datname, pid, usesysid, usename, application_name, client_addr, client_hostname,
+            client_port, backend_start, xact_start, query_start, state_change, waiting, state, query
 	    from pg_catalog.pg_stat_activity
-	   where exists (select 1 from z_blocking.blocking_monitor_tmp3 where pg_stat_activity.pid = blocking_monitor_tmp3.pid);
+	   where exists (select 1 from z_blocking.blocking_monitor_tmp3 where pg_stat_activity.pid = blocking_monitor_tmp3.pid limit 1);
 
 	  truncate table z_blocking.blocking_monitor_tmp3;
 	end if;

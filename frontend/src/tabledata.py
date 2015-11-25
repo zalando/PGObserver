@@ -318,6 +318,7 @@ def getTopTables(hostId, date_from, date_to, order=None, limit=10, pattern=''):
                 MIN(tsd_timestamp) AS min_date,
                 MAX(tsd_timestamp) AS max_date
               FROM monitor_data.table_size_data
+              JOIN monitor_data.hosts h ON h.host_id = tsd_host_id
               WHERE (%s is null or tsd_host_id = %s)
               AND tsd_timestamp >= %s::timestamp
               AND tsd_timestamp <= %s::timestamp
