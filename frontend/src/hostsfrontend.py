@@ -8,10 +8,13 @@ class HostsFrontend(object):
         self.show = self.index()
 
     def index(self, sortkey='host_ui_shortname'):
-        allHosts = hosts.getAllHostsData()
-        allHosts = sorted(allHosts.iteritems(), key = lambda h : h[1][sortkey])
+        allHosts = None
+        show_hosts_page = tplE._settings.get('show_hosts_page', True)
+        if show_hosts_page:
+            allHosts = hosts.getAllHostsData()
+            allHosts = sorted(allHosts.iteritems(), key=lambda h: h[1][sortkey])
         tmpl = tplE.env.get_template('hosts.html')
-        return tmpl.render(all_hosts=allHosts,
+        return tmpl.render(all_hosts=allHosts, show_hosts_page=show_hosts_page,
                            target='World')
 
     def raw(self):
