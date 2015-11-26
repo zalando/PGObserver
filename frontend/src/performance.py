@@ -75,9 +75,12 @@ class PerfApi(object):
 
 class PerfIndexes(object):
     def index(self,**params):
-        data, interval, host_names = self.get_data(**params)
+        data, interval, host_names = None, None, None
+        hot_queries_allowed = tplE._settings.get('allow_hot_queries', True)
+        if hot_queries_allowed:
+            data, interval, host_names = self.get_data(**params)
         table = tplE.env.get_template('perf_indexes.html')
-        return table.render(data=data, interval=interval, host_names=host_names)
+        return table.render(data=data, interval=interval, host_names=host_names, hot_queries_allowed=hot_queries_allowed)
 
     def raw(self, hostname='all'):
         data, interval, host_names = self.get_data(hostname=hostname, show='show')
@@ -299,9 +302,13 @@ class PerfStatStatementsReport(object):
 
 class PerfBloat(object):
     def index(self, selected_hostname=None, **params):
-        data, hostnames, bloat_type, order_by, limit, hostuiname = self.get_data(selected_hostname=selected_hostname, **params)
+        data, hostnames, bloat_type, order_by, limit, hostuiname = [None] * 6
+        hot_queries_allowed = tplE._settings.get('allow_hot_queries', True)
+        if hot_queries_allowed:
+            data, hostnames, bloat_type, order_by, limit, hostuiname = self.get_data(selected_hostname=selected_hostname, **params)
         table = tplE.env.get_template('perf_bloat.html')
-        return table.render(selected_hostname=selected_hostname, hostnames=hostnames, bloat_type=bloat_type, order_by=order_by, limit=limit, data=data, hostuiname=hostuiname)
+        return table.render(selected_hostname=selected_hostname, hostnames=hostnames, bloat_type=bloat_type, order_by=order_by,
+                            limit=limit, data=data, hostuiname=hostuiname, hot_queries_allowed=hot_queries_allowed)
 
     def raw(self, selected_hostname=None, **params):
         data, hostnames, bloat_type, order_by, limit, hostuiname = self.get_data(selected_hostname, **params)

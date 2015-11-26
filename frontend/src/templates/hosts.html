@@ -2,6 +2,12 @@
 {% set active_page = 'hosts' %}
 {% block body %}
 
+{% if not show_hosts_page %}
+  <div class="container_12">
+      <br />
+  <h3>Showing host configuration info not enabled! Set show_hosts_page to "true" in config.yaml to enable</h3>
+  </div>
+{% else %}
 <div id="reports" class="container_12">
     <div class="grid_12" style="margin-bottom: 150px">
     <h2>Hosts configuration</h2>
@@ -122,5 +128,5 @@
 
     });
 </script>
-
+{% endif %}
 {% endblock %}

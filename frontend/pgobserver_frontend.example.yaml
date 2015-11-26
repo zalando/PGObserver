@@ -1,11 +1,11 @@
 ---
 database:
-  # PGObserver database
+  # PGObserver metrics database
   name: local_pgobserver_db
   host: localhost
   port: 5432
 
-  # frontend credentials for PGObserver database
+  # Frontend credentials for PGObserver database. Read-only role is sufficient
   frontend_user: pgobserver_frontend
   frontend_password: pgobserver_frontend
 
@@ -13,16 +13,23 @@ frontend:
   port: 8080
 
 features:
-  run_aggregations: false
+  show_hosts_page: true         # Should the /hosts page be accessible. Page shows host/database names for all hosts under monitoring
+                                # that could be desirable to hide. We assume a trusted environment by default though
+  allow_hot_queries: true       # Are direct queries to hosts under monitoring allowed. Direct queries are currently used
+                                # for determining index issues (invalids, duplicates, unused) and table/index bloat.
+                                # Bloat info requires a sprocs on the monitored host - see "sql/data_collection_helpers/bloated_tables_and_indexes.sql"
+  run_aggregations: false       # Optional. One can enable pre-aggregations (extra_features/aggregation_crons) for faster
+                                # main page loads
   show_load: true
   show_wal: true
   show_top_sprocs: true
   show_db_size: true
   show_db_stats: true
   show_bgwriter_stats: true
-  opengrok_baseurl: ""
+  opengrok_baseurl: ""          # Instead of Opengrok any search engine/Web SCM could be used actually. Should be in form of "host.com/search?q="
+                                # Used to show links to sproc source from "sproc details" view
 
-oauth:
+oauth:                          # Optional
   enable_oauth: false
   client_id: ''
   client_secret: ''
