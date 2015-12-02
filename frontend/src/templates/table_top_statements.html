@@ -1,0 +1,11 @@
+<table class="frontTable noBorder">
+    <thead><th>Name</th><th>Calls</th><th>Total Time</th><th>Avg. Time</th></thead>
+    {% for row in data: %}
+    <tr>
+        <td><a href="/perfstatstatements/graph/{{hostuiname}}/{{row.query_id}}">{{ row.query|e }}</a></td>
+        <td align="right">{{ row.calls }}</td>
+        <td align="right">{{ row.total_time_pretty }}</td>
+        <td align="right">{{ row.avg_time_pretty }}</td>
+    </tr>
+    {% endfor %}
+</table>

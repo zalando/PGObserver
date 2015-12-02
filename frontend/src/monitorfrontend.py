@@ -10,6 +10,7 @@ import hosts
 import tplE
 import reportdata
 import cherrypy
+import topstatements
 
 
 class MonitorFrontend(object):
@@ -27,6 +28,7 @@ class MonitorFrontend(object):
         graph_size = None
         graph_dbstats = None
         top_sprocs = None
+        top_statements = None
         graph_checkpoint = None
         global_announcement = reportdata.getGetActiveFrontendAnnouncementIfAny()    # fyi - no escaping is performed deliberately
 
@@ -95,6 +97,19 @@ class MonitorFrontend(object):
             top_sprocs['hours1calls'] = self.renderTop10LastHours(topsprocs.totalCallsOrder, 1, hostId, sprocs_to_show)
             top_sprocs['hours3calls'] = self.renderTop10LastHours(topsprocs.totalCallsOrder, 3, hostId, sprocs_to_show)
 
+        if tplE._settings.get('show_top_statements', False):
+            top_statements = {}
+            tsd = topstatements.getTopStatementsData(hostId, interval1='3hours', interval2='1hours', limit=sprocs_to_show)
+            if tsd:
+                top_statements['hours1avg'] = self.renderTo10StatementsLastHours(hostId, tsd.get('avg_int2', []))
+                top_statements['hours3avg'] = self.renderTo10StatementsLastHours(hostId, tsd.get('avg_int1', []))
+
+                top_statements['hours1total'] = self.renderTo10StatementsLastHours(hostId, tsd.get('total_int2', []))
+                top_statements['hours3total'] = self.renderTo10StatementsLastHours(hostId, tsd.get('total_int1', []))
+
+                top_statements['hours1calls'] = self.renderTo10StatementsLastHours(hostId, tsd.get('calls_int2', []))
+                top_statements['hours3calls'] = self.renderTo10StatementsLastHours(hostId, tsd.get('calls_int1', []))
+
         if tplE._settings.get('show_bgwriter_stats', True):
             graph_checkpoint = self.get_rendered_bgwriter_graph(int(days))
 
@@ -109,6 +124,7 @@ class MonitorFrontend(object):
             graph_dbstats=graph_dbstats,
             graph_checkpoint=graph_checkpoint,
             top_sprocs=top_sprocs,
+            top_statements=top_statements,
             limit=sprocs_to_show,
             features=hosts.getActiveFeatures(hostId),
             global_announcement=global_announcement,
@@ -162,7 +178,9 @@ class MonitorFrontend(object):
         return table.render(hostid=hostId, hostuiname=hosts.hostIdToUiShortname(hostId),
                             list=topsprocs.getTop10LastXHours(order, hours, hostId, limit))
 
+    def renderTo10StatementsLastHours(self, hostId, data):
+        table = tplE.env.get_template('table_top_statements.html')
+        return table.render(hostid=hostId, hostuiname=hosts.hostIdToUiShortname(hostId), data=data)
+
     index.exposed = False
     default.exposed = True
-
-
