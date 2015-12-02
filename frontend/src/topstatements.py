@@ -8,7 +8,7 @@ WITH q_data AS (
     SELECT
       ssd_timestamp,
       ssd_query_id,
-      lower(rtrim(ltrim(regexp_replace(regexp_replace(ssd_query, E'[\\t\\n\\r]+' , ' ', 'g'), E' {2,}', ' ', 'g'))))::varchar(55)||'..' as ssd_query,
+      lower(ltrim(regexp_replace(ssd_query, E'[ \\t\\n\\r]+' , ' ', 'g')))::varchar(55)||'..' as ssd_query,
       ssd_total_time,
       ssd_calls
     FROM
@@ -16,7 +16,6 @@ WITH q_data AS (
     WHERE
       ssd_host_id = %(host_id)s
       AND ssd_timestamp > now() - %(interval1)s::interval
-      --AND ssd_timestamp > now() - '3hours'::interval
 ), q_calls_int1 AS (
     SELECT
       'calls_int1'::text as mode,
@@ -59,7 +58,6 @@ WITH q_data AS (
         FROM
           q_data
         WHERE
-          --ssd_timestamp > now() - '1hours'::interval
           ssd_timestamp > now() - %(interval2)s::interval
         GROUP BY
           ssd_query_id, ssd_query
@@ -129,7 +127,7 @@ WITH q_data AS (
       ssd_query_id as query_id,
       calls,
       total_ms,
-      round(total_ms*1000 / calls::numeric)::int  as avg_us
+      round(total_ms / calls::numeric, 3)::int  as avg_ms
     FROM (
         SELECT
           ssd_query_id,
@@ -154,7 +152,7 @@ WITH q_data AS (
       ssd_query_id as query_id,
       calls,
       total_ms,
-      round(total_ms*1000 / calls::numeric)::int  as avg_us
+      round(total_ms / calls::numeric)::int  as avg_ms
     FROM (
         SELECT
           ssd_query_id,
@@ -164,7 +162,6 @@ WITH q_data AS (
         FROM
           q_data
         WHERE
-          --ssd_timestamp > now() - '3hours'::interval
           ssd_timestamp > now() - %(interval2)s::interval
         GROUP BY
           ssd_query_id, ssd_query

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 import psycopg2
 import psycopg2.extras
@@ -14,14 +16,14 @@ def makeTimeIntervalReadable(total_millis):
     h = int(m/60)
 
     if total_millis < 1:
-        return str(int(total_millis * 1000)) + "us"
+        return unicode(str(int(total_millis * 1000))) + u"μs"
     if s == 0:
         return str(int(total_millis)) + "ms"
     if m == 0:
         return '{0:.2f}'.format(total_s) + "s"
     if h == 0:
         return str(m) + "m " + '{0:.0f}'.format(total_s % 60) + "s"
-    return str(h) + "h " + str(m) + "m " + str(s) + "s"
+    return str(h) + "h " + str(m) + "m " + str(total_s % 60) + "s"
 
 
 avgRuntimeOrder = "sum(d_total_time) / sum(d_calls) desc"
