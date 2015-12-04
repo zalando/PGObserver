@@ -101,14 +101,14 @@ class MonitorFrontend(object):
             top_statements = {}
             tsd = topstatements.getTopStatementsData(hostId, interval1='3hours', interval2='1hours', limit=sprocs_to_show)
             if tsd:
-                top_statements['hours1avg'] = self.renderTo10StatementsLastHours(hostId, tsd.get('avg_int2', []))
-                top_statements['hours3avg'] = self.renderTo10StatementsLastHours(hostId, tsd.get('avg_int1', []))
+                top_statements['hours1avg'] = self.renderTop10StatementsLastHours(hostId, tsd.get('avg_int2', []))
+                top_statements['hours3avg'] = self.renderTop10StatementsLastHours(hostId, tsd.get('avg_int1', []))
 
-                top_statements['hours1total'] = self.renderTo10StatementsLastHours(hostId, tsd.get('total_int2', []))
-                top_statements['hours3total'] = self.renderTo10StatementsLastHours(hostId, tsd.get('total_int1', []))
+                top_statements['hours1total'] = self.renderTop10StatementsLastHours(hostId, tsd.get('total_int2', []))
+                top_statements['hours3total'] = self.renderTop10StatementsLastHours(hostId, tsd.get('total_int1', []))
 
-                top_statements['hours1calls'] = self.renderTo10StatementsLastHours(hostId, tsd.get('calls_int2', []))
-                top_statements['hours3calls'] = self.renderTo10StatementsLastHours(hostId, tsd.get('calls_int1', []))
+                top_statements['hours1calls'] = self.renderTop10StatementsLastHours(hostId, tsd.get('calls_int2', []))
+                top_statements['hours3calls'] = self.renderTop10StatementsLastHours(hostId, tsd.get('calls_int1', []))
 
         if tplE._settings.get('show_bgwriter_stats', True):
             graph_checkpoint = self.get_rendered_bgwriter_graph(int(days))
@@ -178,7 +178,7 @@ class MonitorFrontend(object):
         return table.render(hostid=hostId, hostuiname=hosts.hostIdToUiShortname(hostId),
                             list=topsprocs.getTop10LastXHours(order, hours, hostId, limit))
 
-    def renderTo10StatementsLastHours(self, hostId, data):
+    def renderTop10StatementsLastHours(self, hostId, data):
         table = tplE.env.get_template('table_top_statements.html')
         return table.render(hostid=hostId, hostuiname=hosts.hostIdToUiShortname(hostId), data=data)
 

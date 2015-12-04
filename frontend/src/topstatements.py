@@ -16,9 +16,8 @@ WITH q_data AS (
     WHERE
       ssd_host_id = %(host_id)s
       AND ssd_timestamp > now() - %(interval1)s::interval
-), q_calls_int1 AS (
+), q_agg_int1 AS (
     SELECT
-      'calls_int1'::text as mode,
       ssd_query as query,
       ssd_query_id as query_id,
       calls,
@@ -37,13 +36,8 @@ WITH q_data AS (
     ) a
     WHERE
       calls > 0 AND total_ms > 0
-    ORDER BY
-      calls DESC
-    LIMIT
-      %(limit)s
-), q_calls_int2 AS (
+), q_agg_int2 AS (
     SELECT
-      'calls_int2'::text as mode,
       ssd_query as query,
       ssd_query_id as query_id,
       calls,
@@ -62,6 +56,24 @@ WITH q_data AS (
         GROUP BY
           ssd_query_id, ssd_query
     ) a
+    WHERE
+      calls > 0 AND total_ms > 0
+), q_calls_int1 AS (
+    SELECT
+      'calls_int1'::text as mode,
+      *
+    FROM
+      q_agg_int1
+    ORDER BY
+      calls DESC
+    LIMIT
+      %(limit)s
+), q_calls_int2 AS (
+    SELECT
+      'calls_int2'::text as mode,
+      *
+    FROM
+      q_agg_int2
     WHERE
       calls > 0 AND total_ms > 0
     ORDER BY
@@ -71,22 +83,9 @@ WITH q_data AS (
 ), q_avg_int1 AS (
     SELECT
       'avg_int1'::text as mode,
-      ssd_query as query,
-      ssd_query_id as query_id,
-      calls,
-      total_ms,
-      round(total_ms / calls::numeric, 3) as avg_ms
-    FROM (
-        SELECT
-          ssd_query_id,
-          ssd_query,
-          max(ssd_total_time) - min(ssd_total_time) as total_ms,
-          max(ssd_calls) - min(ssd_calls) as calls
-        FROM
-          q_data
-        GROUP BY
-          ssd_query_id, ssd_query
-    ) a
+      *
+    FROM
+      q_agg_int1
     WHERE
       calls > 0 AND total_ms > 0
     ORDER BY
@@ -96,24 +95,9 @@ WITH q_data AS (
 ), q_avg_int2 AS (
     SELECT
       'avg_int2'::text as mode,
-      ssd_query as query,
-      ssd_query_id as query_id,
-      calls,
-      total_ms,
-      round(total_ms / calls::numeric, 3) as avg_ms
-    FROM (
-        SELECT
-          ssd_query_id,
-          ssd_query,
-          max(ssd_total_time) - min(ssd_total_time) as total_ms,
-          max(ssd_calls) - min(ssd_calls) as calls
-        FROM
-          q_data
-        WHERE
-          ssd_timestamp > now() - %(interval2)s::interval
-        GROUP BY
-          ssd_query_id, ssd_query
-    ) a
+      *
+    FROM
+      q_agg_int2
     WHERE
       calls > 0 AND total_ms > 0
     ORDER BY
@@ -123,22 +107,9 @@ WITH q_data AS (
 ), q_total_int1 AS (
     SELECT
       'total_int1'::text as mode,
-      ssd_query as query,
-      ssd_query_id as query_id,
-      calls,
-      total_ms,
-      round(total_ms / calls::numeric, 3)::int  as avg_ms
-    FROM (
-        SELECT
-          ssd_query_id,
-          ssd_query,
-          max(ssd_total_time) - min(ssd_total_time) as total_ms,
-          max(ssd_calls) - min(ssd_calls) as calls
-        FROM
-          q_data
-        GROUP BY
-          ssd_query_id, ssd_query
-    ) a
+      *
+    FROM
+      q_agg_int1
     WHERE
       calls > 0 AND total_ms > 0
     ORDER BY
@@ -148,24 +119,9 @@ WITH q_data AS (
 ), q_total_int2 AS (
     SELECT
       'total_int2'::text as mode,
-      ssd_query as query,
-      ssd_query_id as query_id,
-      calls,
-      total_ms,
-      round(total_ms / calls::numeric)::int  as avg_ms
-    FROM (
-        SELECT
-          ssd_query_id,
-          ssd_query,
-          max(ssd_total_time) - min(ssd_total_time) as total_ms,
-          max(ssd_calls) - min(ssd_calls) as calls
-        FROM
-          q_data
-        WHERE
-          ssd_timestamp > now() - %(interval2)s::interval
-        GROUP BY
-          ssd_query_id, ssd_query
-    ) a
+      *
+    FROM
+      q_agg_int2
     WHERE
       calls > 0 AND total_ms > 0
     ORDER BY

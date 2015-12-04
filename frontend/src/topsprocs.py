@@ -23,7 +23,7 @@ def makeTimeIntervalReadable(total_millis):
         return '{0:.2f}'.format(total_s) + "s"
     if h == 0:
         return str(m) + "m " + '{0:.0f}'.format(total_s % 60) + "s"
-    return str(h) + "h " + str(m) + "m " + str(total_s % 60) + "s"
+    return str(h) + "h " + str(m % 60) + "m " + str(int(total_s) % 60) + "s"
 
 
 avgRuntimeOrder = "sum(d_total_time) / sum(d_calls) desc"
