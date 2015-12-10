@@ -227,9 +227,9 @@ class PerfStatStatementsReport(object):
 
         graphcalls = flotgraph.Graph("graphcalls")
         graphcalls.addSeries('Number of calls', 'calls')
-        graphavgruntime = flotgraph.Graph("graphavgruntime")
+        graphavgruntime = flotgraph.TimeGraph("graphavgruntime")
         graphavgruntime.addSeries('Avg. runtime', 'avgruntime')
-        graphruntime = flotgraph.Graph("graphruntime")
+        graphruntime = flotgraph.TimeGraph("graphruntime")
         graphruntime.addSeries('Runtime', 'runtime')
         graphblocksread = flotgraph.Graph("graphblocksread")
         graphblocksread.addSeries('Blocks read', 'blocksread')
