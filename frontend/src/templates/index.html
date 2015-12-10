@@ -95,6 +95,48 @@
     </div>
     {% endif %}
 
+    <br/>
+
+    {% if top_statements: %}
+    <div class="clear"></div>
+
+    <div class="fluid_grid grid_4">
+        <h3 title="If there's no data, you may need to increase metric gathering frequency. At least 2 metrics per given timespan are needed to calculate a delta">Top {{ limit }} Statements last 1 hour by total run time</h3>
+        {{ top_statements['hours1total'] }}
+    </div>
+
+    <div class="fluid_grid grid_4">
+        <h3 title="If there's no data, you may need to increase metric gathering frequency. At least 2 metrics per given timespan are needed to calculate a delta">Top {{ limit }} Statements last 1 hour by total calls</h3>
+        {{ top_statements['hours1calls'] }}
+    </div>
+
+    <div class="gridclear_6 clear"></div>
+
+    <div class="fluid_grid grid_4">
+        <h3 title="If there's no data, you may need to increase metric gathering frequency. At least 2 metrics per given timespan are needed to calculate a delta">Top {{ limit }} Statements last 1 hour by avg. run time</h3>
+        {{ top_statements['hours1avg'] }}
+    </div>
+
+    <div class="gridclear_4 clear"></div>
+
+    <div class="fluid_grid grid_4">
+        <h3>Top {{ limit }} Statements last 3 hours by total run time</h3>
+        {{ top_statements['hours3total'] }}
+    </div>
+
+    <div class="gridclear_6 clear"></div>
+
+    <div class="fluid_grid grid_4">
+        <h3>Top {{ limit }} Statements last 3 hours by total calls</h3>
+        {{ top_statements['hours3calls'] }}
+    </div>
+
+    <div class="fluid_grid grid_4">
+        <h3>Top {{ limit }} Statements last 3 hours by avg. run time</h3>
+        {{ top_statements['hours3avg'] }}
+    </div>
+    {% endif %}
+
 
     {% if graph_size: %}
     <div class="clear"></div>

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from __future__ import print_function
 import psycopg2
 import psycopg2.extras
@@ -7,21 +9,22 @@ import tplE
 from psycopg2.extensions import adapt
 
 
-def makeTimeIntervalReadable(micro):
-    s = int(micro/1000)
-    micro %= 1000
-    m  = int(s/60)
-    s %= 60
-    h  = int(m/60)
-    m %= 60
+def makeTimeIntervalReadable(total_millis):
+    total_s = int(total_millis) / 1000.0
+    s = int(total_millis / 1000)
+    m = int(s/60)
+    h = int(m/60)
 
-    if h > 0:
-        return str(h) + "h "+ str(m) + "m "+str(s) +"s"
+    if total_millis < 1:
+        return unicode(str(int(total_millis * 1000))) + u"μs"
+    if s == 0:
+        return str(int(total_millis)) + "ms"
+    if m == 0:
+        return '{0:.2f}'.format(total_s) + "s"
+    if h == 0:
+        return str(m) + "m " + '{0:.0f}'.format(total_s % 60) + "s"
+    return str(h) + "h " + str(m % 60) + "m " + str(int(total_s) % 60) + "s"
 
-    if m > 0:
-        return str(m) + "m "+str(s)+"."+ '{0:03}'.format(micro) + "s"
-
-    return str(s)+"." + '{0:03}'.format(micro) + "s"
 
 avgRuntimeOrder = "sum(d_total_time) / sum(d_calls) desc"
 totalRuntimeOrder = "sum(d_total_time) desc"

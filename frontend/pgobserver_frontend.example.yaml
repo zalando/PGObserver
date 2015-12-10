@@ -19,13 +19,14 @@ features:
                                 # for determining index issues (invalids, duplicates, unused) and table/index bloat.
                                 # Bloat info requires a sprocs on the monitored host - see "sql/data_collection_helpers/bloated_tables_and_indexes.sql"
   run_aggregations: false       # Optional. One can enable pre-aggregations (extra_features/aggregation_crons) for faster
-                                # main page loads
-  show_load: true
-  show_wal: true
-  show_top_sprocs: true
-  show_db_size: true
-  show_db_stats: true
-  show_bgwriter_stats: true
+                                # main page loads when having dozens of hosts under monitoring
+  show_load: true               # CPU load graph + normalized sproc load graph. CPU graph needs a wrapper sproc on the monitored host
+  show_wal: true                # Graph of how much Write Ahead Log is being written per 15min
+  show_top_sprocs: true         # Top stored procedures by tot.runtime/calls/avg.time
+  show_top_statements: true     # Top statements by tot.runtime/calls/avg.time based on pg_stat_statements data. NB! Useful only from version 9.2 and up
+  show_db_size: true            # Total DB size + IUD counts
+  show_db_stats: true           # Exception, deadlock, connection, temp file counts per 15min
+  show_bgwriter_stats: false    # Graph based on pg_stat_bgwriter data, for advanced users
   opengrok_baseurl: ""          # Instead of Opengrok any search engine/Web SCM could be used actually. Should be in form of "host.com/search?q="
                                 # Used to show links to sproc source from "sproc details" view
 
