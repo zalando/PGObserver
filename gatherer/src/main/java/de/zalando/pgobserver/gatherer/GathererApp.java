@@ -47,10 +47,20 @@ public class GathererApp extends ServerResource {
      * @param  args  the command line arguments
      */
     public static void main(final String[] args) {
-
+        String configFileName;
         Config config;
 
-        config = Config.LoadConfigFromFile(new ObjectMapper(new YAMLFactory()), System.getProperty("user.home") + "/.pgobserver.yaml");
+        if (args.length == 0) {
+            configFileName = System.getProperty("user.home") + "/.pgobserver.yaml";
+        } else if (args.length == 1) {
+            configFileName = args[0];
+        } else {
+            LOG.error("Too many arguments on command line");
+            LOG.error("usage: gatherer [CONFIG_FILE]");
+            return;
+        }
+
+        config = Config.LoadConfigFromFile(new ObjectMapper(new YAMLFactory()), configFileName);
         if ( config == null ) {
             LOG.error("Config could not be read from yaml");
             return;
