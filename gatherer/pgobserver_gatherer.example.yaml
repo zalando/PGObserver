@@ -11,12 +11,3 @@ database:
 
   # configure which hosts to monitor ( see table monitor_data.hosts.host_gather_group ), default ok in most cases
   gather_group: gatherer1
-
-features:
-  run_aggregations: false
-  show_load: true
-  show_wal: true
-  show_top_sprocs: true
-  show_db_size: true
-  show_db_stats: true
-  opengrok_baseurl: ""

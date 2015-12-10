@@ -1,6 +1,6 @@
 ---
 database:
-  # PGObserver metrics database
+  # PGObserver database
   name: local_pgobserver_db
   host: localhost
   port: 5432

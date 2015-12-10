@@ -1,6 +1,8 @@
 #!/bin/bash
 
-DATE=$(date +%F_%H%M)
-JAR=$(ls target/pgobserver-gatherer-*-jar-with-dependencies.jar | tail -1)
+basedir=$(dirname "$0")
 
-nohup java -jar ${JAR} &> pgmon_java_${DATE}.log &
+DATE=$(date +%F_%H%M)
+JAR=$(ls ${basedir}/target/pgobserver-gatherer-*-jar-with-dependencies.jar | tail -1)
+
+nohup java -jar ${JAR} "$@" &> "${basedir}/pgmon_java_${DATE}.log" &

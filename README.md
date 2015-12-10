@@ -3,7 +3,7 @@ PGObserver
 
 ####PGObserver is a battle-tested monitoring solution for PostgreSQL databases, covering almost all metrics provided by the database engine's internal statistics collector.
 
-PGObserver works out of the box with all Postgres databases (including AWS RDS) starting from version 9.0 and does not require installing any server side database extensions nor privileged users for core functionality, making it perfect for developers!
+PGObserver works out of the box with all Postgres databases (including AWS RDS) starting from version 9.0 and does not require installing any non-standard server side database extensions nor privileged users for core functionality, making it perfect for developers!
 For some metrics though, data gathering wrapper functions (also known as stored procedures) need to be installed on the server being monitored, to circumvent the superuser requirements.
 
 **Monitored metrics include:**
@@ -82,34 +82,39 @@ Setup
 pip install -r frontend/requirements.txt
 ```
 
- * Create schema by executing the sql files from sql/schema folder on a Postgres DB where you want to store your monitoring data
+ * Install the following PostgreSQL contrib modules: `pg_trgm` and `btree_gist`.  These should be shipped with your OS distribution in a package named like `postgresql-contrib`.
+
+ * Create schema by executing the sql files from sql/schema folder on a Postgres DB where you want to store your monitoring data:
 
 ```
-psql -f sql/schema/00_schema.sql [ 01_...]
+cat sql/schema/*.sql | psql -1 -f - -d my_pgobserver_db
 ```
 
- * Copy pgobserver.yaml to home folder ~/.pgobserver.yaml (if you're running the gatherer and the frontend on different machines you need it on both)
-
-```
-cp pgobserver.yaml ~/.pgobserver.yaml
-```
-
- * Configure .pgobserver.yaml to match your setup
- 	- set database where to store data
- 	- configure usernames and passwords
+ * Prepare configuration files for gatherer and frontend (`pgobserver_gatherer.example.yaml` and `pgobserver_frontend.example.yaml` are good starting points):
+    - set database connection parameters: name, host and port
+    - configure usernames and passwords for gatherer and frontend (the defaults are set in `00_schema.sql`)
     - set gather_group (important for gatherer only, enables many gatherer processes)
+
  * Create an unprivileged user on the database you want to monitor for doing selects from the system catalogs
+
  * Configure hosts to be monitored
     - insert an entry to monitor_data.hosts table to include the connection details and to-be-monitored features for the cluster you want to monitor (incl. password from previous step)
     OR do it via the "frontend" web application's (next step) /hosts page, by inserting all needed data and pressing "add" (followed by "reload" to refresh menus)
     - set host_gather_group to decide which gatherer monitors which cluster
     - for deciding which schemas are scanned for sprocs statistics review the table sproc_schemas_monitoring_configuration (defaults are provided)
+
  * For some features you need to create according helper functions on the databases being monitored
     - CPU load monitoring requires stored procedure from "sql/data_collection_helpers/cpu_load.sql" (this is a plpythonu function, so superuser is needed)
     - pg_stat_statement monitoring requires "sql/data_collection_helpers/get_stat_statement.sql"
     - Table & index bloat query requires "sql/data_collection_helpers/Bloated_tables_and_indexes.sql"
     - Blocking processes monitoring requires setup from the "blocking_monitor" folder
- * Run the frontend by going into "frontend" folder and running run.sh (which does a "python src/web.py")
+
+ * Run the frontend by going into "frontend" folder and running run.sh (which does a "python src/web.py" and puts it in the background):
+
+```
+frontend$ ./run.sh --config frontend.yaml
+```
+
  * Build the data gatherer single jar including dependencies by going to "gatherer" folder and running
 
 ```
