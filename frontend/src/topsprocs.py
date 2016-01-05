@@ -20,7 +20,7 @@ def makeTimeIntervalReadable(total_millis):
     if s == 0:
         return str(int(total_millis)) + "ms"
     if m == 0:
-        return '{0:.2f}'.format(total_s) + "s"
+        return '{0:.1f}'.format(total_s) + "s"
     if h == 0:
         return str(m) + "m " + '{0:.0f}'.format(total_s % 60) + "s"
     return str(h) + "h " + str(m % 60) + "m " + str(int(total_s) % 60) + "s"
@@ -61,7 +61,7 @@ def getTop10Interval(order=avgRuntimeOrder,interval=None,hostId = 1, limit = 10)
     sql = """select regexp_replace("name", E'(\\\\(.*\\\\))','()') AS "name",
                     round( sum(d_calls) , 0 ) AS "calls",
                     round( sum(d_total_time) , 0 ) AS "totalTime",
-                    round( sum(d_total_time) / sum(d_calls) , 0 ) AS "avgTime"
+                    round( sum(d_total_time) / sum(d_calls)::numeric, 1) AS "avgTime"
                from ( """ + getSQL(interval, hostId) + """) tt
               where d_calls > 0
               group by "name"
