@@ -472,7 +472,7 @@ def getStatStatements(host_name, date1=None, date2=None, order_by='1', limit='50
     order_by = int(order_by) + 1
     sql = '''
 select
-  query,
+  ltrim(regexp_replace(query, E'[ \\t\\r]+' , ' ', 'g')) as query,
   calls,
   total_time,
   blks_read,

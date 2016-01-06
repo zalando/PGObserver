@@ -5,10 +5,17 @@ import datadb
 
 TOP_STATEMENTS_SQL = """
 WITH q_data AS (
+  SELECT
+    *,
+    case
+      when length(ssd_query_full) > 55 then ssd_query_full::varchar(55)||'..'
+      else ssd_query_full
+    end as ssd_query
+  FROM (
     SELECT
       ssd_timestamp,
       ssd_query_id,
-      lower(ltrim(regexp_replace(ssd_query, E'[ \\t\\n\\r]+' , ' ', 'g')))::varchar(55)||'..' as ssd_query,
+      lower(ltrim(regexp_replace(ssd_query, E'[ \\t\\n\\r]+' , ' ', 'g'))) as ssd_query_full,
       ssd_total_time,
       ssd_calls
     FROM
@@ -16,6 +23,7 @@ WITH q_data AS (
     WHERE
       ssd_host_id = %(host_id)s
       AND ssd_timestamp > now() - %(interval1)s::interval
+  ) ssd
 ), q_agg_int1 AS (
     SELECT
       ssd_query as query,
