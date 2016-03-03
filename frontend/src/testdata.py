@@ -265,14 +265,9 @@ def generate_test_data(connection_url, hostcount, tables, sprocs, days, interval
             conn.close()
 
 
-# ".test" is added just to make sure it's not executed by default on a production db
-DEFAULT_CONF_FILE = '~/.pgobserver.yaml.test'
-
-
 def main():
     parser = ArgumentParser(description='PGObserver testdata generator')
-    parser.add_argument('-c', '--config', help='Path to config file. (default: %s)' % DEFAULT_CONF_FILE, dest='config',
-                        default=DEFAULT_CONF_FILE)
+    parser.add_argument('-c', '--config', help='Path to config file. (see gatherer/pgobserver_gatherer.example.yaml for a template)', dest='config')
     parser.add_argument('-gh', '--generate-x-hosts', help='Number of hosts', dest='gh', default=1, type=int)
     parser.add_argument('-gts', '--generate-x-tables', help='Number of tables', dest='gt', default=5)
     parser.add_argument('-gps', '--generate-x-procs', help='Number of stored procedures', dest='gp', default=5)
@@ -281,14 +276,14 @@ def main():
 
     args = parser.parse_args()
 
-    args.config = os.path.expanduser(DEFAULT_CONF_FILE)
+    args.config = os.path.expanduser(args.config)
 
     if not os.path.exists(args.config):
-        print 'Configuration file missing:', DEFAULT_CONF_FILE
+        print 'Configuration file missing:', args.config
         parser.print_help()
         return
-    else:
-        print 'Using configuration file:', args.config
+
+    print 'Using configuration file:', args.config
 
     settings = None
     with open(args.config, 'rb') as fd:
