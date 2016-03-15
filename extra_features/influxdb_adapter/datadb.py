@@ -3,7 +3,7 @@ import psycopg2.extras
 import psycopg2.pool
 import contextlib
 
-connection_string = "dbname=pgobserver host=localhost user=postgres password=postgres connect_timeout='3'"
+
 connection_pool = None
 
 
@@ -29,11 +29,11 @@ def get_cursor(conn, cursor_factory=None):
     return cur
 
 
-def set_connection_string_and_pool_size(conn_string, pool_size=5):
-    global connection_string
-    connection_string = conn_string
+def init_connection_pool(pool_size=5, **libpq_params):
     global connection_pool
-    connection_pool = psycopg2.pool.ThreadedConnectionPool(pool_size, pool_size, conn_string)
+    if 'password' in libpq_params and not libpq_params['password']:
+        libpq_params.pop('password')
+    connection_pool = psycopg2.pool.ThreadedConnectionPool(1, pool_size, **libpq_params)
 
 
 def mogrify(sql, params=None):
@@ -57,6 +57,6 @@ def execute(sql, params=None):
 
 
 if __name__ == '__main__':
-    set_connection_string_and_pool_size(connection_string)
-    print execute('select 1 as a')
+    init_connection_pool(host='localhost', user='postgres', password='postgres')
+    print execute('select current_database() as a')
     print executeAsDict('select 1 as a')

@@ -87,10 +87,7 @@ def get_idb_client():
 
 
 def idb_write_points(ui_shortname, measurement, column_names, tag_names, data_by_tags):
-    dataset_tag_mode = []
-    dataset_pure_mode = []
-    tag_mode_enabled = settings['influxdb']['data_model_tag']
-    pure_mode_enabled = settings['influxdb']['data_model_pure']
+    dataset = []
 
     if 'timestamp' in column_names:     # not storing human readable timestamp, useful for debugging only
         column_names.remove('timestamp')
@@ -104,38 +101,20 @@ def idb_write_points(ui_shortname, measurement, column_names, tag_names, data_by
 
         for d in data:
             field_data = dict((x[0], x[1]) for x in d.iteritems() if x[0] in column_names and x[0] not in tag_names)
-            if tag_mode_enabled:
-                dataset_tag_mode.append({
-                    "measurement": settings['influxdb']['tag_mode_series_prefix'] + measurement,
-                    "time": d['time'],  # epoch_seconds
-                    "tags": tag_dict,
-                    "fields": field_data
-                })
-            if pure_mode_enabled:
-                series_name = measurement + '.' + ui_shortname
-                for tag in tag_names:
-                    series_name += '.' + tag_dict[tag]
-                dataset_pure_mode.append({
-                    "measurement": series_name,
-                    "time": d['time'],  # epoch_seconds
-                    "fields": field_data
-                })
+            dataset.append({
+                "measurement": settings['influxdb']['tag_mode_series_prefix'] + measurement,
+                "time": d['time'],  # epoch_seconds
+                "tags": tag_dict,
+                "fields": field_data
+            })
 
     db = get_idb_client()
-    if pure_mode_enabled:
-        logging.debug('[%s] pushing %s data points to InfluxDB in "pure mode" for measurement "%s" ...', ui_shortname,
-                      len(dataset_pure_mode), measurement)
-        start_time = time.time()
-        logging.debug('[%s] data[0] = %s', ui_shortname, dataset_pure_mode[0])
-        db.write_points(dataset_pure_mode, time_precision='s')
-        logging.debug('[%s] done in %s seconds', ui_shortname, round(time.time() - start_time))
-    if tag_mode_enabled:
-        logging.debug('[%s] pushing %s data points to InfluxDB in "tag mode" for measurement "%s" ...', ui_shortname,
-                      len(dataset_tag_mode), measurement)
-        logging.debug('[%s] data[0] = %s', ui_shortname, dataset_tag_mode[0])
-        start_time = time.time()
-        db.write_points(dataset_tag_mode, time_precision='s')
-        logging.debug('[%s] done in %s seconds', ui_shortname, round(time.time() - start_time))
+    logging.debug('[%s] pushing %s data points to InfluxDB in "tag mode" for measurement "%s" ...', ui_shortname,
+                  len(dataset), measurement)
+    logging.debug('[%s] data[0] = %s', ui_shortname, dataset[0])
+    start_time = time.time()
+    db.write_points(dataset, time_precision='s')
+    logging.debug('[%s] done in %s seconds', ui_shortname, round(time.time() - start_time))
 
 
 def idb_ensure_database(db, dbname, recreate=None):
@@ -156,15 +135,11 @@ def idb_ensure_database(db, dbname, recreate=None):
 
 def idb_get_last_timestamp_for_series_as_local_datetime(series_name, ui_shortname):
     """ Influx times are UTC, convert to local """
-    max_days_to_fetch = settings['influxdb']['max_days_to_fetch']
-
     last_tz_gmt, last_tz_local = last_tz_from_influx.get(series_name+ui_shortname, (None, None))
-    sql = '''select * from /^{}.{}.*/ where time > {} order by time desc limit 1'''.format(series_name, ui_shortname,
-                                                                "'{}'".format(last_tz_gmt) if last_tz_gmt else 'now() - {}d'.format(max_days_to_fetch))
-    if settings['influxdb']['data_model_tag'] and not settings['influxdb']['data_model_pure']:
-        sql = "select * from /^{}{}/ where dbname = '{}' and time > {} group by * order by time desc limit 1".format(settings['influxdb']['tag_mode_series_prefix'],
-                                                   series_name, ui_shortname, "'{}'".format(last_tz_gmt) if last_tz_gmt else 'now() - {}d'.format(max_days_to_fetch))
-                                            # TODO recheck with docs to see if "group by *" can be removed. "limit" produces incorrect restults w/o it
+    date_filter = "'{}'".format(last_tz_gmt) if last_tz_gmt else 'now() - {}d'.format(settings['influxdb']['max_days_to_fetch'])
+
+    sql = "select * from {} where dbname = '{}' and time > {} order by time desc limit 1".format(series_name, ui_shortname, date_filter)
+
     try:
         db = get_idb_client()
         logging.info('[%s] executing "%s" on InfluxDB', ui_shortname, sql)
@@ -344,24 +319,15 @@ def main():
         parser.print_help()
         exit(1)
 
-    conn_string = ' '.join((
-        'dbname=' + settings['database']['name'],
-        'host=' + settings['database']['host'],
-        'user=' + settings['database']['frontend_user'],
-        'port=' + str(settings['database']['port']),
-    ))
+    conn_params = {'dbname': settings['database']['name'],
+                    'host': settings['database']['host'],
+                    'user': settings['database']['frontend_user'],
+                    'port': settings['database']['port']}
 
-    logging.info('Setting connection string to: %s', conn_string)
+    logging.info('Setting connection string to: %s', conn_params)
+    conn_params['password'] = settings['database']['frontend_password']
 
-    conn_string = ' '.join((
-        'dbname=' + settings['database']['name'],
-        'host=' + settings['database']['host'],
-        'user=' + settings['database']['frontend_user'],
-        'password=' + settings['database']['frontend_password'],
-        'port=' + str(settings['database']['port']),
-    ))
-
-    datadb.set_connection_string_and_pool_size(conn_string, int(settings['max_worker_threads']) + 1)
+    datadb.init_connection_pool(int(settings['max_worker_threads']) + 1, **conn_params)
 
     idb = influxdb.InfluxDBClient(settings['influxdb']['host'],
                                  settings['influxdb']['port'],
