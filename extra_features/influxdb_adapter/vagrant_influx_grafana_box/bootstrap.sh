@@ -14,10 +14,9 @@ echo ""
 
 echo "Downloading Influxdb ..."
 echo "Determining the latest version from Github..."
-echo "curl -Gsq 'https://api.github.com/repos/influxdb/influxdb/tags'"
-curl -Gsq 'https://api.github.com/repos/influxdb/influxdb/tags' > influxdb_tags.json
+echo "curl -Gsq 'https://api.github.com/repos/influxdata/influxdb/tags'"
+curl -Gsq 'https://api.github.com/repos/influxdata/influxdb/tags' > influxdb_tags.json
 INFLUX_VER=$( jq .[0].name influxdb_tags.json | grep -o '[0-9].*[0-9]' )
-#INFLUX_VER="0.9.2"
 echo "Found ver. ${INFLUX_VER} ..."
 INFLUX_PKG=influxdb_${INFLUX_VER}_amd64.deb
 INFLUX_URL=https://s3.amazonaws.com/influxdb/$INFLUX_PKG
@@ -49,7 +48,7 @@ curl -Gsq 'https://api.github.com/repos/grafana/grafana/tags' > grafana_tags.jso
 GRAFANA_VER=$( jq .[0].name grafana_tags.json | grep -o '[0-9].*[0-9]' )
 echo "Found ver. ${GRAFANA_VER} ..."
 GRAFANA_PKG=grafana_${GRAFANA_VER}_amd64.deb
-GRAFANA_URL=http://grafanarel.s3.amazonaws.com/builds/$GRAFANA_PKG
+GRAFANA_URL=https://grafanarel.s3.amazonaws.com/builds/$GRAFANA_PKG
 echo "Downloading Grafana from $GRAFANA_URL ..."
 wget -nc -q $GRAFANA_URL
 dpkg -i $GRAFANA_PKG
