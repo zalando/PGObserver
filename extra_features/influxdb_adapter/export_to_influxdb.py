@@ -102,7 +102,7 @@ def idb_write_points(ui_shortname, measurement, column_names, tag_names, data_by
         for d in data:
             field_data = dict((x[0], x[1]) for x in d.iteritems() if x[0] in column_names and x[0] not in tag_names)
             dataset.append({
-                "measurement": settings['influxdb']['tag_mode_series_prefix'] + measurement,
+                "measurement": measurement,
                 "time": d['time'],  # epoch_seconds
                 "tags": tag_dict,
                 "fields": field_data
