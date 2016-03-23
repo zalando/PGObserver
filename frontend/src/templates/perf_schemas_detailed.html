@@ -6,11 +6,11 @@
     <div class="grid_12">
         <h3>Per-day schema usage report <a href="/perfschemas">(to un-used schemas report)</a></h3>
         <form method="GET" action="/perfschemas/detailed">
-            <span class="text3">Hostname:</span>
-            <select name="selected_hostname">
+            <span class="text3">Host:</span>
+            <select name="uishortname" title="NB! Only hosts with schema information gathering enabled are shown">
                 <option value=""></option>
-                {% for host_name in host_names: %}
-                <option value="{{ host_name }}" {% if selected_hostname == host_name %} selected="selected" {% endif %}>{{ host_name }}</option>
+                {% for uis in uishortnames: %}
+                <option value="{{ uis }}" {% if uishortname == uis %} selected="selected" {% endif %}>{{ uis }}</option>
                 {% endfor %}
             </select>
             <br />

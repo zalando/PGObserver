@@ -6,11 +6,11 @@
     <div class="grid_12">
         <h3>Top pg_stat_statements entries</h3>
         <form method="GET" action="/perfstatstatements">
-            <span class="text3">Hostname:</span>
-            <select name="hostname">
+            <span class="text3">Host:</span>
+            <select name="uishortname">
                 <option value=""></option>
-                {% for host_id, host in host_names: %}
-                <option value="{{ host['host_name'] }}" {% if hostname == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
+                {% for uis in uishortnames: %}
+                <option value="{{ uis }}" {% if uishortname == uis %} selected="selected" {% endif %}>{{ uis }}</option>
                 {% endfor %}
             </select>
             <br />
@@ -54,19 +54,19 @@
             <tr>
                 <th title="Click on the query to expand it" style="width: 500px">Query</th>
                 <th title="Click to sort">
-                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=1">Calls{% if order_by == '1' %}&darr;{% endif %}</a></th>
+                    <a href="/perfstatstatements/?uishortname={{uishortname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=1">Calls{% if order_by == '1' %}&darr;{% endif %}</a></th>
                 <th title="Click to sort">
-                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=2">Total time{% if order_by == '2' %}&darr;{% endif %}</a></th>
+                    <a href="/perfstatstatements/?uishortname={{uishortname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=2">Total time{% if order_by == '2' %}&darr;{% endif %}</a></th>
                 <th title="Click to sort">
-                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=3">Blocks read{% if order_by == '3' %}&darr;{% endif %}</a></th>
+                    <a href="/perfstatstatements/?uishortname={{uishortname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=3">Blocks read{% if order_by == '3' %}&darr;{% endif %}</a></th>
                 <th title="Click to sort">
-                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=4">Blocks written{% if order_by == '4' %}&darr;{% endif %}</a></th>
+                    <a href="/perfstatstatements/?uishortname={{uishortname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=4">Blocks written{% if order_by == '4' %}&darr;{% endif %}</a></th>
                 <th title="Click to sort">
-                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=5">Temp Blocks read{% if order_by == '5' %}&darr;{% endif %}</a></th>
+                    <a href="/perfstatstatements/?uishortname={{uishortname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=5">Temp Blocks read{% if order_by == '5' %}&darr;{% endif %}</a></th>
                 <th title="Click to sort">
-                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=6">Temp Blocks written{% if order_by == '6' %}&darr;{% endif %}</a></th>
+                    <a href="/perfstatstatements/?uishortname={{uishortname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=6">Temp Blocks written{% if order_by == '6' %}&darr;{% endif %}</a></th>
                 <th title="Click to sort">
-                    <a href="/perfstatstatements/?hostname={{hostname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=7">Avg. runtime (ms){% if order_by == '7' %}&darr;{% endif %}</a></th>
+                    <a href="/perfstatstatements/?uishortname={{uishortname}}&from_date={{from_date}}&to_date={{to_date}}&limit={{limit}}&show=show&order_by=7">Avg. runtime (ms){% if order_by == '7' %}&darr;{% endif %}</a></th>
                 <th>Show graph</th>
             </tr>
             {% for d in data: %}
@@ -79,7 +79,7 @@
                 <td>{{ d['temp_blks_read'] }}</td>
                 <td>{{ d['temp_blks_written'] }}</td>
                 <td>{{ d['avg_runtime_ms'] }}</td>
-                <td><a href="/perfstatstatements/graph/{{ hostuiname }}/{{ d['query_id'] }}" target="_blank">show</a></td>
+                <td><a href="/perfstatstatements/graph/{{ d['host_ui_shortname'] }}/{{ d['query_id'] }}" target="_blank">show</a></td>
             </tr>
             <tr class="hiddenrow" style="display:none" ><td colspan="8"><textarea readonly>{{ d['query']|e }}</textarea></td>
             </tr>

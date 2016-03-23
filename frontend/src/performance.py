@@ -6,157 +6,155 @@ import tplE
 import cherrypy
 import flotgraph
 import hosts
+import datadb
 
 
 class PerfTables(object):
-    def index(self,**params):
-        data, interval, host_names = self.get_data(**params)
+    def index(self, **params):
+        data, interval, uishortnames = self.get_data(**params)
         table = tplE.env.get_template('perf_tables.html')
-        return table.render(data=data, interval=interval, host_names=host_names)
+        return table.render(data=data, interval=interval, uishortnames=uishortnames)
 
-    def raw(self, hostname, from_date, to_date):
-        data, interval, host_names = self.get_data(show='show', hostname=hostname, **{'from': from_date, 'to': to_date})
+    def raw(self, uishortname, from_date, to_date):
+        data, interval, uishortnames = self.get_data(show='show', hostname=uishortname, **{'from': from_date, 'to': to_date})
         return data
 
     def get_data(self, **params):
         data = []
         if 'show' in params:
-            data = reportdata.getTablePerformanceIssues(params['hostname'], params['from'], params['to'])
-            for d in data:
-                d['hostuiname'] = hosts.hostIdToUiShortname(d['host_id'])
+            uishortname = params.get('uishortname')
+            if uishortname == 'all':
+                uishortname = None
+            data = reportdata.getTablePerformanceIssues(uishortname, params['from'], params['to'])
 
         interval = {}
         if 'from' in params and 'to' in params:
             interval['from'] = params['from']
             interval['to'] = params['to']
-            interval['hostname'] = params['hostname']
+            interval['uishortname'] = params['uishortname']
         else:
             interval['from'] = (datetime.datetime.now() - datetime.timedelta(days=3)).strftime('%Y-%m-%d')
             interval['to'] = (datetime.datetime.now()).strftime('%Y-%m-%d')
-            interval['hostname'] = 'all'
-        host_names = sorted(hosts.hosts.items(), key = lambda h : h[1]['host_name'])
-        return data, interval, host_names
+            interval['uishortname'] = 'all'
+
+        return data, interval, hosts.getAllHostUinamesSorted()
 
     index.exposed = True
 
 
 class PerfApi(object):
     def index(self,**params):
-        data, interval, host_names = self.get_data(**params)
+        data, interval, uishortnames = self.get_data(**params)
         table = tplE.env.get_template('perf_api.html')
-        return table.render(data=data, interval=interval, host_names=host_names)
+        return table.render(data=data, interval=interval, uishortnames=uishortnames)
 
-    def raw(self, hostname, from_version, to_version):
-        data, interval, host_names = self.get_data(hostname=hostname, show='show', **{'from': from_version, 'to': to_version})
+    def raw(self, uishortname, from_version, to_version):
+        data, interval, uishortnames = self.get_data(uishortname=uishortname, show='show', **{'from': from_version, 'to': to_version})
         return data
 
     def get_data(self, **params):
         data = []
         interval = {}
         if 'show' in params:
-            data = reportdata.getApiPerformanceIssues(params['hostname'], params['from'], params['to'])
-            for d in data:
-                d['hostuiname'] = hosts.hostIdToUiShortname(d['host_id'])
+            uishortname = params.get('uishortname')
+            if uishortname == 'all':
+                uishortname = None
+            data = reportdata.getApiPerformanceIssues(uishortname, params['from'], params['to'])
 
         if 'from' in params and 'to' in params:
             interval['from'] = params['from']
             interval['to'] = params['to']
-            interval['hostname'] = params['hostname']
+            interval['uishortname'] = params['uishortname']
         else:
             curdate = datetime.datetime.now()
             interval['from'] = 'r{}_00_{:02}'.format(curdate.strftime('%y'), (datetime.datetime.now()-datetime.timedelta(weeks=2)).isocalendar()[1])
             interval['to'] = 'r{}_00_{:02}'.format(curdate.strftime('%y'), (datetime.datetime.now()-datetime.timedelta(weeks=1)).isocalendar()[1])
-            interval['hostname'] = 'all'
-        host_names = sorted(hosts.hosts.items(), key = lambda h : h[1]['host_name'])
-        return data, interval, host_names
+            interval['uishortname'] = 'all'
+        uishortnames = hosts.getAllHostUinamesSorted()
+        return data, interval, uishortnames
 
     index.exposed = True
 
 
 class PerfIndexes(object):
     def index(self,**params):
-        data, interval, host_names = None, None, None
+        data, interval, uishortnames = None, None, None
         hot_queries_allowed = tplE._settings.get('allow_hot_queries', True)
         if hot_queries_allowed:
-            data, interval, host_names = self.get_data(**params)
+            data, interval, uishortnames = self.get_data(**params)
         table = tplE.env.get_template('perf_indexes.html')
-        return table.render(data=data, interval=interval, host_names=host_names, hot_queries_allowed=hot_queries_allowed)
+        return table.render(data=data, interval=interval, uishortnames=uishortnames, hot_queries_allowed=hot_queries_allowed)
 
-    def raw(self, hostname='all'):
-        data, interval, host_names = self.get_data(hostname=hostname, show='show')
+    def raw(self, uishortname='all'):
+        data, interval, uishortnames = self.get_data(uishortname=uishortname, show='show')
         return data
 
     def get_data(self, **params):
-        data = {}
+        data = []
         interval = {}
         if 'show' in params:
-            data = reportdata.getIndexIssues(params['hostname'])
-            for s in data:
-                for d in data[s]:
-                    d['hostuiname'] = hosts.hostIdToUiShortname(d['host_id'])
+            data = reportdata.getIndexIssues(params.get('uishortname'))
 
-        if 'hostname' in params:
-            interval['hostname'] = params['hostname']
+        if 'uishortname' in params:
+            interval['uishortname'] = params['uishortname']
         else:
-            interval['hostname'] = 'all'
-        host_names = sorted(hosts.hosts.items(), key = lambda h : h[1]['host_name'])
-        return data, interval, host_names
+            interval['uishortname'] = 'all'
+
+        uishortnames = hosts.getAllHostUinamesSorted()
+        return data, interval, uishortnames
 
     index.exposed = True
 
 
 class PerfUnusedSchemas(object):
 
-    def index(self, selected_hostname=None, **params):
-        data, from_date, to_date, host_names, filter = self.get_data(selected_hostname=selected_hostname, **params)
+    def index(self, uishortname=None, **params):
+        data, from_date, to_date, uishortnames, filter = self.get_data(uishortname=uishortname, **params)
         if 'download' in params:
-            return self.getdropschemasql(selected_hostname, from_date, to_date, filter)
+            return self.getdropschemasql(uishortname, from_date, to_date, filter)
         table = tplE.env.get_template('perf_schemas.html')
-        return table.render(data=data, from_date=from_date, to_date=to_date, selected_hostname=selected_hostname,
-                            host_names=host_names, filter=filter)
+        return table.render(data=data, from_date=from_date, to_date=to_date, uishortname=uishortname,
+                            uishortnames=uishortnames, filter=filter)
 
-    def raw(self, hostname='all', from_date=None, to_date=None):
+    def raw(self, uishortname='all', from_date=None, to_date=None):
         span = {}
         if from_date is not None:
             span['from_date'] = from_date
         if to_date is not None:
             span['to_date'] = to_date
-        data, from_date, to_date, host_names, filter = self.get_data(selected_hostname=hostname, show='show', **span)
+        data, from_date, to_date, uishortnames, filter = self.get_data(uishortname=uishortname, show='show', **span)
         return data
 
-    def get_data(self, selected_hostname, **params):
+    def get_data(self, uishortname, **params):
         data = {}
         filter = params.get('filter', 'api')
         from_date = params.get('from_date', (datetime.datetime.now() - datetime.timedelta(14)).strftime('%Y-%m-%d'))
         to_date = params.get('to_date', (datetime.datetime.now() + datetime.timedelta(1)).strftime('%Y-%m-%d'))
 
-        if selected_hostname:
-            data = reportdata.get_unused_schemas(selected_hostname, from_date, to_date, filter)
+        if uishortname:
+            data = reportdata.get_unused_schemas(uishortname, from_date, to_date, filter)
 
-        host_names = hosts.getHostsWithFeature('schemaStatsGatherInterval').items()
-        host_names.sort(key=lambda x: x[1]['host_name'])
+        uishortnames = hosts.getHostsWithFeatureAsShortnames('schemaStatsGatherInterval')
 
-        return data, from_date, to_date, host_names, filter
+        return data, from_date, to_date, uishortnames, filter
 
-    def getdropschemasql(self, host_name, from_date=None, to_date=None, filter=''):
+    def getdropschemasql(self, uishortname, from_date=None, to_date=None, filter=''):
         if from_date is None:
             from_date = (datetime.datetime.now() - datetime.timedelta(14)).strftime('%Y-%m-%d')
         if to_date is None:
             to_date = (datetime.datetime.now() + datetime.timedelta(1)).strftime('%Y-%m-%d')
         cherrypy.response.headers['content-type'] = 'text/csv; charset=utf-8'
-        cherrypy.response.headers['content-disposition'] = 'attachment; filename=schema_drops_' + host_name + '_' + datetime.datetime.now().strftime('%y-%m-%d_%H%M') + '.sql'
-        return reportdata.get_unused_schemas_drop_sql(host_name, from_date, to_date, filter)
+        cherrypy.response.headers['content-disposition'] = 'attachment; filename=schema_drops_' + uishortname + '_' + datetime.datetime.now().strftime('%y-%m-%d_%H%M') + '.sql'
+        return reportdata.get_unused_schemas_drop_sql(uishortname, from_date, to_date, filter)
 
-    def detailed(self, selected_hostname=None, **params):
+    def detailed(self, uishortname=None, **params):
         schemagraphs = []
         from_date = params.get('from_date', (datetime.datetime.now() - datetime.timedelta(7)).strftime('%Y-%m-%d'))
         to_date = params.get('to_date', (datetime.datetime.now() + datetime.timedelta(1)).strftime('%Y-%m-%d'))
         filter = params.get('filter', '')
 
-        if selected_hostname:
-            if selected_hostname not in hosts.getAllHostNames():
-                selected_hostname = hosts.uiShortNameToHostName(selected_hostname)
-            data = reportdata.get_schema_usage_for_host(selected_hostname, from_date, to_date, filter)
+        if uishortname:
+            data = reportdata.get_schema_usage_for_host(uishortname, from_date, to_date, filter)
             for schema_name, data in data.iteritems():
                 g_calls = flotgraph.Graph (schema_name + "_calls")
                 g_calls.addSeries('Sproc calls', 'calls')
@@ -170,23 +168,28 @@ class PerfUnusedSchemas(object):
                     g_scans.addPoint('scans', int(time.mktime(p[0].timetuple()) * 1000) , p[1][1])
                 schemagraphs.append((schema_name, [g_calls.render(), g_iud.render(), g_scans.render()]))
 
+        uishortnames = hosts.getHostsWithFeatureAsShortnames('schemaStatsGatherInterval')
         table = tplE.env.get_template('perf_schemas_detailed.html')
-        return table.render(schemagraphs=schemagraphs, from_date=from_date, to_date=to_date, selected_hostname=selected_hostname, host_names=hosts.getAllHostNames(), filter=filter)
-
+        return table.render(schemagraphs=schemagraphs, from_date=from_date, to_date=to_date,
+                            uishortname=uishortname, uishortnames=uishortnames, filter=filter)
 
     index.exposed = True
     getdropschemasql.exposed = True
     detailed.exposed = True
 
 
+def is_sproc_installed(sproc_name):
+    sql = """select * from pg_proc where proname = %s"""
+    return datadb.execute(sql, (sproc_name,))
+
+
 class PerfLocksReport(object):
-    def index(self, hostname='all', **params):
-        data, from_date, to_date, host_names = self.get_data(hostname, **params)
+    def index(self, uishortname='all', **params):
+        data, from_date, to_date, uishortnames = self.get_data(uishortname, **params)
         table = tplE.env.get_template('perf_locks.html')
-        return table.render(data=data, from_date=from_date, to_date=to_date, hostname=hostname, host_names=host_names)
+        return table.render(data=data, from_date=from_date, to_date=to_date, uishortname=uishortname, uishortnames=uishortnames)
 
     index.exposed = True
-
 
     def raw(self, from_date=None, to_date=None):
         span = {}
@@ -194,25 +197,30 @@ class PerfLocksReport(object):
             span['from_date'] = from_date
         if to_date is not None:
             span['to_date'] = to_date
-        data, from_date, to_date, host_names = self.get_data(show='show', **span)
+        data, from_date, to_date, uishortnames = self.get_data(show='show', **span)
         return data
 
-    def get_data(self, hostname, **params):
+    def get_data(self, uishortname, **params):
         data = []
         from_date = params.get('from_date', datetime.datetime.now().strftime('%Y-%m-%d'))
         to_date = params.get('to_date', (datetime.datetime.now() + datetime.timedelta(1)).strftime('%Y-%m-%d'))
 
         if 'show' in params:
-            data = reportdata.getLocksReport(hostname, from_date, to_date)
-        host_names = hosts.getHostsWithFeature('blockingStatsGatherInterval').items()
-        return data, from_date, to_date, host_names
+            if not is_sproc_installed('blocking_last_day_by_shortname'):
+                raise Exception('Required additional module is not installed, see - https://github.com/zalando/PGObserver/blob/master/extra_features/blocking_monitor/FEAT_DESC.md')
+            if uishortname == 'all':
+                uishortname = None
+            data = reportdata.getLocksReport(uishortname, from_date, to_date)
+        uishortnames = hosts.getHostsWithFeatureAsShortnames('blockingStatsGatherInterval')
+        return data, from_date, to_date, uishortnames
 
 
 class PerfStatStatementsReport(object):
-    def index(self,**params):
-        hostname, host_names, hostuiname, data, from_date, to_date, order_by, limit, no_copy_ddl, min_calls = self.get_data(**params)
+
+    def index(self, **params):
+        uishortname, uishortnames, data, from_date, to_date, order_by, limit, no_copy_ddl, min_calls = self.get_data(**params)
         table = tplE.env.get_template('perf_stat_statements.html')
-        return table.render(hostname=hostname, hostuiname=hostuiname, host_names=host_names,
+        return table.render(uishortname=uishortname, uishortnames=uishortnames,
                             data=data, from_date=from_date, to_date=to_date,
                             order_by=order_by, limit=limit, no_copy_ddl=no_copy_ddl, min_calls=min_calls)
 
@@ -269,20 +277,18 @@ class PerfStatStatementsReport(object):
 
     graph.exposed = True
 
-
-    def raw(self, hostname, from_date=None, to_date=None, order_by='1', limit='50'):
+    def raw(self, uishortname, from_date=None, to_date=None, order_by='1', limit='50'):
         span = {}
         if from_date is not None:
             span['from_date'] = from_date
         if to_date is not None:
             span['to_date'] = to_date
-        hostname, host_names, data, from_date, to_date, order_by, limit = self.get_data(show='show', hostname=hostname, orderby=order_by, limit=limit, **span)
+        uishortname, uishortnames, data, from_date, to_date, order_by, limit, no_copy_ddl, min_calls = self.get_data(show='show', uishortname=uishortname, orderby=order_by, limit=limit, **span)
         return data
 
     def get_data(self, **params):
-        data = {}
-        hostname = params.get('hostname')
-        hostuiname = ''
+        data = []
+        uishortname = params.get('uishortname', '')
         order_by = params.get('order_by', '1')
         limit = params.get('limit', '50')
         from_date = params.get('from_date', datetime.datetime.now().strftime('%Y-%m-%d'))
@@ -290,46 +296,43 @@ class PerfStatStatementsReport(object):
         no_copy_ddl = params.get('no_copy_ddl', True)
         min_calls = params.get('min_calls', '3')
 
-        if 'show' in params and hostname:
-            data = reportdata.getStatStatements(hostname, from_date, to_date, order_by, limit, no_copy_ddl, min_calls)
-            hostuiname = hosts.getHostUIShortnameByHostname(hostname)
+        if 'show' in params and uishortname:
+            data = reportdata.getStatStatements(uishortname, from_date, to_date, order_by, limit, no_copy_ddl, min_calls)
         for d in data:
             d['query_short'] = d['query'][:60].replace('\n',' ').replace('\t',' ') + ('...' if len(d['query']) > 60 else '')
 
-        host_names=sorted(hosts.hosts.items(), key = lambda h : h[1]['host_name'])
-        return hostname, host_names, hostuiname, data, from_date, to_date, order_by, limit, no_copy_ddl, min_calls
+        uishortnames = hosts.getHostsWithFeatureAsShortnames('statStatementsGatherInterval')
+        return uishortname, uishortnames, data, from_date, to_date, order_by, limit, no_copy_ddl, min_calls
 
 
 class PerfBloat(object):
-    def index(self, selected_hostname=None, **params):
-        data, hostnames, bloat_type, order_by, limit, hostuiname = [None] * 6
+    def index(self, uishortname=None, **params):
+        data, uishortnames, bloat_type, order_by, limit = [None] * 5
         hot_queries_allowed = tplE._settings.get('allow_hot_queries', True)
         if hot_queries_allowed:
-            data, hostnames, bloat_type, order_by, limit, hostuiname = self.get_data(selected_hostname=selected_hostname, **params)
+            data, uishortnames, bloat_type, order_by, limit = self.get_data(uishortname=uishortname, **params)
         table = tplE.env.get_template('perf_bloat.html')
-        return table.render(selected_hostname=selected_hostname, hostnames=hostnames, bloat_type=bloat_type, order_by=order_by,
-                            limit=limit, data=data, hostuiname=hostuiname, hot_queries_allowed=hot_queries_allowed)
+        return table.render(uishortname=uishortname, uishortnames=uishortnames, bloat_type=bloat_type, order_by=order_by,
+                            limit=limit, data=data, hot_queries_allowed=hot_queries_allowed)
 
-    def raw(self, selected_hostname=None, **params):
-        data, hostnames, bloat_type, order_by, limit, hostuiname = self.get_data(selected_hostname, **params)
+    def raw(self, uishortname=None, **params):
+        data, uishortnames, bloat_type, order_by, limit = self.get_data(uishortname, **params)
         return data
 
-    def get_data(self, selected_hostname=None, **params):
-        hostnames = hosts.getAllHostNames()
+    def get_data(self, uishortname=None, **params):
+        uishortnames = hosts.getAllHostUinamesSorted()
         bloat_type = params.get('bloat_type', 'table')
         order_by = params.get('order_by', 'wasted_bytes')
         limit = params.get('limit', '50')
         data = []
-        hostuiname = None
-        if selected_hostname:
+        if uishortname:
             if bloat_type == 'table':
-                msg, data = reportdata.getBloatedTablesForHostname(selected_hostname, order_by, limit)
+                msg, data = reportdata.getBloatedTablesForHostname(uishortname, order_by, limit)
             else:
-                msg, data = reportdata.getBloatedIndexesForHostname(selected_hostname, order_by, limit)
+                msg, data = reportdata.getBloatedIndexesForHostname(uishortname, order_by, limit)
             if msg:
                 raise Exception('Failed to get data: ' + msg)
-            hostuiname = hosts.getHostUIShortnameByHostname(selected_hostname)
 
-        return data, hostnames, bloat_type, order_by, limit, hostuiname
+        return data, uishortnames, bloat_type, order_by, limit
 
     index.exposed = True

@@ -6,11 +6,11 @@
     <div class="grid_12">
         <h3>Possible Table access/growth issues report</h3>
         <form method="GET" action="/perftables">
-            <span class="text3">Hostname:</span>
-            <select name="hostname">
+            <span class="text3">Host:</span>
+            <select name="uishortname">
                 <option value="all">all</option>
-                {% for host_id, host in host_names: %}
-                <option value="{{ host['host_name'] }}" {% if interval['hostname'] == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
+                {% for uishortname in uishortnames: %}
+                <option value="{{ uishortname }}" {% if interval['uishortname'] == uishortname %} selected="selected" {% endif %}>{{ uishortname }}</option>
                 {% endfor %}
             </select>
             <br />
@@ -41,9 +41,9 @@
             </tr>
             {% for d in data: %}
             <tr>                
-                <td><a href="/tables/alltables/{{ d['hostuiname'] }}">{{ d['host_name'] }} </a></td>
-                <td><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['schema_name'] }} </a></td>
-                <td><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['table_name'] }} </a></td>
+                <td><a href="/tables/alltables/{{ d['host_ui_shortname'] }}">{{ d['host_ui_shortname'] }} </a></td>
+                <td><a href="/tables/show/{{ d['host_ui_shortname'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['schema_name'] }} </a></td>
+                <td><a href="/tables/show/{{ d['host_ui_shortname'] }}/{{ d['schema_name'] }}.{{ d['table_name'] }}">{{ d['table_name'] }} </a></td>
                 <td>{{ d['day'] }} </td>
                 <td>{{ d['scan_change_pct'] }} ({{ d['allowed_seq_scan_pct'] }})</td>
                 <td>{{ d['scans1'] }} </td>
