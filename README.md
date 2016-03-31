@@ -8,6 +8,8 @@ PGObserver works out of the box with all PostgreSQL databases (starting from Ver
 
 For some metrics, you will have to install data-gathering wrapper functions (also known as stored procedures) on the server being monitored. This will enable you to circumvent the superuser requirements.
 
+Go to [PGObserver's project website](https://zalando.github.io/PGObserver/) for some screenshots and a nice illustration by Zalando Tech resident artist [Kolja Wilcke](https://github.com/kolja).
+
 ###Monitored metrics Include:
 - **Stored procedure data**: number of calls; run time per procedure; self time per procedure
 - **All executed statements data (*)**: query runtimes; call counts; time spent on IO
