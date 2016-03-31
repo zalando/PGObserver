@@ -119,6 +119,12 @@ Start data monitoring daemons by running run.sh.
 ----
 You might have to change your PostgreSQL server configuration to gather certain types of statistics. Please refer to the Postgres documentation on [The Statistics Collector](http://www.postgresql.org/docs/9.3/static/monitoring-stats.html) and [pg_stat_statements](http://www.postgresql.org/docs/9.3/static/pgstatstatements.html).
 
+###Contributions
+PGObserver welcomes contributions to the community. Please go to the [Issues](https://github.com/zalando/pgobserver/issues) page to learn more about planned project enhancements and noted bugs. Feel free to make a pull request and we'll take a look.
+
+###Thank You
+Thank you to our contributors: Zalando Tech plus Fabian Genter.
+
 ###License
 Copyright 2012 Zalando GmbH
 
