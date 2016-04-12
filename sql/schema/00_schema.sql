@@ -91,7 +91,7 @@ CREATE TABLE hosts (
     host_db_export_name text,
     host_created timestamp not null default now(),
     host_last_modified timestamp not null default now(),
-    host_ui_shortname text not null,
+    host_ui_shortname text not null check (host_ui_shortname ~ '^[a-z|0-9]+$'),
     host_ui_longname text not null,
     primary key ( host_id )
 );

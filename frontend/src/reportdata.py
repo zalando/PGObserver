@@ -127,56 +127,15 @@ def getLoadReportDataDailyAvg(hostId, weeks=10):
     return datadb.execute(query, {'host_id': hostId})
 
 
-def getTablePerformanceIssues(hostname, date_from, date_to):
-    conn = datadb.getDataConnection()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("""select * from monitor_data.get_table_threshold_sinners_for_period(%s,%s,%s)""", (hostname, date_from, date_to))
-    data = [] # cur.fetchall()
-    for r in cur:
-        row = {'host_name' : r['host_name'],
-              'host_id' : r['host_id'],
-              'schema_name' : r['schema_name'],
-              'table_name' : r['table_name'],
-              'day' : r['day'],
-              'scan_change_pct' : r['scan_change_pct'],
-              'scans1': r['scans1'],
-              'scans2': r['scans2'],
-              'size1': r['size1'],
-              'size2': r['size2'],
-              'size_change_pct': r['size_change_pct'],
-              'allowed_seq_scan_pct': r['allowed_seq_scan_pct'],
-              }
-        data.append(row)
-    cur.close()
-    conn.close()
-    return data
+def getTablePerformanceIssues(uishortname, date_from, date_to):
+    sql = """select * from monitor_data.get_table_threshold_sinners_for_period_by_shortname(%(uishortname)s, %(date_from)s, %(date_to)s)"""
+    return datadb.execute(sql, {'uishortname': uishortname, 'date_from': date_from, 'date_to': date_to})
 
-def getApiPerformanceIssues(hostname, api_from, api_to):
-    conn = datadb.getDataConnection()
-    cur = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
-    cur.execute("""select * from monitor_data.get_sproc_threshold_sinners_for_release(%s,%s,%s)""", (hostname, api_from, api_to))
-    data = [] # cur.fetchall()
-    for r in cur:
-        row = {'host_name' : r['host_name'],
-              'host_id' : r['host_id'],
-              'sproc_schema' : r['sproc_schema'],
-              'sproc_name' : r['sproc_name'],
-              'calltime_change_pct' : r['calltime_change_pct'],
-              'share_on_total_runtime' : r['share_on_total_runtime'],
-              'execution_avg1': r['execution_avg1'],
-              'execution_avg2': r['execution_avg2'],
-              'calls1': r['calls1'],
-              'calls2': r['calls2'],
-              'callscount_change_pct': r['callscount_change_pct'],
-              'allowed_runtime_growth_pct': r['allowed_runtime_growth_pct'],
-              'allowed_share_on_total_runtime_pct': r['allowed_share_on_total_runtime_pct'],
-              }
-        data.append(row)
-    cur.close()
-    conn.close()
-    return data
+def getApiPerformanceIssues(uishortname, api_from, api_to):
+    sql = """select * from monitor_data.get_sproc_threshold_sinners_for_release_by_shortname(%(uishortname)s, %(api_from)s::text, %(api_to)s::text)"""
+    return datadb.execute(sql, {'uishortname': uishortname, 'api_from': api_from, 'api_to': api_to})
 
-def getIndexIssues(hostname):
+def getIndexIssues(uishortname):
     q_invalid = """
         SELECT
         *,
@@ -184,8 +143,7 @@ def getIndexIssues(hostname):
         pg_size_pretty(total_marked_index_size_bytes::bigint) AS total_marked_index_size
         FROM (
                 SELECT
-                %s as host_name,
-                %s as host_id,
+                %s as host_ui_shortname,
                 schemaname||'.'||relname AS table_full_name,
                 schemaname||'.'||indexrelname AS index_full_name,
                 index_size_bytes,
@@ -222,8 +180,7 @@ def getIndexIssues(hostname):
           CASE WHEN indexes_size_bytes = 0 THEN 0 ELSE round((index_size_bytes::numeric / indexes_size_bytes::numeric)*100,1) END AS pct_of_tables_index_space,
           sum(index_size_bytes) over () AS total_marked_index_size_bytes
           FROM (
-          SELECT   %s as host_name,
-                   %s as host_id,
+          SELECT   %s as host_ui_shortname,
                    quote_ident(schemaname)||'.'||quote_ident(relname) AS table_full_name,
                    quote_ident(schemaname)||'.'||quote_ident(indexrelname) AS index_full_name,
                    pg_relation_size(i.indexrelid) as index_size_bytes,
@@ -241,8 +198,7 @@ def getIndexIssues(hostname):
         ORDER BY scans, index_size_bytes DESC
     """
     q_duplicate = """
-        SELECT %s AS host_name,
-               %s as host_id,
+        SELECT %s AS host_ui_shortname,
                n.nspname||'.'||ci.relname AS index_full_name,
                n.nspname||'.'||ct.relname AS table_full_name,
                pg_size_pretty(pg_total_relation_size(ct.oid)) AS table_size,
@@ -278,12 +234,14 @@ def getIndexIssues(hostname):
         select
             host_id,
             host_name,
+            host_port,
             host_user,
             host_password,
-            host_db
+            host_db,
+            host_ui_shortname
         from monitor_data.hosts
         where host_enabled
-        and (%s = 'all' or host_name=%s)
+        and (coalesce(%(uishortname)s, 'all') = 'all' or host_ui_shortname = %(uishortname)s)
         """
     q_indexing_thresholds="""select * from monitor_data.perf_indexes_thresholds"""
     data_invalid = []
@@ -292,22 +250,23 @@ def getIndexIssues(hostname):
     data_noconnect = []
     conn=None
 
-    hosts = datadb.execute(q_active_hosts, (hostname, hostname))
+    hosts = datadb.execute(q_active_hosts, {'uishortname': uishortname})
     indexing_thresholds = datadb.execute(q_indexing_thresholds)[0]
 
     for h in hosts:
         try:
-            conn = psycopg2.connect(host=h['host_name'], dbname=h['host_db'], user=h['host_user'], password=h['host_password'],connect_timeout='3')
+            conn = psycopg2.connect(host=h['host_name'], port=h['host_port'], dbname=h['host_db'], user=h['host_user'],
+                                    password=h['host_password'], connect_timeout='3')
             cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            cur.execute(q_invalid, (h['host_name'], h['host_id']))
+            cur.execute(q_invalid, (h['host_ui_shortname'],))
             data_invalid += cur.fetchall()
-            cur.execute(q_unused, (h['host_name'], h['host_id'], indexing_thresholds['pit_min_size_to_report'], indexing_thresholds['pit_max_scans_to_report']))
+            cur.execute(q_unused, (h['host_ui_shortname'], indexing_thresholds['pit_min_size_to_report'], indexing_thresholds['pit_max_scans_to_report']))
             data_unused += cur.fetchall()
-            cur.execute(q_duplicate, (h['host_name'], h['host_id']))
+            cur.execute(q_duplicate, (h['host_ui_shortname'],))
             data_duplicate += cur.fetchall()
         except Exception, e:
             print ('ERROR could not connect to {}:{}'.format(h['host_name'], e))
-            data_noconnect.append({'host_id':h['host_id'],'host_name': h['host_name']})
+            data_noconnect.append(h)
         finally:
             if conn and not conn.closed:
                 conn.close()
@@ -319,101 +278,104 @@ def getIndexIssues(hostname):
     return {'invalid':data_invalid, 'duplicate':data_duplicate, 'unused':data_unused, 'noconnect':data_noconnect}
 
 
-def get_unused_schemas(host_name, from_date, to_date, filter):
+def get_unused_schemas(uishortname, from_date, to_date, filter):
+    if not uishortname:
+        return []
     sql = """
-with
-q_max_daily_timestamps as (
-  select
-    sud_host_id as host_id,
-    sud_schema_name as schema_name,
-    --sud_timestamp::date as day,
-    max(sud_timestamp) as timestamp
-  from
-    monitor_data.schema_usage_data s
-  where
-    sud_timestamp between %s and %s
-    and sud_host_id in (select host_id from monitor_data.hosts where host_name = %s or %s = 'all')
-    and (not sud_schema_name like any (array['pg\_%%', '%%\_data'])
-         and sud_schema_name not in ('public', '_v'))
-    and sud_schema_name like '%%'||%s||'%%'
-  group by
-    sud_host_id, sud_schema_name, sud_timestamp::date
-  order by
-    sud_host_id, sud_schema_name, sud_timestamp::date
-),
-q_min_max as (
-  select
-    sud_host_id as host_id,
-    sud_schema_name as schema_name,
-    min(sud_timestamp),
-    max(sud_timestamp)
-  from
-    monitor_data.schema_usage_data
-  where
-    sud_timestamp between %s and %s
-    and sud_schema_name like '%%'||%s||'%%'
-  group by
-    sud_host_id, sud_schema_name
-),
-q_endofday_total_counts as (
-  select
-    host_id,
-    schema_name,
-    timestamp,
-    sud_sproc_calls /* + max(sud_seq_scans)  + max(sud_idx_scans) */ + sud_tup_ins + sud_tup_upd + sud_tup_del as daily_total
-  from
-    monitor_data.schema_usage_data
-    join
-    q_max_daily_timestamps on sud_host_id = host_id and sud_schema_name = schema_name and sud_timestamp = timestamp
-  order by
-    1, 2, 3
-)
-select
-  h.host_name,
-  h.host_db,
-  h.host_id,
-  b.schema_name,
-  mm.min,
-  mm.max
-from
-  (
-    select
-      host_id,
-      schema_name,
-      bool_and(is_same_as_prev) is_unchanged
-    from
-      (
+        with
+        q_max_daily_timestamps as (
+          select
+            sud_host_id as host_id,
+            sud_schema_name as schema_name,
+            --sud_timestamp::date as day,
+            max(sud_timestamp) as timestamp
+          from
+            monitor_data.schema_usage_data s
+          where
+            sud_timestamp between %s and %s
+            and sud_host_id in (select host_id from monitor_data.hosts where host_enabled and (host_ui_shortname = %s or %s = 'all'))
+            and (not sud_schema_name like any (array['pg\_%%', '%%\_data'])
+                 and sud_schema_name not in ('public', '_v'))
+            and sud_schema_name like '%%'||%s||'%%'
+          group by
+            sud_host_id, sud_schema_name, sud_timestamp::date
+          order by
+            sud_host_id, sud_schema_name, sud_timestamp::date
+        ),
+        q_min_max as (
+          select
+            sud_host_id as host_id,
+            sud_schema_name as schema_name,
+            min(sud_timestamp),
+            max(sud_timestamp)
+          from
+            monitor_data.schema_usage_data
+          where
+            sud_timestamp between %s and %s
+            and sud_schema_name like '%%'||%s||'%%'
+          group by
+            sud_host_id, sud_schema_name
+        ),
+        q_endofday_total_counts as (
+          select
+            host_id,
+            schema_name,
+            timestamp,
+            sud_sproc_calls /* + max(sud_seq_scans)  + max(sud_idx_scans) */ + sud_tup_ins + sud_tup_upd + sud_tup_del as daily_total
+          from
+            monitor_data.schema_usage_data
+            join
+            q_max_daily_timestamps on sud_host_id = host_id and sud_schema_name = schema_name and sud_timestamp = timestamp
+          order by
+            1, 2, 3
+        )
         select
-          *,
-          case
-            when lag(daily_total) over w is null then true --1st day
-            when lag(daily_total) over w > daily_total then true --stats reset/overflow
-            else lag(daily_total) over w = daily_total
-          end as is_same_as_prev
+          h.host_name,
+          h.host_db,
+          h.host_id,
+          h.host_ui_shortname,
+          b.schema_name,
+          mm.min,
+          mm.max
         from
-          q_endofday_total_counts
-        window w as
-          (partition by host_id, schema_name  order by host_id, schema_name, timestamp)
-      ) a
-    group by
-      host_id, schema_name
-    order by
-      host_id, schema_name
-  ) b
-  join
-  monitor_data.hosts h on h.host_id = b.host_id
-  join
-  q_min_max mm on mm.host_id = h.host_id and mm.schema_name = b.schema_name
-where
-  is_unchanged
-order by
-  host_name, schema_name
+          (
+            select
+              host_id,
+              schema_name,
+              bool_and(is_same_as_prev) is_unchanged
+            from
+              (
+                select
+                  *,
+                  case
+                    when lag(daily_total) over w is null then true --1st day
+                    when lag(daily_total) over w > daily_total then true --stats reset/overflow
+                    else lag(daily_total) over w = daily_total
+                  end as is_same_as_prev
+                from
+                  q_endofday_total_counts
+                window w as
+                  (partition by host_id, schema_name  order by host_id, schema_name, timestamp)
+              ) a
+            group by
+              host_id, schema_name
+            order by
+              host_id, schema_name
+          ) b
+          join
+          monitor_data.hosts h on h.host_id = b.host_id
+          join
+          q_min_max mm on mm.host_id = h.host_id and mm.schema_name = b.schema_name
+        where
+          is_unchanged
+        order by
+          host_ui_shortname, schema_name
         """
 
-    unused = datadb.execute(sql, (from_date, to_date, host_name, host_name, filter, from_date, to_date, filter))
+    unused = datadb.execute(sql, (from_date, to_date, uishortname, uishortname, filter, from_date, to_date, filter))
     return unused
 
-def get_schema_usage_for_host(host_name, date1, date2, filter=''):
+def get_schema_usage_for_host(uishortname, date1, date2, filter=''):
     sql = """
       select
         sud_schema_name as schema_name,
@@ -423,7 +385,7 @@ def get_schema_usage_for_host(host_name, date1, date2, filter=''):
       from
         monitor_data.schema_usage_data
       where
-        sud_host_id = (select host_id from monitor_data.hosts where host_name = %s)
+        sud_host_id = (select host_id from monitor_data.hosts where host_ui_shortname = %s)
         and sud_timestamp between %s and %s
         and sud_schema_name like '%%'||%s||'%%'
       group by
@@ -431,7 +393,7 @@ def get_schema_usage_for_host(host_name, date1, date2, filter=''):
       order by
         1, 2
         """
-    usage = datadb.execute(sql, (host_name, date1, date2, filter))
+    usage = datadb.execute(sql, (uishortname, date1, date2, filter))
     ret = OrderedDict()
     for u in usage:
         if u['schema_name'] not in ret: ret[u['schema_name']] = []
@@ -439,8 +401,8 @@ def get_schema_usage_for_host(host_name, date1, date2, filter=''):
     return ret
 
 
-def get_unused_schemas_drop_sql(host_name, date1, date2, filter=''):
-    data = get_unused_schemas(host_name, date1, date2, filter)
+def get_unused_schemas_drop_sql(uishortname, date1, date2, filter=''):
+    data = get_unused_schemas(uishortname, date1, date2, filter)
     sb = []
     prev_db = None
     sb.append("do $$\nbegin")
@@ -456,58 +418,59 @@ def get_unused_schemas_drop_sql(host_name, date1, date2, filter=''):
     sb.append("\nend;\n$$;\n")
     return "\n".join(sb)
 
-def getLocksReport(host_name, date1, date2):
+def getLocksReport(uishortname, date1, date2):
     # IN p_from_date timestamp, IN p_from_hour integer, IN p_to_date timestamp, IN p_is_ignore_advisory boolean DEFAULT true,
     # OUT host_name text, OUT total_time_ss bigint, OUT threads_count bigint, OUT incidents_count bigint, OUT blocked_query text, OUT one_blocking_query text
     q_locks = '''
-        select * from monitor_data.blocking_last_day(%s, %s)
-        where (host_name = %s or %s = 'all')
-        and total_time_ss > 5
-        order by host_name, incidents_count desc
+        select * from monitor_data.blocking_last_day_by_shortname(%s, %s, %s)
+        where total_time_ss > 5
+        order by host_ui_shortname, incidents_count desc
     '''
-    return datadb.execute(q_locks, (date1, date2, host_name, host_name))
+    return datadb.execute(q_locks, (uishortname, date1, date2))
 
 
-def getStatStatements(host_name, date1=None, date2=None, order_by='1', limit='50', no_copy_ddl=True, min_calls='3'):
+def getStatStatements(uishortname, date1=None, date2=None, order_by='1', limit='50', no_copy_ddl=True, min_calls='3'):
     order_by = int(order_by) + 1
     sql = '''
-select
-  ltrim(regexp_replace(query, E'[ \\t\\r]+' , ' ', 'g')) as query,
-  calls,
-  total_time,
-  blks_read,
-  blks_written,
-  temp_blks_read,
-  temp_blks_written,
-  case when calls > 0 then round(total_time / calls::numeric) else null end as avg_runtime_ms,
-  query_id
-from (
-select
-  max(ssd_query) as query,
-  max(ssd_calls) - min(ssd_calls) as calls,
-  max(ssd_total_time) - min(ssd_total_time) as total_time,
-  max(ssd_blks_read) - min(ssd_blks_read) as blks_read,
-  max(ssd_blks_written) - min(ssd_blks_written) as blks_written,
-  max(ssd_temp_blks_read) - min(ssd_temp_blks_read) as temp_blks_read,
-  max(ssd_temp_blks_written) - min(ssd_temp_blks_written) as temp_blks_written,
-  ssd_query_id as query_id
-from
-  monitor_data.stat_statements_data
-  join
-  monitor_data.hosts on ssd_host_id = host_id
-where
-  host_name = %s
-  and ssd_timestamp >= coalesce(%s, current_date-1) and ssd_timestamp < coalesce(%s, now())
-  and case when %s then not upper(ssd_query) like any(array['COPY%%', 'CREATE%%']) else true end
-group by
-  ssd_query_id
-) a
-where
-   calls >= %s::int
-order by ''' + str(order_by) + '''
-  desc nulls last
-limit ''' + limit
-    return datadb.execute(sql, (host_name, date1, date2, True if no_copy_ddl else False, min_calls))
+        select
+          ltrim(regexp_replace(query, E'[ \\t\\r]+' , ' ', 'g')) as query,
+          calls,
+          total_time,
+          blks_read,
+          blks_written,
+          temp_blks_read,
+          temp_blks_written,
+          case when calls > 0 then round(total_time / calls::numeric) else null end as avg_runtime_ms,
+          query_id,
+          host_ui_shortname
+        from (
+        select
+          max(ssd_query) as query,
+          max(ssd_calls) - min(ssd_calls) as calls,
+          max(ssd_total_time) - min(ssd_total_time) as total_time,
+          max(ssd_blks_read) - min(ssd_blks_read) as blks_read,
+          max(ssd_blks_written) - min(ssd_blks_written) as blks_written,
+          max(ssd_temp_blks_read) - min(ssd_temp_blks_read) as temp_blks_read,
+          max(ssd_temp_blks_written) - min(ssd_temp_blks_written) as temp_blks_written,
+          ssd_query_id as query_id,
+          host_ui_shortname
+        from
+          monitor_data.stat_statements_data
+          join
+          monitor_data.hosts on ssd_host_id = host_id
+        where
+          host_ui_shortname = %s
+          and ssd_timestamp >= coalesce(%s, current_date-1) and ssd_timestamp < coalesce(%s, now())
+          and case when %s then not upper(ssd_query) like any(array['COPY%%', 'CREATE%%']) else true end
+        group by
+          host_ui_shortname, ssd_query_id
+        ) a
+        where
+           calls >= %s::int
+        order by ''' + str(order_by) + '''
+          desc nulls last
+        limit ''' + limit
+    return datadb.execute(sql, (uishortname, date1, date2, True if no_copy_ddl else False, min_calls))
 
 
 def getStatStatementsGraph(hostid, query_id, date1, date2):
@@ -534,20 +497,21 @@ order by
     return datadb.execute(sql, (hostid, query_id, date1, date2))
 
 
-def getBloatedTablesForHostname(hostname, order_by='wasted_bytes', limit=50):
+def getBloatedTablesForHostname(uishortname, order_by='wasted_bytes', limit=50):
     sql = """
     SELECT * FROM zz_utils.get_bloated_tables(%s, %s)
     """
-    host = hosts.getHostsDataForConnecting(hostname)[0]
-    return datadb.executeOnHost(hostname, host['host_port'], host['host_db'], host['host_user'], host['host_password'], sql, (True if order_by == 'bloat_factor' else False, int(limit)))
+    host = hosts.getHostsDataForConnectingByUIShortname(uishortname)[0]
+    return datadb.executeOnHost(host['host_name'], host['host_port'], host['host_db'], host['host_user'],
+                                host['host_password'], sql, (True if order_by == 'bloat_factor' else False, int(limit)))
 
-
-def getBloatedIndexesForHostname(hostname, order_by=False, limit=50):
+def getBloatedIndexesForHostname(uishortname, order_by=False, limit=50):
     sql = """
     SELECT * FROM zz_utils.get_bloated_indexes(%s, %s)
     """
-    host = hosts.getHostsDataForConnecting(hostname)[0]
-    return datadb.executeOnHost(hostname, host['host_port'], host['host_db'], host['host_user'], host['host_password'], sql, (True if order_by == 'bloat_factor' else False, int(limit)))
+    host = hosts.getHostsDataForConnectingByUIShortname(uishortname)[0]
+    return datadb.executeOnHost(host['host_name'], host['host_port'], host['host_db'], host['host_user'],
+                                host['host_password'], sql, (True if order_by == 'bloat_factor' else False, int(limit)))
 
 def apply_average(datarow, minutes, time_delta, keys_to_skip=[]):
     if time_delta.seconds <= 1 * 60:

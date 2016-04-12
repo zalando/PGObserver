@@ -8,43 +8,47 @@
   <h3>"Hot" queries not enabled! Set allow_hot_queries to "true" in config.yaml to enable</h3>
   </div>
 {% else %}
+
 <div id="reports" class="container_12">
     <div class="grid_12">
         <h3>Possible Index issues report</h3>
         <form method="GET" action="/perfindexes">
-            <span class="text3">Hostname:</span>
-            <select name="hostname">
+            <span class="text3">Host:</span>
+            <select name="uishortname">
                 <option value="all">all</option>
-                {% for host_id, host in host_names: %}
-                <option value="{{ host['host_name'] }}" {% if interval['hostname'] == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
+                {% for uis in uishortnames: %}
+                <option value="{{ uis }}" {% if interval['uishortname'] == uis %} selected="selected" {% endif %}>{{ uis }}</option>
                 {% endfor %}
             </select>
             <br />
             <input name="show" type="submit" value="show">
         </form>
     </div>
+
     {% if data['noconnect'] %}
     <div class="clear"></div>
     <h3>Could not connect</h3>
     <div class="grid_4">
         <table border="1">
             <tr>
-                <th>Hostname</th>
+                <th>Host</th>
             </tr>
             {% for d in data['noconnect']: %}
             <tr>                             
-                <td><a href="/{{ hosts[d['host_id']]['hostuiname'] }}">{{ d['host_name'] }}</a></td>
+                <td><a href="/{{ d['host_ui_shortname'] }}">{{ d['host_ui_shortname'] }} [{{ d['host_name'] }}:{{ d['host_port'] }}]</a></td>
             </tr>
             {% endfor %}
         </table>
     </div>
     {% endif %}
+
     <div class="clear"></div>
+
     <h3>Invalid indexes {% if data['invalid']: %} (in total size of {{ data['invalid'][0]['total_marked_index_size'] }} ) {% endif %}</h3>
     <div class="grid_4">
         <table class="perftable" border="1">
             <tr>
-                <th>Hostname</th>
+                <th>Host</th>
                 <th>Table name</th>
                 <th>Index name</th>
                 <th>Index size</th>
@@ -53,9 +57,9 @@
             </tr>
             {% for d in data['invalid']: %}
             <tr>                             
-                <td><a href="/{{ d['hostuiname'] }}">{{ d['host_name'] }}</a></td>
-                <td><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }}</a></td>
-                <td><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['table_full_name'] }}">{{ d['index_full_name'] }}</a></td>
+                <td><a href="/{{ d['host_ui_shortname'] }}">{{ d['host_ui_shortname'] }}</a> </td>
+                <td><a href="/tables/show/{{ d['host_ui_shortname'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }}</a></td>
+                <td><a href="/tables/show/{{ d['host_ui_shortname'] }}/{{ d['table_full_name'] }}">{{ d['index_full_name'] }}</a></td>
                 <td>{{ d['index_size'] }}</td>
                 <td>{{ d['pct_of_tables_index_space'] }}% of {{ d['indexes_size'] }}</td>
                 <td>{{ d['table_size'] }} </td>
@@ -63,12 +67,14 @@
             {% endfor %}
         </table>
     </div>
+
     <div class="clear"></div>
+
     <h3>Duplicate indexes</h3>
     <div class="grid_4">
         <table class="perftable" border="1">
             <tr>
-                <th>Hostname</th>
+                <th>Host</th>
                 <th>Table name</th>
                 <th>Table size</th>
                 <th>Index definition</th>
@@ -77,8 +83,8 @@
             </tr>
             {% for d in data['duplicate']: %}
             <tr>                             
-                <td><a href="/{{ d['hostuiname'] }}">{{ d['host_name'] }}</a></td>
-                <td><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }} </a></td>
+                <td><a href="/{{ d['host_ui_shortname'] }}">{{ d['host_ui_shortname'] }}</a> </td>
+                <td><a href="/tables/show/{{ d['host_ui_shortname'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }} </a></td>
                 <td>{{ d['table_size'] }}</td>
                 <td>{{ d['def'] }}</a></td>
                 <!--<td>{{ d['index_full_name'] }}</td>-->
@@ -87,12 +93,14 @@
             {% endfor %}
         </table>
     </div>
+
     <div class="clear"></div>
+
     <h3>Unused indexes {% if data['unused']: %} (in total size of {{ data['unused'][0]['total_marked_index_size'] }} ) {% endif %}</h3>
     <div class="grid_4">
         <table class="perftable" border="1">
             <tr>
-                <th>Hostname</th>
+                <th>Host</th>
                 <th>Table name [click for table info]</th>
                 <th>Index name [click for index info]</th>
                 <th>Scans</th>
@@ -102,9 +110,9 @@
             </tr>
             {% for d in data['unused']: %}
             <tr>                             
-                <td><a href="/{{ hosts[d['host_id']]['hostuiname'] }}">{{ d['host_name'] }}</a></td>
-                <td title="Click for table info"><a href="/tables/show/{{ d['hostuiname'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }}</a></td>
-                <td title="Click for index info"><a href="/indexes/{{ d['hostuiname'] }}/{{ d['table_full_name'] }}#{{ d['index_full_name'] }}">{{ d['index_full_name'] }}</a></td>
+                <td><a href="/{{ d['host_ui_shortname'] }}">{{ d['host_ui_shortname'] }}</a> </td>
+                <td title="Click for table info"><a href="/tables/show/{{ d['host_ui_shortname'] }}/{{ d['table_full_name'] }}">{{ d['table_full_name'] }}</a></td>
+                <td title="Click for index info"><a href="/indexes/{{ d['host_ui_shortname'] }}/{{ d['table_full_name'] }}#{{ d['index_full_name'] }}">{{ d['index_full_name'] }}</a></td>
                 <td>{{ d['scans'] }} </td>
                 <td>{{ d['index_size'] }} </td>
                 <td>{{ d['pct_of_tables_index_space'] }}% of {{ d['indexes_size'] }}</td>

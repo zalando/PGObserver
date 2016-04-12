@@ -6,11 +6,11 @@
     <div class="grid_12">
         <h3>Possible Sproc perf issues report</h3>
         <form method="GET" action="/perfapi">
-            <span class="text3">Hostname:</span>
-            <select name="hostname">
+            <span class="text3">Host:</span>
+            <select name="uishortname">
                 <option value="all">all</option>
-                {% for host_id, host in host_names: %}
-                <option value="{{ host['host_name'] }}" {% if interval['hostname'] == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
+                {% for uishortname in uishortnames: %}
+                <option value="{{ uishortname }}" {% if interval['uishortname'] == uishortname %} selected="selected" {% endif %}>{{ uishortname }}</option>
                 {% endfor %}
             </select>
             <br />
@@ -31,7 +31,7 @@
     <div class="grid_4">
         <table class="perftable" border="1">
             <tr>
-                <th>Hostname</th>
+                <th>Host</th>
                 <th>Schema</th>
                 <th>Sproc</th>
                 <th>Calltime change %</th>
@@ -44,9 +44,9 @@
             </tr>
             {% for d in data: %}
             <tr>                             
-                <td><a href="/{{ d['hostuiname'] }}">{{ d['host_name'] }}</a></td>
-                <td><a href="/sprocs/show/{{ d['hostuiname'] }}/{{ d['sproc_name'] }}">{{ d['sproc_schema'] }}</a></td>
-                <td><a href="/sprocs/show/{{ d['hostuiname'] }}/{{ d['sproc_name'] }}">{{ d['sproc_name'] }}</a></td>
+                <td><a href="/{{ d['host_ui_shortname'] }}">{{ d['host_ui_shortname'] }}</a></td>
+                <td><a href="/sprocs/show/{{ d['host_ui_shortname'] }}/{{ d['sproc_name'] }}">{{ d['sproc_schema'] }}</a></td>
+                <td><a href="/sprocs/show/{{ d['host_ui_shortname'] }}/{{ d['sproc_name'] }}">{{ d['sproc_name'] }}</a></td>
                 <td>{{ d['calltime_change_pct'] }} ({{ d['allowed_runtime_growth_pct'] }})</td>
                 <td>{{ d['share_on_total_runtime'] }} ({{ d['allowed_share_on_total_runtime_pct'] }})</td>
                 <td>{{ d['execution_avg1'] }} </td>

@@ -6,11 +6,11 @@
     <div class="grid_12">
         <h3>Blocking locks report [> 5sec]</h3>
         <form method="GET" action="/perflocks">
-            <span class="text3">Hostname:</span>
-            <select name="hostname">
+            <span class="text3">Host:</span>
+            <select name="uishortname">
                 <option value="all">all</option>
-                {% for host_id, host in host_names: %}
-                <option value="{{ host['host_name'] }}" {% if hostname == host['host_name'] %} selected="selected" {% endif %}>{{ host['host_name'] }}</option>
+                {% for uis in uishortnames: %}
+                <option value="{{ uis }}" {% if uis == uishortname %} selected="selected" {% endif %}>{{ uis }}</option>
                 {% endfor %}
             </select>
             <br />
@@ -31,7 +31,7 @@
     <div class="grid_4">
         <table class="perftable" border="1">
             <tr>
-                <th>Hostname</th>
+                <th>Host</th>
                 <th>#Incidents</th>
                 <th>Cumulative locks duration (s.)</th>
                 <th>Processes blocked</th>
@@ -40,7 +40,7 @@
             </tr>
             {% for d in data: %}
             <tr>
-                <td>{{ d['host_name'] }}</a></td>
+                <td><a href="/{{ d['host_ui_shortname'] }}">{{ d['host_ui_shortname'] }}</a></td>
                 <td>{{ d['incidents_count'] }}</a></td>
                 <td>{{ d['total_time_ss'] }}</td>
                 <td>{{ d['threads_count'] }}</td>

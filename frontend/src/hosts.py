@@ -108,6 +108,9 @@ def getAllHosts():
     all_hosts = getAllHostsData()
     return all_hosts
 
+def getAllHostUinamesSorted():
+    return sorted([x[1]['uishortname'] for x in getAllHosts().items()])
+
 def getLastInsertedHostUserAndPassword():
     sql_user = """select host_user from hosts where host_enabled and host_user is not null order by host_created desc limit 1"""
     sql_pass = """select host_password from hosts where host_enabled and host_password is not null order by host_created desc limit 1"""
@@ -187,6 +190,21 @@ def getHostsDataForConnecting(hostname='all'):
         """
     return datadb.execute(q_active_hosts, (hostname, hostname))
 
+def getHostsDataForConnectingByUIShortname(shortname='all'):
+    q_active_hosts="""
+        select
+            host_id,
+            host_name,
+            host_port,
+            host_user,
+            host_password,
+            host_db
+        from monitor_data.hosts
+        where host_enabled
+        and (%s = 'all' or host_ui_shortname=%s)
+        """
+    return datadb.execute(q_active_hosts, (shortname, shortname))
+
 
 def isHostFeatureEnabled(hostId, featureText):
     hostData = getHosts()[hostId]
@@ -208,9 +226,17 @@ def getHostsWithFeature(feature):
     return ret
 
 
+def getHostsWithFeatureAsShortnames(feature):
+    hosts_with_schema_gathering_enabled = getHostsWithFeature(feature)
+    uishortnames = [x['host_ui_shortname'] for x in hosts_with_schema_gathering_enabled.values()]
+    uishortnames.sort()
+    return uishortnames
+
+
 if __name__ == '__main__':
     # print (getAllHostNames())
     # print (getHostsDataForConnecting())
     # print (isHostFeatureEnabled(3, 'loadGatherInterval'))
     # print (getHostsWithFeature('indexStatsGatherInterval'))
     print (getActiveFeatures(1000))
+    print (getAllHostUinamesSorted())

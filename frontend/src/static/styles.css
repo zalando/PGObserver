@@ -282,6 +282,12 @@ input
 {
     width: 1200px;
     margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.perftable td
+{
+    padding-right: 0.5em;
 }
 
 textarea {

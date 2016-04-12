@@ -12,11 +12,11 @@
     <div class="grid_12">
         <h3>Bloated Tables/Indexes report</h3>
         <form method="GET" action="/perfbloat">
-            <span class="text3">Hostname:</span>
-            <select name="selected_hostname">
+            <span class="text3">Host:</span>
+            <select name="uishortname">
                 <option value=""></option>
-                {% for hn in hostnames: %}
-                <option value="{{ hn }}" {% if hn == selected_hostname %} selected="selected" {% endif %}>{{ hn }}</option>
+                {% for uis in uishortnames: %}
+                <option value="{{ uis }}" {% if uis == uishortname %} selected="selected" {% endif %}>{{ uis }}</option>
                 {% endfor %}
             </select>
             <br />
@@ -41,7 +41,7 @@
     <div class="clear"></div>
     <div class="grid_4">
         <table class="perftable" border="1">
-            {% if selected_hostname: %}
+            {% if uishortname: %}
                 {% if bloat_type=='table': %}
                 <tr>
                     <th>Schema</th>
@@ -51,8 +51,8 @@
                 </tr>
                 {% for d in data: %}
                 <tr>
-                    <td><a href="/perfschemas/detailed?selected_hostname={{hostuiname}}&show=show#{{d['schema_name']}}">{{ d['schema_name'] }}</a></td>
-                    <td><a href="/tables/show/{{hostuiname}}/{{d['schema_name']}}.{{d['table_name']}}">{{ d['table_name'] }}</a></td>
+                    <td><a href="/perfschemas/detailed?uishortname={{uishortname}}&show=show#{{d['schema_name']}}">{{ d['schema_name'] }}</a></td>
+                    <td><a href="/tables/show/{{uishortname}}/{{d['schema_name']}}.{{d['table_name']}}">{{ d['table_name'] }}</a></td>
                     <td>{{ d['bloat_factor'] }} </td>
                     <td>{{ d['wasted_bytes_pretty'] }} </td>
                 </tr>
@@ -69,9 +69,9 @@
                 </tr>
                 {% for d in data: %}
                 <tr>
-                    <td><a href="/perfschemas/detailed?selected_hostname={{hostuiname}}&show=show#{{d['schema_name']}}">{{ d['schema_name'] }}</a></td>
-                    <td><a href="/tables/show/{{hostuiname}}/{{d['schema_name']}}.{{d['table_name']}}">{{ d['table_name'] }}</a></td>
-                    <td><a href="/indexes/{{hostuiname}}/{{d['schema_name']}}.{{d['table_name']}}#{{d['schema_name']}}.{{d['index_name']}}">{{ d['index_name'] }}</a></td>
+                    <td><a href="/perfschemas/detailed?uishortname={{uishortname}}&show=show#{{d['schema_name']}}">{{ d['schema_name'] }}</a></td>
+                    <td><a href="/tables/show/{{uishortname}}/{{d['schema_name']}}.{{d['table_name']}}">{{ d['table_name'] }}</a></td>
+                    <td><a href="/indexes/{{uishortname}}/{{d['schema_name']}}.{{d['table_name']}}#{{d['schema_name']}}.{{d['index_name']}}">{{ d['index_name'] }}</a></td>
                     <td>{{ d['bloat_factor'] }} </td>
                     <td>{{ d['wasted_bytes_pretty'] }} </td>
                 </tr>
