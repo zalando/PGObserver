@@ -18,8 +18,6 @@ class Oauth(cherrypy.Tool):
         self.client_details_s3_refresh_url = oauth_settings.get('client_details_s3_refresh_url')
         self.client_id = oauth_settings['client_id']
         self.client_secret = oauth_settings['client_secret']
-        if self.client_details_s3_refresh_url:
-            self.client_id, self.client_secret = aws_s3_configreader.get_client_id_and_secret_from_s3_file(self.client_details_s3_refresh_url)
         self.access_token_url = oauth_settings['access_token_url']
         self.authorize_url = oauth_settings['authorize_url']
         self.redirect_url = oauth_settings['redirect_url']
@@ -46,8 +44,6 @@ class Oauth(cherrypy.Tool):
             # get access token
             data = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': self.redirect_url}
             for i in range(2):  # 2 tries
-                if i == 1 and self.client_details_s3_refresh_url:  # most probably the secrets have changed if 1st try failed
-                    self.client_id, self.client_secret = aws_s3_configreader.get_client_id_and_secret_from_s3_file(self.client_details_s3_refresh_url)
                 try:
                     response = requests.post(self.access_token_url, data=data, auth=(self.client_id, self.client_secret))
                 except Exception as e:
@@ -75,6 +71,11 @@ class Oauth(cherrypy.Tool):
 
         # main gate: user must have an access_token to proceed to application
         if not cherrypy.session.get(FLAG_access_token):
+            if self.client_details_s3_refresh_url:
+                try:
+                    self.client_id, self.client_secret = aws_s3_configreader.get_client_id_and_secret_from_s3_file(self.client_details_s3_refresh_url)
+                except:
+                    raise Exception('Failed to read client_id and secret from S3')
             params = {
                 'response_type': 'code',
                 'redirect_uri': self.redirect_url,
