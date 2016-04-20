@@ -1,5 +1,0 @@
----
-application_name: pgobserver-frontend
-team_name: Zalando/Platform
-stateful: false
-exposed_ports: [8080]
