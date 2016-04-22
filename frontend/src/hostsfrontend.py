@@ -30,7 +30,9 @@ class HostsFrontend(object):
         return 'OK'
 
     def reload(self):
-        tplE.setup({'features':tplE.env.globals['settings']})
+        hosts.getHosts(force_refresh_from_db=True)
+        hosts.getAllHosts(force_refresh_from_db=True)
+        tplE.setup({'features': tplE.env.globals['settings']})
         raise cherrypy.HTTPRedirect(cherrypy.url('/hosts'))
 
     index.exposed = True

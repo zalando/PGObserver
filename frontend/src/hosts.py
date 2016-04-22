@@ -7,9 +7,10 @@ hosts = None
 all_hosts = None
 groups = None
 
-def getHosts():
+
+def getHosts(force_refresh_from_db=False):
     global hosts
-    if hosts != None:
+    if not force_refresh_from_db and hosts:
         return hosts
 
     hosts = getHostData()
@@ -100,9 +101,9 @@ def getAllHostsData():
     conn.close()
     return hosts
 
-def getAllHosts():
+def getAllHosts(force_refresh_from_db=False):
     global all_hosts
-    if all_hosts != None:
+    if not force_refresh_from_db and all_hosts:
         return all_hosts
 
     all_hosts = getAllHostsData()
