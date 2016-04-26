@@ -19,12 +19,23 @@ import datadb
 import tplE
 import yaml
 from argparse import ArgumentParser
+from cherrypy._cpdispatch import Dispatcher
 
 
 class Healthcheck(object):
     def default(self, *args, **kwargs):
         return {}
     default.exposed = True
+
+
+class HostIdAndShortnameDispatcher(Dispatcher):
+
+    def __call__(self, path_info):
+        splits = path_info.split('/')
+        if len(splits) > 1 and splits[1]:
+            if splits[1].isdigit() or splits[1] in hosts.getAllHostUinamesSorted():
+                return Dispatcher.__call__(self, '/host' + path_info)
+        return Dispatcher.__call__(self, path_info.lower())
 
 
 def main():
@@ -84,7 +95,7 @@ def main():
     conf = {
         'global': {'server.socket_host': '0.0.0.0', 'server.socket_port': args.port or settings.get('frontend',
                    {}).get('port') or 8080},
-        '/': {'tools.staticdir.root': current_dir},
+        '/': {'tools.staticdir.root': current_dir, 'request.dispatch': HostIdAndShortnameDispatcher()},
         '/healthcheck': {'tools.sessions.on': False},
         '/static': {'tools.staticdir.dir': 'static', 'tools.staticdir.on': True, 'tools.sessions.on': False},
         '/manifest.info': {'tools.staticfile.on': True, 'tools.staticfile.filename': os.path.join(current_dir, '..',
@@ -95,12 +106,7 @@ def main():
 
     root = welcomefrontend.WelcomeFrontend()
 
-    for h in hosts.getHostData().values():
-        mf = monitorfrontend.MonitorFrontend(h['host_id'])
-
-        setattr(root, h['uishortname'], mf)
-        setattr(root, str(h['host_id']), mf)  # allowing host_id's for backwards comp
-
+    root.host = monitorfrontend.MonitorFrontend()
     root.report = report.Report()
     root.export = export.Export()
     root.perftables = performance.PerfTables()

@@ -15,11 +15,11 @@ import topstatements
 
 class MonitorFrontend(object):
 
-    def __init__(self, hostId):
-        self.hostId = hostId
+    def __init__(self):
+        pass
 
-    def default(self, hostId=None):
-        hostId, hostUiName = hosts.ensureHostIdAndUIShortname(max(hostId, self.hostId))
+    def default(self, hostId):
+        hostId, hostUiName = hosts.ensureHostIdAndUIShortname(max(hostId, hostId))
         days = (cherrypy.request.cookie['days'].value if 'days' in cherrypy.request.cookie else '8')
         sprocs_to_show = (int(cherrypy.request.cookie['sprocs_to_show'].value) if 'sprocs_to_show'
                           in cherrypy.request.cookie else 10)
@@ -111,7 +111,7 @@ class MonitorFrontend(object):
                 top_statements['hours3calls'] = self.renderTop10StatementsLastHours(hostId, tsd.get('calls_int1', []))
 
         if tplE._settings.get('show_bgwriter_stats', True):
-            graph_checkpoint = self.get_rendered_bgwriter_graph(int(days))
+            graph_checkpoint = self.get_rendered_bgwriter_graph(hostId, int(days))
 
         tmpl = tplE.env.get_template('index.html')
         return tmpl.render(
@@ -131,9 +131,9 @@ class MonitorFrontend(object):
             target='World',
         )
 
-    def get_rendered_bgwriter_graph(self, days):
+    def get_rendered_bgwriter_graph(self, hostId, days):
         start_date = datetime.now() - timedelta(days)
-        checkpoint_data = tabledata.retrieve_bgwriter_stats(self.hostId, start_date)
+        checkpoint_data = tabledata.retrieve_bgwriter_stats(hostId, start_date)
         if not checkpoint_data['avgWritesPerCheckpoint']:
             return ''
         graph_checkpoint = flotgraph.SizeGraph('graph_bgwriter')
@@ -166,8 +166,8 @@ class MonitorFrontend(object):
         }
         return result
 
-    def index(self, limit=10):
-        return self.default(self.hostId, limit)
+    def index(self, hostId, limit=10):
+        return self.default(hostId, limit)
 
     def renderTop10AllTime(self, order):
         table = tplE.env.get_template('table.html')

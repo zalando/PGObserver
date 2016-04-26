@@ -69,8 +69,8 @@
                     {% endfor %}
                 </select>
             </td>
-            <td><input value="ui_shortname"></td>
-            <td><input value="ui_longname"></td>
+            <td><input value="uishortname" title="small caps alpha-numeric"></td>
+            <td><input value="UI Longname"></td>
             <td><textarea>
 {
    "loadGatherInterval": 5,
@@ -88,7 +88,7 @@
         </tr>
     </table>
     <form action="/hosts/reload">
-    <input id="reload" type="submit" value="Reload Config" title="refreshes menus">
+    <input id="reload" type="submit" value="Reload Config" title="refreshes menus so that newly added hosts or renames become visible">
     </form>
     </div>
 </div>
