@@ -1,0 +1,9 @@
+---
+MAILHOST: 'mailhost.com'
+SENDER: 'pgo-olad@robot.net'
+PGO_URL: 'https://my.pgobserver.net'
+PGO_SPROC_DETAILS_URL_WITH_PLACEHOLDERS: '/sprocs/show/{host}/{ident}'
+PGO_TABLE_DETAILS_URL_WITH_PLACEHOLDERS: '/tables/show/{host}/{ident}'
+GRAFANA_BASE_URL: 'http://grafana.my.pgobserver.net'
+GRAFANA_HOST_OVERVIEW_WITH_PLACEHOLDERS: '/dashboard/db/host-quick-overview?var-host={host}'
+GRAFANA_CPU_LOAD_URL_WITH_PLACEHOLDERS: '/dashboard/db/host-quick-overview?panelId=1&fullscreen&var-host={host}&from={from_epoch_ms}&to={to_epoch_ms}'

@@ -1,0 +1,12 @@
+- evaluate metrics on every point where MVA > window historical avg * abnormal_jump_pct (100), so that slow monotonous growth would be captured
+- add some seasonality (at same time x days ago) metric next to pure statistical ones ?
+- flag to auto-adjust sensitivity if getting more than X alerts per day
+- some feedback system + UI for storing known OK patters or known error patterns
+- heuristics for saw-tooth patterns
+- start using stddev dev pct instead the absolute number
+- if --drop-spikes wait at least 1 point before alerting ?
+- alert only if avg. point timestamp distance > X, so that zB low frequency sproc calls would not be included
+- fetch history if a new ident comes online (cont. mode)
+- heartbeat table to enable creating some checks that the script is running
+- new metric - cache hit rate for tables > X
+- make *_filter.sql params (table size, share of total sproc runtime etc) configurable from DB so that they could be host based
