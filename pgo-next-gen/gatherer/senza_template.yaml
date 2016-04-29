@@ -1,0 +1,54 @@
+# See http://stups.readthedocs.org/en/latest/components/senza.html for help on Senza
+
+# basic information for generating and executing this definition
+SenzaInfo:
+  StackName: pgobserver-gatherer
+  Parameters:
+    - ImageVersion:
+        Description: "Docker image version of pgobserver-gatherer."
+    - Verbose:
+        Description: "0 - ERROR | 1 - INFO | 2 - DEBUG"
+    - DsHost:
+        Description: "Datastore host address. Must be accessible from users VPC"
+    - DsPort:
+        Description: "Datastore port"
+    - DsDbname:
+        Description: "Datastore DB"
+    - DsUser:
+        Description: "Datastore DB user. 'pgobserver_gatherer' role created by bootstrap should be used"
+    - DsPass:
+        Description: "Datastore DB pass"
+    - DsGatherGroup:
+        Description: "Specifies which group of hosts should be monitored. Default = gatherer1"
+    - ScalyrAccountKey:
+        Description: "Scalyr account key"
+
+
+# a list of senza components to apply to the definition
+SenzaComponents:
+
+  # this basic configuration is required for the other components
+  - Configuration:
+      Type: Senza::StupsAutoConfiguration # auto-detect network setup
+
+  # will create a launch configuration and auto scaling group with scaling triggers
+  - AppServer:
+      Type: Senza::TaupageAutoScalingGroup
+      InstanceType: t2.micro
+      SecurityGroups:
+        - app-pgobserver-gatherer
+      IamRoles:
+        - app-pgobserver-gatherer
+      AssociatePublicIpAddress: false # change for standalone deployment in default VPC
+      TaupageConfig:
+        runtime: Docker
+        source: "registry.opensource.zalan.do/acid/pgobserver-gatherer:{{Arguments.ImageVersion}}"
+        scalyr_account_key: "{{Arguments.ScalyrAccountKey}}"
+        environment:
+          VERBOSE: "{{Arguments.Verbose}}"
+          DS_HOST: "{{Arguments.DsHost}}"
+          DS_PORT: "{{Arguments.DsPort}}"
+          DS_DBNAME: "{{Arguments.DsDbname}}"
+          DS_USER: "{{Arguments.DsUser}}"
+          DS_PASS: "{{Arguments.DsPass}}"
+          DS_GATHER_GROUP: "{{Arguments.DsGatherGroup}}"

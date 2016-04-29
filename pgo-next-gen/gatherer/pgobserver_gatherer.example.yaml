@@ -1,0 +1,52 @@
+---
+
+# NB! When updating the template also update globalconfig.SAMPLE_CONFIG_FILE_CONTENTS
+
+
+database:
+  store_raw_metrics: false   # should raw metrics data be stored to Postgres or only passed to plugins
+
+  # PGObserver database
+  name: local_pgobserver_db
+  host: localhost
+  port: 5432
+
+  pool_size: 10   # max simultaneous connections
+
+  # gatherer credentials for PGObserver database
+  backend_user: pgobserver_gatherer
+  backend_password: pgobserver_gatherer
+
+  # configure which hosts to monitor ( relates to monitor_data.hosts.host_gather_group column)
+  # needed for cases where splitting of hosts between daemons is needed due to workload or network
+  gather_group: gatherer1
+
+
+# Available metrics:
+#- kpi
+#- load
+#- db
+#- conns
+#- sprocs
+#- statements
+#- table
+#- tableio
+#- bgwriter
+#- indexes
+#- locks
+
+features:
+  calculate_deltas: true    # if false, exactly what is returned from gatherers is sent to output plugins
+  simple_deltas: false      # by default "change rates" are calculated i.e. deltas divided by passed time.
+                            # when true (default for "console mode") then just pure delta values are passed to output
+# FYI
+# - even when some metrics are enabled here they might not be be actually enabled on single host level (hosts.host_settings)
+# - plugins can be declared multiple times with different parameters
+# - if "metrics" node is defined, only listed metrics data will be processed by this plugin
+output_plugins:
+  file:
+    enabled: true
+#    metrics:  # TODO implement filtering
+#      load: true
+  influxdb:
+    enabled: false

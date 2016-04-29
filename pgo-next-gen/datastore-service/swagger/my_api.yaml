@@ -1,0 +1,170 @@
+swagger: '2.0'
+info:
+  version: '0.1'
+  title: PgObserver 3.0 API
+
+# TODO Oauth security! see - https://github.com/zalando/lizzy/blob/master/lizzy/swagger/lizzy.yaml
+
+schemes:
+  - http
+paths:
+
+  /hosts:
+    get:
+      operationId: handlers.get_all_hosts
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Host data
+      responses:
+        '201':
+          description: Created
+
+  /hosts/{host_id}:
+    get:
+      operationId: handlers.get_hosts
+      produces:
+        - application/json
+      parameters:
+        - name: host_id
+          in: path
+          description: id(s)/uiname(s) of hosts to show
+          required: false
+          type: array
+          items:
+            type: string
+      responses:
+        '200':
+          description: Host data
+
+
+#  /load:
+#
+#    get:
+#      produces:
+#        - application/json
+#      parameters:
+#        - name: host_id
+#          in: query
+#          description: id(s)/uiname(s) of hosts to show
+#          required: true
+#          type: array
+#          items:
+#            type: string
+#          collectionFormat: csv
+#        - name: date_from
+#          in: query
+#          description: date, datetime or human readable (-1h)
+#          required: true
+#          type: string
+#        - name: date_to
+#          in: query
+#          description: date, datetime or human readable (-1h)
+#          required: false
+#          type: string
+#      responses:
+#        '200':
+#
+#    post:
+#      consumes:
+#        - application/x-www-form-urlencoded
+#      produces:
+#        - application/json
+#      parameters:
+#        - name: host_id
+#          in: formData
+#          required: true
+#          type: string
+#        - name: data
+#          in: formData
+#          description: Array of JSON events to be stored
+#          required: true
+#          type: string
+#        - name: columns
+#          in: formData
+#          description: Array of column names for "data"
+#          required: true
+#          type: string
+#      responses:
+#        '201':
+#          description: Created
+#
+#  /sprocs:
+#
+#    get:
+#      description: lists all active sprocs for given from/to range
+#      produces:
+#        - application/json
+#      parameters:
+#        - name: host_id
+#          in: query
+#          description: id(s)/uiname(s) of hosts to show
+#          required: true
+#          type: array
+#          items:
+#            type: string
+#          collectionFormat: csv
+#        - name: date_from
+#          in: query
+#          description: date, datetime or human readable (-1h)
+#          required: true
+#          type: string
+#        - name: date_to
+#          in: query
+#          description: date, datetime or human readable (-1h)
+#          required: false
+#          type: string
+#      responses:
+#        '200':
+#
+#  /sproc-details:
+#
+#    get:
+#      produces:
+#        - application/json
+#      parameters:
+#        - name: host_id
+#          in: query
+#          description: id(s)/uiname(s) of hosts to show
+#          required: true
+#          type: array
+#          items:
+#            type: string
+#          collectionFormat: csv
+#        - name: sproc_id
+#          in: query
+#          required: true
+#          type: int32
+#        - name: date_from
+#          in: query
+#          description: date, datetime or human readable (-1h)
+#          required: true
+#          type: string
+#        - name: date_to
+#          in: query
+#          description: date, datetime or human readable (-1h)
+#          required: false
+#          type: string
+#      responses:
+#        '200':
+#
+#    post:
+#      operationId: myapp_api.store_load
+#      consumes:
+#        - application/x-www-form-urlencoded
+#      produces:
+#        - text/plain
+#      parameters:
+#        - name: host_id
+#          in: formData
+#          required: true
+#          type: string
+#        - name: data
+#          in: formData
+#          description: Array of JSON events to be stored
+#          required: true
+#          type: string
+#      responses:
+#        '201':
+#          description: Created

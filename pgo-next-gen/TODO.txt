@@ -1,0 +1,30 @@
+gatherer
+---
+* register with "pypi" so one could get going fast
+* add --sample-config flag that would spit out a template yaml config
+* dumping metrics to CSV files in case pushing to datastores fails and memory is getting low
+* http server with basic gatherer stats, something like https://github.com/rach/pome ?
+* new metrics
+ - last vacuum + analyze age, dead tuples, top laggards
+ - bloat estimation + exact snapshots when pg_stattuple available (could be costly)
+ - replication delays
+* idea - create schema automatically if table/column not there
+* 9.5+ use cluster_name variable to show info on other DBs residing on some cluster
+* idea - declarative gathering, just a folder with sql files (different subfolders when there are version incompabilities), tables would be auto-created.
+  Cached columns should have a special marking.
+* add 9.5 pg_stat_statements mean_time/stddev_time cols
+
+db schema
+---
+* start using timestamp tz
+* cpu load is stored as int(load*100) currently
+
+datastore-service
+---
+* https://github.com/zalando/connexion for creating the api or just start using https://github.com/begriffs/postgrest ?
+
+
+new frontend
+---
+* mobile 1st
+* https://www.polymer-project.org/ ?

@@ -1,0 +1,15 @@
+---
+database:
+  # PGObserver database
+  name: local_pgobserver_db
+  host: localhost
+  port: 5432
+
+  # gatherer credentials for PGObserver database
+  backend_user: pgobserver_gatherer
+  backend_password: pgobserver_gatherer
+
+frontend:
+  port: 8080
+
+# features:
