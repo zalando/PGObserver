@@ -41,7 +41,6 @@ public class DBPools {
             try {
 
                 // check if we can connect to our database
-                @SuppressWarnings("unused")
                 Connection tryConn = pgObserverDatasource.getConnection();
                 tryConn.close();
             } catch (SQLException ex) {

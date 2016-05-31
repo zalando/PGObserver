@@ -1,7 +1,5 @@
 package de.zalando.pgobserver.gatherer;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /**

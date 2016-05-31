@@ -6,6 +6,8 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import de.zalando.pgobserver.gatherer.persistence.GatherSprocService;
@@ -17,9 +19,15 @@ import de.zalando.sprocwrapper.dsprovider.DataSourceProvider;
 import de.zalando.sprocwrapper.dsprovider.SingleDataSourceProvider;
 
 public abstract class ADBGatherer extends AGatherer {
-    protected Host host = null;
+    @Override
+	public String toString() {
+		return "ADBGatherer [host=" + host + "]";
+	}
+
+	protected Host host = null;
     protected GatherSprocService gatherService = null;
     protected PgoWriterSprocService writerService = null;
+    private static final Logger LOG = LoggerFactory.getLogger(ADBGatherer.class);
 
     public ADBGatherer(final String gathererName, final Host h, final ScheduledThreadPoolExecutor executor,
             final long intervalInSeconds) {
@@ -44,7 +52,7 @@ public abstract class ADBGatherer extends AGatherer {
             DatabaseMetaData meta = ds.getConnection().getMetaData();
             minorVersion = meta.getDatabaseMinorVersion();
         } catch (SQLException e) {
-            e.printStackTrace();
+            LOG.error("Error while connecting: " + url, e);
         }
 
         DataSourceProvider datasource = new SingleDataSourceProvider(ds);
@@ -54,7 +62,6 @@ public abstract class ADBGatherer extends AGatherer {
         } else {
             this.gatherService = new GatherSprocServiceImpl(datasource);
         }
-        //this.gatherService = new GatherSprocServiceImpl(datasource);
     }
 
     /**

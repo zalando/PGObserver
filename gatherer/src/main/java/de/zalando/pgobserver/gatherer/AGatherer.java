@@ -18,7 +18,13 @@ public abstract class AGatherer implements Runnable {
     
     private static final Logger LOG = Logger.getLogger(AGatherer.class.getName());
 
-    protected abstract boolean gatherData();
+    @Override
+	public String toString() {
+		return "AGatherer [intervalInSeconds=" + intervalInSeconds + ", executor=" + executor + ", hostName=" + hostName
+				+ ", gathererName=" + gathererName + "]";
+	}
+
+	protected abstract boolean gatherData();
 
     protected AGatherer(final String gathererName,  final String hostName, final ScheduledThreadPoolExecutor executor, final long intervalInSeconds) {
         this.gathererName = gathererName;
@@ -39,7 +45,7 @@ public abstract class AGatherer implements Runnable {
                 markSuccessfullPersistance();
             }
         } catch (Throwable t) {
-            LOG.log(Level.SEVERE, "Exception", t);
+            LOG.log(Level.SEVERE, "Exception in " + this.toString(), t);
         }
 
         lastRunFinishedInSeconds = System.currentTimeMillis() / 1000;
@@ -89,10 +95,10 @@ public abstract class AGatherer implements Runnable {
 
     public void schedule() {
         if (intervalInSeconds > 0) {
-            LOG.log(Level.SEVERE, "Schedule: Interval {0} for Host: {1}", new Object[]{intervalInSeconds, hostName});
+            LOG.log(Level.INFO, "Schedule: Interval {0} for Host: {1}", new Object[]{intervalInSeconds, hostName});
             executor.scheduleAtFixedRate(this, 1, intervalInSeconds, TimeUnit.SECONDS);
         } else {
-            LOG.log(Level.SEVERE, "Interval 0 for Host: {}", hostName);
+            LOG.log(Level.INFO, "Interval 0 for Host: {}", hostName);
         }
     }
 
