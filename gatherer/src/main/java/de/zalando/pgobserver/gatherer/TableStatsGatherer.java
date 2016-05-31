@@ -123,13 +123,13 @@ public class TableStatsGatherer extends ADBGatherer {
 
             return true;
         } catch (SQLException se) {
-            LOG.error("",se);
+            LOG.error(this.toString(),se);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException se) {
-                    LOG.error("",se);
+                    LOG.error(this.toString(),se);
                 }
 
             }

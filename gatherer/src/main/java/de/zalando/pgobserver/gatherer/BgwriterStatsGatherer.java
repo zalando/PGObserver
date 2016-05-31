@@ -37,8 +37,7 @@ public class BgwriterStatsGatherer extends ADBGatherer {
             }
         } catch (Exception e) {
 
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            LOG.error(this.toString(), e);
             return false;
         }
 

@@ -115,13 +115,13 @@ public class TableIOStatsGatherer extends ADBGatherer {
 
             return true;
         } catch (SQLException se) {
-            LOG.log(Level.SEVERE, "", se);
+            LOG.log(Level.SEVERE, this.toString(), se);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException se) {
-                    LOG.log(Level.SEVERE, "", se);
+                    LOG.log(Level.SEVERE, this.toString(), se);
                 }
 
             }

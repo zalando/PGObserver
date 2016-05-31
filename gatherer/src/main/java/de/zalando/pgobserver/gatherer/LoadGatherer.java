@@ -120,14 +120,14 @@ public class LoadGatherer extends ADBGatherer {
 
             return true;
         } catch (SQLException se) {
-            LOG.error("Error during Load gathering", se);
+            LOG.error("Error during Load gathering" + this.toString(), se);
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException ex) {
-                    LOG.error("Error closing connection", ex);
+                    LOG.error("Error closing connection" + this.toString(), ex);
                 }
             }
         }

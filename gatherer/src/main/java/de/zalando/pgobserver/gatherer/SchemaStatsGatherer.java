@@ -1,27 +1,17 @@
 package de.zalando.pgobserver.gatherer;
 
-import static de.zalando.pgobserver.gatherer.LoadGatherer.LOG;
-import static de.zalando.pgobserver.gatherer.LoadGatherer.xLogLocationToMb;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
-
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class SchemaStatsGatherer extends ADBGatherer {
@@ -169,7 +159,7 @@ public class SchemaStatsGatherer extends ADBGatherer {
 
             return true;
         } catch (SQLException se) {
-            LOG.error("", se);
+            LOG.error(this.toString(), se);
 
             return false;
         } finally {
@@ -179,7 +169,7 @@ public class SchemaStatsGatherer extends ADBGatherer {
                 try {
                     conn.close();
                 } catch (SQLException ex) {
-                    LOG.error("", ex);
+                    LOG.error(this.toString(), ex);
                 }
             }
         }

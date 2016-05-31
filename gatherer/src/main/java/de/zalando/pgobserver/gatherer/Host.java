@@ -23,7 +23,13 @@ import de.zalando.pgobserver.gatherer.config.Config;
  */
 public class Host {
 
-    public int id;
+    @Override
+	public String toString() {
+		return "Host [id=" + id + ", name=" + name + ", user=" + user + ", port=" + port + ", dbname=" + dbname
+				+ ", uiLongName=" + uiLongName + "]";
+	}
+
+	public int id;
     public String name;
     public String user;
     public String password;

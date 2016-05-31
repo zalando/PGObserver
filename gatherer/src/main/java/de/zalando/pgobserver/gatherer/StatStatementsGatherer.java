@@ -101,14 +101,14 @@ public class StatStatementsGatherer extends ADBGatherer {
 
             return true;
         } catch (SQLException se) {
-            LOG.error("", se);
+            LOG.error(this.toString(), se);
             return false;
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException ex) {
-                    LOG.error("", ex);
+                    LOG.error(this.toString(), ex);
                 }
             }
         }
