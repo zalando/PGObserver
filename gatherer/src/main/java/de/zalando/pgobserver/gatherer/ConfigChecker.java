@@ -26,17 +26,14 @@ public class ConfigChecker implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        try {
+            Map<Integer, Host> hosts_new = Host.LoadAllHosts(config);
 
-            try {
-                Map<Integer, Host> hosts_new = Host.LoadAllHosts(config);
+            applyConfigChangesIfAny(hosts_new);
 
-                applyConfigChangesIfAny(hosts_new);
-
-                LOG.info("finished checking new config settings. sleeping for {} s", CONFIG_CHECK_INTERVAL_SECONDS);
-            } catch (SQLException se) {
-                LOG.error("Skipped ConfigChanges due to Exception", se);
-            }
+            LOG.info("finished checking new config settings. sleeping for {} s", CONFIG_CHECK_INTERVAL_SECONDS);
+        } catch (SQLException se) {
+            LOG.error("Skipped ConfigChanges due to Exception", se);
         }
     }
 
