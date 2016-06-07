@@ -13,6 +13,58 @@ public class HostSettings {
     private int statDatabaseGatherInterval = 0;
     private int statBgwriterGatherInterval = 0;
 
+    @Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + blockingStatsGatherInterval;
+		result = prime * result + indexStatsGatherInterval;
+		result = prime * result + loadGatherInterval;
+		result = prime * result + schemaStatsGatherInterval;
+		result = prime * result + sprocGatherInterval;
+		result = prime * result + statBgwriterGatherInterval;
+		result = prime * result + statDatabaseGatherInterval;
+		result = prime * result + statStatementsGatherInterval;
+		result = prime * result + tableIoGatherInterval;
+		result = prime * result + tableStatsGatherInterval;
+		result = prime * result + useTableSizeApproximation;
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		HostSettings other = (HostSettings) obj;
+		if (blockingStatsGatherInterval != other.blockingStatsGatherInterval)
+			return false;
+		if (indexStatsGatherInterval != other.indexStatsGatherInterval)
+			return false;
+		if (loadGatherInterval != other.loadGatherInterval)
+			return false;
+		if (schemaStatsGatherInterval != other.schemaStatsGatherInterval)
+			return false;
+		if (sprocGatherInterval != other.sprocGatherInterval)
+			return false;
+		if (statBgwriterGatherInterval != other.statBgwriterGatherInterval)
+			return false;
+		if (statDatabaseGatherInterval != other.statDatabaseGatherInterval)
+			return false;
+		if (statStatementsGatherInterval != other.statStatementsGatherInterval)
+			return false;
+		if (tableIoGatherInterval != other.tableIoGatherInterval)
+			return false;
+		if (tableStatsGatherInterval != other.tableStatsGatherInterval)
+			return false;
+		if (useTableSizeApproximation != other.useTableSizeApproximation)
+			return false;
+		return true;
+	}
+
     public int getStatStatementsGatherInterval() {
         return statStatementsGatherInterval * 60;
     }

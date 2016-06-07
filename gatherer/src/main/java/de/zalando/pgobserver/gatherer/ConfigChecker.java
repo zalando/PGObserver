@@ -5,6 +5,7 @@ import de.zalando.pgobserver.gatherer.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -25,19 +26,14 @@ public class ConfigChecker implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        try {
+            Map<Integer, Host> hosts_new = Host.LoadAllHosts(config);
 
-            try {
-                Thread.sleep(CONFIG_CHECK_INTERVAL_SECONDS * 1000);
+            applyConfigChangesIfAny(hosts_new);
 
-                Map<Integer, Host> hosts_new = Host.LoadAllHosts(config);
-
-                applyConfigChangesIfAny(hosts_new);
-
-                LOG.error("finished checking new config settings. sleeping for {} s", CONFIG_CHECK_INTERVAL_SECONDS);
-            } catch (InterruptedException ie) {
-                LOG.error("", ie);
-            }
+            LOG.info("finished checking new config settings. sleeping for {} s", CONFIG_CHECK_INTERVAL_SECONDS);
+        } catch (SQLException se) {
+            LOG.error("Skipped ConfigChanges due to Exception", se);
         }
     }
 
@@ -65,31 +61,11 @@ public class ConfigChecker implements Runnable {
             }
             else        // check for change in intervals
             {
-                Boolean changeDetected = false;
                 HostSettings settings = h.getSettings();
                 Host hostOld = this.hosts.get(h.id);
                 HostSettings settingsOld = hostOld.getSettings();
 
-                if (settings.getBlockingStatsGatherInterval() != settingsOld.getBlockingStatsGatherInterval()
-                        || settings.getIndexStatsGatherInterval() != settingsOld.getIndexStatsGatherInterval()
-                        || settings.getLoadGatherInterval() != settingsOld.getLoadGatherInterval()
-                        || settings.getSchemaStatsGatherInterval() != settingsOld.getSchemaStatsGatherInterval()
-                        || settings.getSprocGatherInterval() != settingsOld.getSprocGatherInterval()
-                        || settings.getStatBgwriterGatherInterval() != settingsOld.getStatBgwriterGatherInterval()
-                        || settings.getStatDatabaseGatherInterval() != settingsOld.getStatDatabaseGatherInterval()
-                        || settings.getStatStatementsGatherInterval() != settingsOld.getStatStatementsGatherInterval()
-                        || settings.getTableIoStatsGatherInterval() != settingsOld.getTableIoStatsGatherInterval()
-                        || settings.getTableStatsGatherInterval() != settingsOld.getTableStatsGatherInterval()
-                        || settings.getUseTableSizeApproximation() != settingsOld.getUseTableSizeApproximation()
-                        || !h.name.equalsIgnoreCase(hostOld.name)
-                        || h.port != hostOld.port
-                        || !h.dbname.equalsIgnoreCase(hostOld.dbname)
-                        || !h.user.equalsIgnoreCase(hostOld.user)
-                        || !h.password.equalsIgnoreCase(hostOld.password)
-                        )
-                    changeDetected = true;
-
-                if (changeDetected) {
+                if (!(settings.equals(settingsOld) && h.equals(hostOld))) {
                     LOG.info("change in config values detected for host {}. restarting scheduling", h.id);
                     hostOld.removeGatherers();
                     this.hosts.put(h.id, h);

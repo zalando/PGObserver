@@ -50,7 +50,80 @@ public class Host {
         return gatherers;
     }
 
-    public Host(final String n, final String db, final int port, final String user, final String password) {
+    @Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((dbname == null) ? 0 : dbname.hashCode());
+		result = prime * result + id;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((password == null) ? 0 : password.hashCode());
+		result = prime * result + port;
+		result = prime * result + ((settings == null) ? 0 : settings.hashCode());
+		result = prime * result + ((settingsAsString == null) ? 0 : settingsAsString.hashCode());
+		result = prime * result + ((uiLongName == null) ? 0 : uiLongName.hashCode());
+		result = prime * result + ((uiShortName == null) ? 0 : uiShortName.hashCode());
+		result = prime * result + ((user == null) ? 0 : user.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Host other = (Host) obj;
+		if (dbname == null) {
+			if (other.dbname != null)
+				return false;
+		} else if (!dbname.equals(other.dbname))
+			return false;
+		if (id != other.id)
+			return false;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (password == null) {
+			if (other.password != null)
+				return false;
+		} else if (!password.equals(other.password))
+			return false;
+		if (port != other.port)
+			return false;
+		if (settings == null) {
+			if (other.settings != null)
+				return false;
+		} else if (!settings.equals(other.settings))
+			return false;
+		if (settingsAsString == null) {
+			if (other.settingsAsString != null)
+				return false;
+		} else if (!settingsAsString.equals(other.settingsAsString))
+			return false;
+		if (uiLongName == null) {
+			if (other.uiLongName != null)
+				return false;
+		} else if (!uiLongName.equals(other.uiLongName))
+			return false;
+		if (uiShortName == null) {
+			if (other.uiShortName != null)
+				return false;
+		} else if (!uiShortName.equals(other.uiShortName))
+			return false;
+		if (user == null) {
+			if (other.user != null)
+				return false;
+		} else if (!user.equals(other.user))
+			return false;
+		return true;
+	}
+
+	public Host(final String n, final String db, final int port, final String user, final String password) {
         name = n;
         dbname = db;
         this.port = port;
@@ -70,7 +143,7 @@ public class Host {
         return name + "[" + dbname + "]";
     }
 
-    public static Map<Integer, Host> LoadAllHosts(final Config config) {
+    public static Map<Integer, Host> LoadAllHosts(final Config config) throws SQLException {
 
         /*
          * host_id serial NOT NULL,
@@ -116,6 +189,7 @@ public class Host {
 
         } catch (SQLException se) {
             LOG.error("Error during loading of host configuration", se);
+            throw(se);
         } finally {
             if (conn != null) {
                 try {
