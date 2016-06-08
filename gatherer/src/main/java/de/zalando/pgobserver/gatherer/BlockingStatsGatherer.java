@@ -266,6 +266,13 @@ public class BlockingStatsGatherer extends ADBGatherer {
                     LOG.error(this.toString(), ex);
                 }
             }
+            if (conn_pgo != null) {
+                try {
+                    conn_pgo.close();
+                } catch (SQLException ex) {
+                    LOG.error(this.toString(), ex);
+                }
+            }
         }
     }
 

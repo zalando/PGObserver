@@ -33,7 +33,7 @@ public class DBPools {
             config.setPartitionCount(1);
             config.setMaxConnectionsPerPartition(20);
             config.setMinConnectionsPerPartition(1);
-            config.setConnectionTimeoutInMs(2000);
+            config.setConnectionTimeoutInMs(10000);
             config.setInitSQL("set search_path to monitor_data, monitor_api, public");
 
             pgObserverDatasource = new BoneCPDataSource(config);
