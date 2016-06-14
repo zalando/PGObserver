@@ -3,9 +3,15 @@ package de.zalando.pgobserver.gatherer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import de.zalando.pgobserver.gatherer.config.Config;
+import de.zalando.sprocwrapper.proxy.executors.Executor;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import org.restlet.Server;
 
@@ -67,15 +73,10 @@ public class GathererApp extends ServerResource {
         
         DBPools.initializePool(config);
 
-        GathererApp.hosts = Host.LoadAllHosts(config);
-
-        for (Host h : GathererApp.hosts.values()) {
-            h.scheduleGatheres(config);
-        }
-
-        Thread configCheckerThread = new Thread(new ConfigChecker(GathererApp.hosts, config));
-        configCheckerThread.setDaemon(true);
-        configCheckerThread.start();
+        GathererApp.hosts = new TreeMap<Integer, Host>(); 
+        ScheduledExecutorService configCheckService = Executors.newScheduledThreadPool(1);
+        ConfigChecker c = new ConfigChecker(GathererApp.hosts, config);
+        configCheckService.scheduleAtFixedRate(c, 0, ConfigChecker.CONFIG_CHECK_INTERVAL_SECONDS, TimeUnit.SECONDS);
         LOG.info("ConfigChecker thread started with check interval of {}s", ConfigChecker.CONFIG_CHECK_INTERVAL_SECONDS);
 
         try {

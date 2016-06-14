@@ -149,5 +149,9 @@
             <id>releases</id>
             <url>${repository.url.releases}</url>
         </repository>
+        <snapshotRepository>
+            <id>releases</id>
+            <url>${repository.url.snapshots}</url>
+        </snapshotRepository>
     </distributionManagement>
 </project>
