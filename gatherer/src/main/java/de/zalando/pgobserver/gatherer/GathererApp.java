@@ -1,10 +1,5 @@
 package de.zalando.pgobserver.gatherer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import de.zalando.pgobserver.gatherer.config.Config;
-import de.zalando.sprocwrapper.proxy.executors.Executor;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,13 +9,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.restlet.Server;
-
 import org.restlet.data.Protocol;
-
 import org.restlet.resource.Get;
 import org.restlet.resource.ServerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.zalando.pgobserver.gatherer.config.Config;
 
 /**
  * @author  jmussler
@@ -89,7 +84,7 @@ public class GathererApp extends ServerResource {
 
 	private static String getConfigFileName(final String[] args) {
 		
-		if (args.length == 0) {
+        if (args.length == 0) {
             return System.getProperty("user.home") + "/.pgobserver.yaml";
         } else if (args.length == 1) {
             return args[0];
