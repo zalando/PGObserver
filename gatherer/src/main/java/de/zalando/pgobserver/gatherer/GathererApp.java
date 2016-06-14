@@ -47,20 +47,10 @@ public class GathererApp extends ServerResource {
      * @param  args  the command line arguments
      */
     public static void main(final String[] args) {
-        String configFileName;
-        Config config;
 
-        if (args.length == 0) {
-            configFileName = System.getProperty("user.home") + "/.pgobserver.yaml";
-        } else if (args.length == 1) {
-            configFileName = args[0];
-        } else {
-            LOG.error("Too many arguments on command line");
-            LOG.error("usage: gatherer [CONFIG_FILE]");
-            return;
-        }
+        final String configFileName = getConfigFileName(args);
 
-        config = Config.LoadConfigFromFile(new ObjectMapper(new YAMLFactory()), configFileName);
+        final Config config = Config.LoadConfigFromFile(configFileName);
         if ( config == null ) {
             LOG.error("Config could not be read from yaml");
             return;
@@ -95,6 +85,19 @@ public class GathererApp extends ServerResource {
             LOG.error("Could not start restlet server", ex);
         }
     }
+
+	private static String getConfigFileName(final String[] args) {
+		
+		if (args.length == 0) {
+            return System.getProperty("user.home") + "/.pgobserver.yaml";
+        } else if (args.length == 1) {
+            return args[0];
+        } else {
+            LOG.error("Too many arguments on command line");
+            LOG.error("usage: gatherer [CONFIG_FILE]");
+            return null;
+        }
+	}
 
     @Get
     public String overview() {

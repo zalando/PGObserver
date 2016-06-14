@@ -24,16 +24,16 @@ public class DBPools {
 
     public static synchronized void initializePool(final Config settings) {
         if (pgObserverDatasource == null) {
-            BoneCPConfig config = new BoneCPConfig();
+            final BoneCPConfig config = new BoneCPConfig();
             config.setAcquireIncrement(1);
             config.setJdbcUrl("jdbc:postgresql://" + settings.database.host + ":" + settings.database.port + "/"
                     + settings.database.name);
             config.setUsername(settings.database.backend_user);
             config.setPassword(settings.database.backend_password);
-            config.setPartitionCount(1);
-            config.setMaxConnectionsPerPartition(20);
-            config.setMinConnectionsPerPartition(1);
-            config.setConnectionTimeoutInMs(2000);
+            config.setPartitionCount(settings.pool.partitions);
+            config.setMaxConnectionsPerPartition(settings.pool.maxConnectionsPerPartition);
+            config.setMinConnectionsPerPartition(settings.pool.minConnectionsPerPartition);
+            config.setConnectionTimeoutInMs(settings.pool.connectionTimeoutMilliSeconds);
             config.setInitSQL("set search_path to monitor_data, monitor_api, public");
 
             pgObserverDatasource = new BoneCPDataSource(config);
@@ -41,7 +41,7 @@ public class DBPools {
             try {
 
                 // check if we can connect to our database
-                Connection tryConn = pgObserverDatasource.getConnection();
+                final Connection tryConn = pgObserverDatasource.getConnection();
                 tryConn.close();
             } catch (SQLException ex) {
                 LOG.error("Error during BoneCP pool creation, exiting", ex);
