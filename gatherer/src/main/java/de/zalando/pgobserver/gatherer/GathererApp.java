@@ -1,10 +1,5 @@
 package de.zalando.pgobserver.gatherer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import de.zalando.pgobserver.gatherer.config.Config;
-import de.zalando.sprocwrapper.proxy.executors.Executor;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -14,13 +9,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.restlet.Server;
-
 import org.restlet.data.Protocol;
-
 import org.restlet.resource.Get;
 import org.restlet.resource.ServerResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.zalando.pgobserver.gatherer.config.Config;
 
 /**
  * @author  jmussler
@@ -53,20 +48,10 @@ public class GathererApp extends ServerResource {
      * @param  args  the command line arguments
      */
     public static void main(final String[] args) {
-        String configFileName;
-        Config config;
 
-        if (args.length == 0) {
-            configFileName = System.getProperty("user.home") + "/.pgobserver.yaml";
-        } else if (args.length == 1) {
-            configFileName = args[0];
-        } else {
-            LOG.error("Too many arguments on command line");
-            LOG.error("usage: gatherer [CONFIG_FILE]");
-            return;
-        }
+        final String configFileName = getConfigFileName(args);
 
-        config = Config.LoadConfigFromFile(new ObjectMapper(new YAMLFactory()), configFileName);
+        final Config config = Config.LoadConfigFromFile(configFileName);
         if ( config == null ) {
             LOG.error("Config could not be read from yaml");
             return;
@@ -80,7 +65,6 @@ public class GathererApp extends ServerResource {
         config.database.backend_password = getEnv("PGOBS_PASSWORD", config.database.backend_password);
 
         LOG.info("Connection to db:{} using user: {}", config.database.host, config.database.backend_user);
-        
         DBPools.initializePool(config);
 
         GathererApp.hosts = new TreeMap<Integer, Host>(); 
@@ -94,6 +78,19 @@ public class GathererApp extends ServerResource {
             new Server(Protocol.HTTP, 8182, GathererApp.class).start();
         } catch (Exception ex) {
             LOG.error("Could not start restlet server", ex);
+        }
+    }
+
+    private static String getConfigFileName(final String[] args) {
+
+        if (args.length == 0) {
+            return System.getProperty("user.home") + "/.pgobserver.yaml";
+        } else if (args.length == 1) {
+            return args[0];
+        } else {
+            LOG.error("Too many arguments on command line");
+            LOG.error("usage: gatherer [CONFIG_FILE]");
+            return null;
         }
     }
 
