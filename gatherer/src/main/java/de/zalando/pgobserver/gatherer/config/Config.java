@@ -29,13 +29,13 @@ public class Config {
         try {
             final Reader reader = new FileReader(file);
             return LoadConfigFromStream(reader);
-        } catch (IOException ex) { // TODO: check FileNotFoundException
+        } catch (IOException ex) {
             LOG.error("Error reading config file", ex);
         }
         return null;
     }
 
-	public static Config LoadConfigFromStream(Reader reader) {
+    public static Config LoadConfigFromStream(Reader reader) {
         try {
             final ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
             return mapper.readValue(
@@ -45,5 +45,5 @@ public class Config {
             LOG.error("Error reading configuration: ", ex);
         }
         return null;
-	}
+    }
 }

@@ -65,7 +65,6 @@ public class GathererApp extends ServerResource {
         config.database.backend_password = getEnv("PGOBS_PASSWORD", config.database.backend_password);
 
         LOG.info("Connection to db:{} using user: {}", config.database.host, config.database.backend_user);
-        
         DBPools.initializePool(config);
 
         GathererApp.hosts = new TreeMap<Integer, Host>(); 
@@ -82,8 +81,8 @@ public class GathererApp extends ServerResource {
         }
     }
 
-	private static String getConfigFileName(final String[] args) {
-		
+    private static String getConfigFileName(final String[] args) {
+
         if (args.length == 0) {
             return System.getProperty("user.home") + "/.pgobserver.yaml";
         } else if (args.length == 1) {
@@ -93,7 +92,7 @@ public class GathererApp extends ServerResource {
             LOG.error("usage: gatherer [CONFIG_FILE]");
             return null;
         }
-	}
+    }
 
     @Get
     public String overview() {
