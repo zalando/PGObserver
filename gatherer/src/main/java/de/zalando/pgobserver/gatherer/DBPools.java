@@ -22,7 +22,8 @@ public class DBPools {
 
     public static final Logger LOG = LoggerFactory.getLogger(DBPools.class);
 
-    public static synchronized void initializePool(final Config settings) {
+    public static synchronized boolean initializePool(final Config settings) {
+        LOG.info("Connection to db:{} using user: {}", settings.database.host, settings.database.backend_user);
         if (pgObserverDatasource == null) {
             final BoneCPConfig config = new BoneCPConfig();
             config.setAcquireIncrement(1);
@@ -30,10 +31,10 @@ public class DBPools {
                     + settings.database.name);
             config.setUsername(settings.database.backend_user);
             config.setPassword(settings.database.backend_password);
-            config.setPartitionCount(settings.pool.partitions);
-            config.setMaxConnectionsPerPartition(settings.pool.maxConnectionsPerPartition);
-            config.setMinConnectionsPerPartition(settings.pool.minConnectionsPerPartition);
-            config.setConnectionTimeoutInMs(settings.pool.connectionTimeoutMilliSeconds);
+            config.setPartitionCount(settings.pool.getPartitions());
+            config.setMaxConnectionsPerPartition(settings.pool.getMaxConnectionsPerPartition());
+            config.setMinConnectionsPerPartition(settings.pool.getMinConnectionsPerPartition());
+            config.setConnectionTimeoutInMs(settings.pool.getConnectionTimeoutMilliSeconds());
             config.setInitSQL("set search_path to monitor_data, monitor_api, public");
 
             pgObserverDatasource = new BoneCPDataSource(config);
@@ -45,10 +46,10 @@ public class DBPools {
                 tryConn.close();
             } catch (SQLException ex) {
                 LOG.error("Error during BoneCP pool creation, exiting", ex);
-                System.exit(1);
+                return false;
             }
-
         }
+        return true;
     }
 
     public static DataSource getDatasource() {

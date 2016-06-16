@@ -64,8 +64,9 @@ public class GathererApp extends ServerResource {
         config.database.backend_user = getEnv("PGOBS_USER", config.database.backend_user);
         config.database.backend_password = getEnv("PGOBS_PASSWORD", config.database.backend_password);
 
-        LOG.info("Connection to db:{} using user: {}", config.database.host, config.database.backend_user);
-        DBPools.initializePool(config);
+        if (!DBPools.initializePool(config)){
+            return;
+        };
 
         GathererApp.hosts = new TreeMap<Integer, Host>(); 
         ScheduledExecutorService configCheckService = Executors.newScheduledThreadPool(1);
