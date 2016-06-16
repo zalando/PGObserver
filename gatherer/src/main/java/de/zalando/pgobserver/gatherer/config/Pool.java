@@ -1,7 +1,7 @@
 package de.zalando.pgobserver.gatherer.config;
 
 public class Pool {
-    private int partitions                    = 2;
+    private int partitions                    = 1;
     private int maxConnectionsPerPartition    = 20;
     private int minConnectionsPerPartition    = 1;
     private int connectionTimeoutMilliSeconds = 2000;
