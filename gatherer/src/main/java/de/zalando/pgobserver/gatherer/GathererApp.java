@@ -66,7 +66,7 @@ public class GathererApp extends ServerResource {
 
         if (!DBPools.initializePool(config)){
             return;
-        };
+        }
 
         GathererApp.hosts = new TreeMap<Integer, Host>(); 
         ScheduledExecutorService configCheckService = Executors.newScheduledThreadPool(1);
