@@ -18,7 +18,7 @@ public class ConfigTest {
 		assertNotNull(config);
 		assertNotNull(config.pool);
 		int x = config.pool.getPartitions();
-		assertEquals(x, 2);
+		assertEquals(x, 1);
 		Integer max = config.pool.getMaxConnectionsPerPartition();
 		assertEquals(max.intValue(), 20);
 	}
@@ -33,7 +33,7 @@ public class ConfigTest {
 		assertNotNull(config.pool);
 		assertEquals(config.database.name, "local_pgo_db");
 		int x = config.pool.getPartitions();
-		assertEquals(x, 2);
+		assertEquals(x, 1);
 		Integer max = config.pool.getMaxConnectionsPerPartition();
 		assertEquals(max.intValue(), 20);
 		
