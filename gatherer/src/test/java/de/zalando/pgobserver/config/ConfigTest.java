@@ -17,9 +17,9 @@ public class ConfigTest {
 		Config config = Config.LoadConfigFromFile("pgobserver_gatherer.example.yaml");
 		assertNotNull(config);
 		assertNotNull(config.pool);
-		Integer x = config.pool.partitions;
-		assertEquals(x.intValue(), 2);
-		Integer max = config.pool.maxConnectionsPerPartition;
+		int x = config.pool.getPartitions();
+		assertEquals(x, 1);
+		Integer max = config.pool.getMaxConnectionsPerPartition();
 		assertEquals(max.intValue(), 20);
 	}
 	
@@ -32,9 +32,9 @@ public class ConfigTest {
 		assertNotNull(config);
 		assertNotNull(config.pool);
 		assertEquals(config.database.name, "local_pgo_db");
-		Integer x = config.pool.partitions;
-		assertEquals(x.intValue(), 2);
-		Integer max = config.pool.maxConnectionsPerPartition;
+		int x = config.pool.getPartitions();
+		assertEquals(x, 1);
+		Integer max = config.pool.getMaxConnectionsPerPartition();
 		assertEquals(max.intValue(), 20);
 		
 	}
@@ -47,9 +47,9 @@ public class ConfigTest {
 		Config config = Config.LoadConfigFromStream(reader);
 		assertNotNull(config);
 		assertNotNull(config.pool);
-		Integer x = config.pool.partitions;
-		assertEquals(x.intValue(), 3);
-		Integer max = config.pool.maxConnectionsPerPartition;
-		assertEquals(max.intValue(), 20);
+		int x = config.pool.getPartitions();
+		assertEquals(x, 3);
+		int max = config.pool.getMaxConnectionsPerPartition();
+		assertEquals(max, 20);
 	}
 }
