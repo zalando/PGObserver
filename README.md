@@ -1,7 +1,7 @@
 PGObserver
 ==========
 
-PGObserver is a battle-tested monitoring solution for your PostgreSQL databases. It covers almost all the metrics provided by the database engine's internal statistics collector, and works out of the box with all PostgreSQL versions (beginning with 9.0) as well as (https://aws.amazon.com/rds/). You don’t have to install any non-standard, server-side database extensions to take advantage of its core functionality, nor do you need to register any privileged users.
+PGObserver is a battle-tested monitoring solution for your PostgreSQL databases. It covers almost all the metrics provided by the database engine's internal statistics collector, and works out of the box with all PostgreSQL versions (beginning with 9.0) as well as [AWS RDS](https://aws.amazon.com/rds/). You don’t have to install any non-standard, server-side database extensions to take advantage of its core functionality, nor do you need to register any privileged users.
 
 ###Monitored Metrics Include:
 - **Stored procedure data**: number of calls, run time per procedure, self time per procedure
