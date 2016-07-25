@@ -5,7 +5,8 @@ PGObserver is a battle-tested monitoring solution for your PostgreSQL databases.
 
 ###Monitored Metrics Include:
 - **Stored procedure data**: number of calls, run time per procedure, self time per procedure
-- **All executed statements data **: query runtimes, call counts, time spent on IO; based on the pg_stat_statements module, which must be enabled on the DB
+- **All executed statements data**: query runtimes, call counts, time spent on IO
+    - based on the pg_stat_statements module, which must be enabled on the DB
 - **Table IO statistics**: number of sequential and index scans, number of inserts, (hot) updates, deletes, table and index size, heap hits vs disk hits
 - **General database indicators**: number of backends, exceptions, deadlocks, temporary files written
 - **Schema usage**: procedure calls, IUD
@@ -13,17 +14,17 @@ PGObserver is a battle-tested monitoring solution for your PostgreSQL databases.
 - WAL (XLOG) volumes
 - Index usage
 
-For some metrics, you will have to install data-gathering wrapper functions — also known as stored procedures — on the server being monitored. This will enable you to circumvent the superuser requirements.
+For some metrics you must install data-gathering wrapper functions — also known as stored procedures — on the server being monitored. This will enable you to circumvent the superuser requirements.
 
 Go [here](https://zalando.github.io/PGObserver/) for some PGObserver screenshots and a nice illustration by Zalando Tech resident artist [Kolja Wilcke](https://github.com/kolja).
 
 ###Additional Features 
-With some extra setup ([see instructions](https://github.com/zalando/PGObserver/tree/master/extra_features), you can also:
+With some extra setup ([see instructions](https://github.com/zalando/PGObserver/tree/master/extra_features)), you can also:
 
 - monitor blocked processes (needs a cron script on the host DB)
 - monitor pg_stat_statements (needs an enabled pg_stat_statements extension)
--Do cron aggregations for speeding up sproc load and database size graphs; these are useful when monitoring tens of instances
-- export metrics data to [InfluxDB](https://influxdb.com/) for custom charting/dashboarding with [Grafana](http://grafana.org/)or some other tool
+- Do cron aggregations for speeding up sproc load and database size graphs; these are useful when monitoring tens of instances
+- export metrics data to [InfluxDB](https://influxdb.com/) for custom charting/dashboarding with [Grafana](http://grafana.org/) or some other tool
 
 ###How PGObserver Works
 A Java application gathers metrics by querying PostgreSQL performance views (pg_stat_*). You can configure gathering intervals for the different metrics on a per-host, per-metric basis. This enables you to gather more details for critical systems and provide fewer details for less-important systems — thereby reducing the amount of data stored. 
@@ -32,7 +33,7 @@ Additionally, you can configure sets of hosts to monitor from different Java pro
 
 PGObserver’s frontend is a standalone Python + [CherryPy](http://www.cherrypy.org/) application; the ["screenshots" folder](https://github.com/zalando/PGObserver/tree/master/screenshots) includes basic examples. Charts are rendered with the JS [Flot](http://www.flotcharts.org/) library.
 
-To help you generate generate minimalistic test data for a local test setup, we’ve included[this] (https://github.com/zalando/PGObserver/blob/master/frontend/src/testdata.py) script.
+To help you generate generate minimalistic test data for a local test setup, we’ve included [this] (https://github.com/zalando/PGObserver/blob/master/frontend/src/testdata.py) script.
 
 ###Quick Test Run Using Vagrant
 
