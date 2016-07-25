@@ -18,7 +18,7 @@ For some metrics, you will have to install data-gathering wrapper functions — 
 Go [here](https://zalando.github.io/PGObserver/) for some PGObserver screenshots and a nice illustration by Zalando Tech resident artist [Kolja Wilcke](https://github.com/kolja).
 
 ###Additional Features 
-With some extra setup (instructions found [here](https://github.com/zalando/PGObserver/tree/master/extra_features), you can also:
+With some extra setup ([see instructions](https://github.com/zalando/PGObserver/tree/master/extra_features), you can also:
 
 - monitor blocked processes (needs a cron script on the host DB)
 - monitor pg_stat_statements (needs an enabled pg_stat_statements extension)
@@ -30,7 +30,7 @@ A Java application gathers metrics by querying PostgreSQL performance views (pg_
 
 Additionally, you can configure sets of hosts to monitor from different Java processes — for example, when deploying to multiple locations with limited accessibility.
 
-PGObserver’s frontend is a standalone Python + [CherryPy](http://www.cherrypy.org/) application; see the ["screenshots" folder](https://github.com/zalando/PGObserver/tree/master/screenshots) for basic examples. Charts are rendered with the JS [Flot](http://www.flotcharts.org/) library.
+PGObserver’s frontend is a standalone Python + [CherryPy](http://www.cherrypy.org/) application; the ["screenshots" folder](https://github.com/zalando/PGObserver/tree/master/screenshots) includes basic examples. Charts are rendered with the JS [Flot](http://www.flotcharts.org/) library.
 
 To help you generate generate minimalistic test data for a local test setup, we’ve included[this] (https://github.com/zalando/PGObserver/blob/master/frontend/src/testdata.py) script.
 
@@ -48,7 +48,7 @@ This last step will take a while, as PGObserver performs the following inside th
 - Fetches and starts an official PostgreSQL 9.3 Docker image
 - Compiles the gatherer for you, creates a Docker image, and starts it inside the VM
 - Creates a Docker image for the frontend and starts it inside the VM
-- Exposes ports 38080 and 38081 for the frontend and the gatherer, respectively. You can then open the frontend on port 38080 and configure a database cluster to be monitored — e.g., http://localhost:38080/hosts/
+- Exposes ports 38080 and 38081 for the frontend and the gatherer, respectively. You can then open the frontend on port 38080 and configure a database cluster to monitor — e.g., http://localhost:38080/hosts/
 
 The easiest way to run it somewhere else is to change the config files and create your own Docker images to deploy. Just point it to the PostgreSQL cluster where you created the PGObserver database.
 
@@ -81,29 +81,29 @@ Start by preparing your configuration files for [gatherer](https://github.com/za
 
 You can either:
 - Insert an entry to the monitor_data.hosts table to include the connection details and to-be-monitored features of the cluster you want to monitor (include the same password that you used in the previous step); **OR** 
-- use the "frontend" web application's (next step) /hosts page, inserting all needed data and pressing "add", followed by "reload" to refresh menus
-    - set host_gather_group to decide which gatherer monitors which cluster
-    - To decide which schemas are scanned for sprocs statistics, review the table sproc_schemas_monitoring_configuration. Defaults are provided.
+- use the "frontend" web application's (next step) `/hosts` page, inserting all needed data and pressing "add", followed by "reload" to refresh menus
+    - set `host_gather_group` to decide which gatherer monitors which cluster
+    - to decide which schemas are scanned for sprocs statistics, review the table `sproc_schemas_monitoring_configuration`. Defaults are provided.
 
 Some features will require you to create according helper functions on the databases being monitored:
-- CPU load monitoring requires a stored procedure from "sql/data_collection_helpers/cpu_load.sql". This is a plpythonu function, so a superuser is needed.
+- CPU load monitoring requires a stored procedure from [cpu_load.sql](https://github.com/zalando/PGObserver/blob/master/sql/data_collection_helpers/cpu_load.sql). This is a plpythonu function, so a superuser is needed.
 - For pg_stat_statement monitoring, you need [this file](https://github.com/zalando/PGObserver/blob/master/sql/data_collection_helpers/get_stat_statements.sql).
 - For table & index bloat query, you need [this](https://github.com/zalando/PGObserver/blob/master/sql/data_collection_helpers/bloated_tables_and_indexes.sql).
 - Blocking processes monitoring requires setup from [this folder](https://github.com/zalando/PGObserver/tree/master/extra_features/blocking_monitor).
 
-Run the frontend by going into "frontend" folder and running run.sh, which does a "python src/web.py" and puts it in the background:
+Run the frontend by going into [the "frontend" folder](https://github.com/zalando/PGObserver/tree/master/frontend) and running [run.sh](https://github.com/zalando/PGObserver/blob/master/frontend/run.sh), which creates a "python src/web.py" and puts it in the background:
 
 ```
 frontend$ ./run.sh --config frontend.yaml
 ```
 
-Build the data gatherer single jar, including dependencies, by going to the "gatherer" folder and running:
+Build the data gatherer single jar, including dependencies, by going to [the "gatherer" folder](https://github.com/zalando/PGObserver/tree/master/gatherer) and running:
 
 ```
 mvn clean verify assembly:single
 ```
 
-Start data monitoring daemons by running run.sh. 
+Start data monitoring daemons by running [run.sh](https://github.com/zalando/PGObserver/blob/master/gatherer/run.sh). 
  
 ###Troubleshooting Hint
 ----
@@ -113,7 +113,7 @@ You might have to change your PostgreSQL server configuration to gather certain 
 PGObserver welcomes contributions to the community. Please go to the [Issues](https://github.com/zalando/pgobserver/issues) page to learn more about planned project enhancements and noted bugs. Feel free to make a pull request and we'll take a look.
 
 ###Thank You
-Thank you to our contributors: Zalando Tech plus Fabian Genter.
+Thank you to our Zalando contributors, as well as Fabian Genter.
 
 ###License
 Copyright 2012 Zalando GmbH
