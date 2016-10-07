@@ -32,7 +32,7 @@ echo "                                                                          
 progress 'Checking prerequisites'
 git --version > /dev/null || fail "git is required"
 
-MAVEN_VERSION=$(mvn --version | head -n 1 | grep -o '3\.')
+MAVEN_VERSION=$(mvn --version | head -n 1 | grep -o '3\.' | head -c 2)
 [ "v$MAVEN_VERSION" = "v3." ] || fail "Maven 3 is required"
 
 JAVA_VERSION=$(java -version 2>&1 | head -n 1 | grep -o '1\.[78]')
