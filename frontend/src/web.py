@@ -86,7 +86,7 @@ def main():
     ))
     print 'Setting connection string to ... ' + conn_string
     # finished print conn_string to the world, password can be added
-    conn_string = conn_string + ' password=' + settings['database']['frontend_password']
+    conn_string = conn_string + ' password=' + settings['database']['password']
 
     datadb.setConnectionString(conn_string)
 
