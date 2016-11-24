@@ -190,6 +190,7 @@ DECLARE
         ) AS s2
         JOIN pg_am am ON s2.relam = am.oid WHERE am.amname = 'btree'
         ) AS sub
+        WHERE NOT is_na
     ) AS o
     ORDER BY
       CASE WHEN p_order_by_bloat_factor THEN bloat_ratio ELSE bloat_size END DESC
