@@ -123,16 +123,23 @@ DECLARE
       bloat_size::numeric,
       pg_size_pretty(bloat_size::int8)
     FROM (
-        SELECT current_database(), nspname AS schemaname, tblname, idxname, bs*(sub.relpages)::bigint AS real_size,
-        bs*est_pages::bigint as estimated_size,
-        bs*(sub.relpages-est_pages)::bigint AS bloat_size,
-        100 * (sub.relpages-est_pages)::float / sub.relpages AS bloat_ratio, is_na
+        SELECT current_database(), nspname AS schemaname, tblname, idxname, bs*(relpages-est_pages)::bigint AS extra_size,
+        100 * (relpages-est_pages)::float / relpages AS extra_ratio,
+        fillfactor, bs*(relpages-est_pages_ff) AS bloat_size,
+        100 * (relpages-est_pages_ff)::float / relpages AS bloat_ratio,
+        is_na
         FROM (
-        SELECT bs, nspname, table_oid, tblname, idxname, relpages, coalesce(
-        1+ceil(reltuples/floor((bs-pageopqdata-pagehdr)/(4+nulldatahdrwidth)::float)), 0
-        ) AS est_pages, is_na
+        SELECT
+        coalesce(
+        1 +
+        ceil(reltuples/floor((bs-pageopqdata-pagehdr)/(4+nulldatahdrwidth)::float))
+        , 0) AS est_pages,
+        coalesce(
+        1 + ceil(reltuples/floor((bs-pageopqdata-pagehdr)*fillfactor/(100*(4+nulldatahdrwidth)::float)))
+        , 0) AS est_pages_ff,
+        bs, nspname, table_oid, tblname, idxname, relpages, fillfactor, is_na
         FROM (
-        SELECT maxalign, bs, nspname, tblname, idxname, reltuples, relpages, relam, table_oid,
+        SELECT maxalign, bs, nspname, tblname, idxname, reltuples, relpages, relam, table_oid, fillfactor,
         ( index_tuple_hdr_bm +
         maxalign - CASE
         WHEN index_tuple_hdr_bm%maxalign = 0 THEN maxalign
@@ -148,6 +155,7 @@ DECLARE
         SELECT
         i.nspname, i.tblname, i.idxname, i.reltuples, i.relpages, i.relam, a.attrelid AS table_oid,
         current_setting('block_size')::numeric AS bs,
+        fillfactor,
         CASE
         WHEN version() ~ 'mingw32' OR version() ~ '64-bit|x86_64|ppc64|ia64|amd64' THEN 8
         ELSE 4
@@ -163,12 +171,14 @@ DECLARE
         FROM pg_attribute AS a
         JOIN (
         SELECT nspname, tbl.relname AS tblname, idx.relname AS idxname, idx.reltuples, idx.relpages, idx.relam,
-        indrelid, indexrelid, indkey::smallint[] AS attnum
+        indrelid, indexrelid, indkey::smallint[] AS attnum, coalesce(substring(
+        array_to_string(idx.reloptions, ' ')
+        from 'fillfactor=([0-9]+)')::smallint, 90) AS fillfactor
         FROM pg_index
         JOIN pg_class idx ON idx.oid=pg_index.indexrelid
         JOIN pg_class tbl ON tbl.oid=pg_index.indrelid
         JOIN pg_namespace ON pg_namespace.oid = idx.relnamespace
-        WHERE pg_index.indisvalid AND tbl.relkind = 'r'
+        WHERE pg_index.indisvalid AND tbl.relkind = 'r' AND idx.relpages > 0
         ) AS i ON a.attrelid = i.indexrelid
         JOIN pg_stats AS s ON s.schemaname = i.nspname
         AND ((s.tablename = i.tblname AND s.attname = pg_catalog.pg_get_indexdef(a.attrelid, a.attnum, TRUE))
