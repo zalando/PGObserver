@@ -10,10 +10,11 @@ def get_s3_key_as_string(s3_url):
 
     Args:
         s3_url (str): in form of 'https://s3-eu-west-1.amazonaws.com/x/y/file.yaml'
+        or 'https://s3.eu-central-1.amazonaws.com/x/y/file.yaml'
     Returns:
         str: content of given s3 bucket as string
     """
-    m = re.match('https?://s3-(.*)\.amazonaws.com/(.*)', s3_url)
+    m = re.match('https?://s3[.-](.*)\.amazonaws.com/(.*)', s3_url)
     if not m:
         raise Exception('Invalid S3 url: {}'.format(s3_url))
     region_name, bucket_path_with_key_name = m.groups()
