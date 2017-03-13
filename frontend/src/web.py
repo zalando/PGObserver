@@ -69,7 +69,7 @@ def main():
     settings['database']['port'] = (os.getenv('PGOBS_PORT') or settings['database'].get('port') or 5432)
     settings['database']['name'] = (os.getenv('PGOBS_DATABASE') or settings['database'].get('name'))
     settings['database']['frontend_user'] = (os.getenv('PGOBS_USER') or settings['database'].get('frontend_user'))
-    settings['database']['password'] = (os.getenv('PGOBS_PASSWORD') or settings['database'].get('frontend_password'))
+    settings['database']['frontend_password'] = (os.getenv('PGOBS_PASSWORD') or settings['database'].get('frontend_password'))
 
     if not (settings['database'].get('host') and settings['database'].get('name') and settings['database'].get('frontend_user')):
         print 'Mandatory datastore connect details missing!'
