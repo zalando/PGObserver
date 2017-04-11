@@ -35,12 +35,11 @@ class Oauth(cherrypy.Tool):
         # the following are used to identify current state
         auth_code = cherrypy.request.params.get('code')
         target_url = cherrypy.request.params.get('state')
-        scope = cherrypy.request.params.get('scope')
         error = cherrypy.request.params.get('error')
         error_description = cherrypy.request.params.get('error_description')
 
         # user has been redirected back by self.authorize_url
-        if auth_code and scope and target_url:
+        if auth_code and target_url:
             # get access token
             data = {'grant_type': 'authorization_code', 'code': auth_code, 'redirect_uri': self.redirect_url}
             for i in range(2):  # 2 tries
