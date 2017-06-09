@@ -3,7 +3,7 @@ PGObserver
 
 PGObserver is a battle-tested monitoring solution for your PostgreSQL databases. It covers almost all the metrics provided by the database engine's internal statistics collector, and works out of the box with all PostgreSQL versions (beginning with 9.0) as well as [AWS RDS](https://aws.amazon.com/rds/). You don’t have to install any non-standard, server-side database extensions to take advantage of its core functionality, nor do you need to register any privileged users.
 
-###Monitored Metrics Include:
+### Monitored Metrics Include:
 - **Stored procedure data**: number of calls, run time per procedure, self time per procedure
 - **All executed statements data**: query runtimes, call counts, time spent on IO
     - based on the pg_stat_statements module, which must be enabled on the DB
@@ -18,7 +18,7 @@ For some metrics you must install data-gathering wrapper functions — also know
 
 Go [here](https://zalando.github.io/PGObserver/) for some PGObserver screenshots and a nice illustration by Zalando Tech resident artist [Kolja Wilcke](https://github.com/kolja).
 
-###Additional Features 
+### Additional Features 
 With some extra setup ([see instructions](https://github.com/zalando/PGObserver/tree/master/extra_features)), you can also:
 
 - monitor blocked processes (needs a cron script on the host DB)
@@ -26,7 +26,7 @@ With some extra setup ([see instructions](https://github.com/zalando/PGObserver/
 - Do cron aggregations for speeding up sproc load and database size graphs; these are useful when monitoring tens of instances
 - export metrics data to [InfluxDB](https://influxdb.com/) for custom charting/dashboarding with [Grafana](http://grafana.org/) or some other tool
 
-###How PGObserver Works
+### How PGObserver Works
 A Java application gathers metrics by querying PostgreSQL performance views (pg_stat_*). You can configure gathering intervals for the different metrics on a per-host, per-metric basis. This enables you to gather more details for critical systems and provide fewer details for less-important systems — thereby reducing the amount of data stored. 
 
 Additionally, you can configure sets of hosts to monitor from different Java processes — for example, when deploying to multiple locations with limited accessibility.
@@ -35,7 +35,7 @@ PGObserver’s frontend is a standalone Python + [CherryPy](http://www.cherrypy.
 
 To help you generate generate minimalistic test data for a local test setup, we’ve included [this] (https://github.com/zalando/PGObserver/blob/master/frontend/src/testdata.py) script.
 
-###Quick Test Run Using Vagrant
+### Quick Test Run Using Vagrant
 
 Make sure you've installed the latest version of [Vagrant](https://www.vagrantup.com/). Use Vagrant to clone PGObserver to the machine where you want to run it. Then run from the PGObserver base directory:
 
@@ -53,7 +53,7 @@ This last step will take a while, as PGObserver performs the following inside th
 
 The easiest way to run it somewhere else is to change the config files and create your own Docker images to deploy. Just point it to the PostgreSQL cluster where you created the PGObserver database.
 
-###Setup
+### Setup
 
 Install:
 - Python 2.7 (to run PGObserver’s frontend)
@@ -70,7 +70,7 @@ Create a schema by executing the SQL files from your sql/schema folder on a Post
 cat sql/schema/*.sql | psql -1 -f - -d my_pgobserver_db
 ```
 
-###Configuration
+### Configuration
 
 Start by preparing your configuration files for [gatherer](https://github.com/zalando/PGObserver/blob/master/gatherer/pgobserver_gatherer.example.yaml) and [frontend](https://github.com/zalando/PGObserver/blob/master/frontend/pgobserver_frontend.example.yaml); the provided examples are good starting points.
 - set your database connection parameters: name, host and port
@@ -78,7 +78,7 @@ Start by preparing your configuration files for [gatherer](https://github.com/za
 - set gather_group (important for gatherer only; enables many gatherer processes)
 - create an unprivileged user on the database you want to monitor; to do selects from the system catalogs   
 
-####Configuring Hosts to Monitor
+#### Configuring Hosts to Monitor
 
 You can either:
 - Insert an entry to the monitor_data.hosts table to include the connection details and to-be-monitored features of the cluster you want to monitor (include the same password that you used in the previous step); **OR** 
@@ -106,17 +106,17 @@ mvn clean verify assembly:single
 
 Start data monitoring daemons by running [run.sh](https://github.com/zalando/PGObserver/blob/master/gatherer/run.sh). 
  
-###Troubleshooting Hint
+### Troubleshooting Hint
 ----
 You might have to change your PostgreSQL server configuration to gather certain types of statistics. Please refer to the Postgres documentation on [The Statistics Collector](http://www.postgresql.org/docs/9.3/static/monitoring-stats.html) and [pg_stat_statements](http://www.postgresql.org/docs/9.3/static/pgstatstatements.html).
 
-###Contributions
+### Contributions
 PGObserver welcomes contributions to the community. Please go to the [Issues](https://github.com/zalando/pgobserver/issues) page to learn more about planned project enhancements and noted bugs. Feel free to make a pull request and we'll take a look.
 
-###Thank You
+### Thank You
 Thank you to our Zalando contributors, as well as Fabian Genter.
 
-###License
+### License
 Copyright 2012 Zalando GmbH
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
