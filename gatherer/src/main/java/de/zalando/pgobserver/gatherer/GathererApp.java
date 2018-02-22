@@ -76,7 +76,7 @@ public class GathererApp extends ServerResource {
 
         try {
             LOG.info("Starting restlet server");
-            new Server(Protocol.HTTP, 8182, GathererApp.class).start();
+            new Server(Protocol.HTTP, Integer.parseInt(getEnv("HTTP_PORT", "8182")), GathererApp.class).start();
         } catch (Exception ex) {
             LOG.error("Could not start restlet server", ex);
         }
