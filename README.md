@@ -26,6 +26,10 @@ With some extra setup ([see instructions](https://github.com/zalando/PGObserver/
 - Do cron aggregations for speeding up sproc load and database size graphs; these are useful when monitoring tens of instances
 - export metrics data to [InfluxDB](https://influxdb.com/) for custom charting/dashboarding with [Grafana](http://grafana.org/) or some other tool
 
+### Status
+
+Still in use but does not receive active attention or development as stored procedure usage has dropped in new projects.
+
 ### How PGObserver Works
 A Java application gathers metrics by querying PostgreSQL performance views (pg_stat_*). You can configure gathering intervals for the different metrics on a per-host, per-metric basis. This enables you to gather more details for critical systems and provide fewer details for less-important systems — thereby reducing the amount of data stored. 
 
