@@ -54,7 +54,7 @@
     </build>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <jackson.xml.version>2.9.9</jackson.xml.version>
+        <jackson.xml.version>2.9.9.1</jackson.xml.version>
         <restlet.version>2.3.12</restlet.version>
     </properties>
 
