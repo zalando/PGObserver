@@ -1,6 +1,5 @@
 package de.zalando.pgobserver.gatherer;
 
-import com.google.common.base.Splitter;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -44,20 +43,20 @@ public class SprocIdCache {
     }
 
     public static String getFunctionName(SprocPerfValue v) {
-        List<String> types;
-        List<String> modes;
+        String[] types;
+        String[] modes;
 
         if (v.parameters == null || "".equals(v.parameters)) {
-            types = new ArrayList<>(0);
+            types = new String[0];
         } else {
-            types = Splitter.on(',').splitToList(v.parameters);
+            types = v.parameters.split(",");
         }
         
         if(v.parameterModes == null || "".equals(v.parameterModes)) {
-            modes = new ArrayList<>(0);
+            modes = new String[0];
         }
         else {
-            modes = Splitter.on(',').splitToList(v.parameterModes);
+            modes = v.parameterModes.split(",");
         }
 
         StringBuilder b = new StringBuilder();
@@ -69,7 +68,7 @@ public class SprocIdCache {
                 b.append(", ");
             }
 
-            if (modes.size() > i && modes.get(i).equals("o")) {
+            if (modes.length > i && modes[i].equals("o")) {
                 b.append(t);
             } else {
                 b.append("i ").append(t);
@@ -88,12 +87,12 @@ public class SprocIdCache {
      * @return
      */
     public static String getOldFunctionName(SprocPerfValue v) {
-        List<String> types;
+        String[] types;
 
         if (v.parameters == null || "".equals(v.parameters)) {
-            types = new ArrayList<>(0);
+            types = new String[0];
         } else {
-            types = Splitter.on(',').splitToList(v.parameters);
+            types = v.parameters.split(",");
         }
 
         StringBuilder b = new StringBuilder();
